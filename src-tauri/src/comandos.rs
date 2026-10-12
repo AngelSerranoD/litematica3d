@@ -8,11 +8,15 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde::Serialize;
+use tauri::ipc::Response;
 use tauri::{AppHandle, Manager, State};
 
 use crate::biblioteca::{Biblioteca, Detalle, Entrada, Importacion};
 use crate::error::ErrorApp;
+use crate::malla::{self, BloqueSeleccionado, CacheVisor, DatosAtlas, FuenteTexturas, Mundo};
 use crate::materiales::{self, ListaMateriales, Opciones};
+use crate::texturas::versiones::VersionMinecraft;
+use crate::texturas::{Ajustes, GestorTexturas};
 
 /// Resultado de importar un archivo. El fallo de uno no aborta los demás.
 #[derive(Debug, Serialize)]
@@ -107,7 +111,12 @@ pub async fn renombrar(
 }
 
 #[tauri::command]
-pub async fn eliminar(biblioteca: State<'_, Arc<Biblioteca>>, id: String) -> Result<(), ErrorApp> {
+pub async fn eliminar(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    cache: State<'_, Arc<CacheVisor>>,
+    id: String,
+) -> Result<(), ErrorApp> {
+    cache.olvidar(&id);
     let b = biblioteca.inner().clone();
     en_segundo_plano(move || b.eliminar(&id)).await
 }
@@ -125,6 +134,130 @@ pub async fn materiales(
         materiales::calcular(&schem, &opciones)
     })
     .await
+}
+
+/// Schematic combinado del id: de la caché o leído y parseado (y cacheado).
+fn mundo_de(b: &Biblioteca, cache: &CacheVisor, id: &str) -> Result<Arc<Mundo>, ErrorApp> {
+    if let Some(m) = cache.obtener(id) {
+        return Ok(m);
+    }
+    let (entrada, schem) = b.cargar(id)?;
+    let mundo = Mundo::desde_schematic(&schem).map_err(|detalle| ErrorApp::DemasiadoGrande {
+        archivo: entrada.nombre,
+        detalle,
+    })?;
+    drop(schem);
+    let mundo = Arc::new(mundo);
+    cache.guardar(id, Arc::clone(&mundo));
+    Ok(mundo)
+}
+
+/// Malla 3D del schematic en el formato binario de `docs/visor.md`
+/// (llega a JS como `ArrayBuffer`). `capas`: solo las capas Y de ese rango
+/// (coordenadas del modelo, inclusivo); lo de fuera cuenta como aire.
+///
+/// Usa el atlas activo si ya está preparado; si no, sale solo con colores
+/// (`atlas: null`) y deja la preparación en marcha en segundo plano.
+#[tauri::command]
+pub async fn malla(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    cache: State<'_, Arc<CacheVisor>>,
+    texturas: State<'_, Arc<GestorTexturas>>,
+    id: String,
+    capas: Option<[i32; 2]>,
+) -> Result<Response, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    let c = cache.inner().clone();
+    let activo = texturas.listo();
+    if activo.is_none() {
+        preparar_en_fondo(texturas.inner().clone());
+    }
+    en_segundo_plano(move || {
+        let mundo = mundo_de(&b, &c, &id)?;
+        let opciones = malla::Opciones {
+            capas,
+            ..Default::default()
+        };
+        let fuente = activo.as_deref().map(|a| a as &dyn FuenteTexturas);
+        let m = malla::mallar_con_texturas(&mundo, &opciones, fuente).map_err(ErrorApp::Interno)?;
+        Ok(Response::new(malla::binario::serializar(&m)))
+    })
+    .await
+}
+
+/// Prepara el atlas de la versión elegida sin esperar el resultado (si
+/// falla, `malla` sigue con colores y `atlas` devolverá el error).
+pub fn preparar_en_fondo(gestor: Arc<GestorTexturas>) {
+    tauri::async_runtime::spawn_blocking(move || {
+        let _ = gestor.preparar();
+    });
+}
+
+/// Versiones de Minecraft instaladas con jar, releases y recientes primero.
+#[tauri::command]
+pub async fn versiones_minecraft(
+    texturas: State<'_, Arc<GestorTexturas>>,
+) -> Result<Vec<VersionMinecraft>, ErrorApp> {
+    let g = texturas.inner().clone();
+    en_segundo_plano(move || Ok(g.versiones())).await
+}
+
+#[tauri::command]
+pub fn ajustes(texturas: State<'_, Arc<GestorTexturas>>) -> Ajustes {
+    texturas.ajustes()
+}
+
+/// Guarda los ajustes; si cambia la versión o la carpeta, descarta el atlas
+/// activo y empieza a preparar el nuevo en segundo plano.
+#[tauri::command]
+pub async fn guardar_ajustes(
+    texturas: State<'_, Arc<GestorTexturas>>,
+    ajustes: Ajustes,
+) -> Result<(), ErrorApp> {
+    let g = texturas.inner().clone();
+    en_segundo_plano(move || {
+        g.guardar_ajustes(ajustes)?;
+        preparar_en_fondo(g);
+        Ok(())
+    })
+    .await
+}
+
+/// PNG del atlas de la versión elegida (lo genera si hace falta, la primera
+/// vez tarda unos segundos). `ArrayBuffer` vacío si no hay ningún jar.
+#[tauri::command]
+pub async fn atlas(texturas: State<'_, Arc<GestorTexturas>>) -> Result<Response, ErrorApp> {
+    let g = texturas.inner().clone();
+    en_segundo_plano(move || {
+        let bytes = g
+            .preparar()?
+            .map_or_else(Vec::new, |a| a.png.as_ref().clone());
+        Ok(Response::new(bytes))
+    })
+    .await
+}
+
+/// Datos del atlas activo (los mismos que `atlas` en la cabecera de la
+/// malla) o `null` si aún no hay. No genera nada.
+#[tauri::command]
+pub fn atlas_info(texturas: State<'_, Arc<GestorTexturas>>) -> Option<DatosAtlas> {
+    texturas.listo().map(|a| a.datos_atlas())
+}
+
+/// Bloque en una posición del modelo (las coordenadas de los vértices de la
+/// malla). `None` si es aire o está fuera.
+#[tauri::command]
+pub async fn bloque_en(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    cache: State<'_, Arc<CacheVisor>>,
+    id: String,
+    x: i32,
+    y: i32,
+    z: i32,
+) -> Result<Option<BloqueSeleccionado>, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    let c = cache.inner().clone();
+    en_segundo_plano(move || Ok(mundo_de(&b, &c, &id)?.bloque_en(x, y, z))).await
 }
 
 #[cfg(test)]

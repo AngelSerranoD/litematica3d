@@ -60,3 +60,13 @@ export function IconoSentido({ ascendente }: { ascendente: boolean }) {
     </svg>
   );
 }
+
+/** Engranaje de ajustes: rueda dentada de ocho dientes con el eje hueco. */
+export function IconoAjustes() {
+  return (
+    <svg {...comunes}>
+      <path d="M5 0.5H7V2.2L8.6 2.9L9.8 1.7L10.3 2.2L9.1 3.4L9.8 5H11.5V7H9.8L9.1 8.6L10.3 9.8L9.8 10.3L8.6 9.1L7 9.8V11.5H5V9.8L3.4 9.1L2.2 10.3L1.7 9.8L2.9 8.6L2.2 7H0.5V5H2.2L2.9 3.4L1.7 2.2L2.2 1.7L3.4 2.9L5 2.2Z" />
+      <circle cx="6" cy="6" r="1.5" />
+    </svg>
+  );
+}

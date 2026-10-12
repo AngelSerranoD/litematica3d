@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig } from "motion/react";
 import { Avisos, ZonaSoltar } from "./componentes/Avisos";
 import { BarraTitulo } from "./componentes/BarraTitulo";
+import { PanelAjustes } from "./componentes/PanelAjustes";
 import { useBiblioteca } from "./estado/biblioteca";
 import { useNavegacion } from "./estado/navegacion";
 import { usoCierreVentana } from "./estado/usoCierreVentana";
@@ -51,6 +52,7 @@ export default function App() {
           </LayoutGroup>
           <ZonaSoltar visible={soltando && !(vacia && ruta.vista === "biblioteca")} />
           <Avisos />
+          <PanelAjustes />
         </main>
       </div>
     </MotionConfig>

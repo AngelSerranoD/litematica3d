@@ -1,0 +1,254 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Visor 3D dentro de .schematic__visor. El marcador (la miniatura plana)
+   ocupa el sitio de siempre; el visor se superpone y cubre también el
+   relleno del contenedor. */
+
+.visor3d__marcador {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+.visor3d {
+  /* Columna del corte por capas, a la derecha del lienzo. */
+  --visor3d-ancho-capas: 80px;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--superficie);
+}
+
+/* El lienzo no pasa por debajo de la columna de capas: así el encuadre
+   centra el modelo en lo que de verdad se ve. */
+.visor3d__lienzo {
+  position: absolute;
+  inset: 0 var(--visor3d-ancho-capas) 0 0;
+}
+
+.visor3d__lienzo canvas {
+  display: block;
+  cursor: grab;
+}
+
+.visor3d__lienzo canvas:active {
+  cursor: grabbing;
+}
+
+.visor3d__herramientas {
+  position: absolute;
+  top: var(--esp-3);
+  right: calc(var(--visor3d-ancho-capas) + var(--esp-3));
+  display: flex;
+  gap: var(--esp-2);
+}
+
+.visor3d__nota {
+  position: absolute;
+  left: var(--esp-4);
+  bottom: var(--esp-3);
+  max-width: calc(100% - 240px);
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+  pointer-events: none;
+}
+
+.visor3d__nota--error {
+  max-width: calc(100% - 2 * var(--esp-4));
+  color: var(--tinta);
+}
+
+/* ── Corte por capas ── */
+
+.capas {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--visor3d-ancho-capas);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-2);
+  border-left: var(--grosor-filete) solid var(--filete-fuerte);
+  background-color: var(--superficie);
+}
+
+.capas__titulo {
+  font-size: var(--t-rotulo-s);
+  color: var(--tinta-2);
+}
+
+.capas__pista {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 80px;
+  /* Hueco para que los pulgares de los extremos no se salgan. */
+  margin: var(--esp-3) 0;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.capas__carril {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background-color: var(--filete);
+}
+
+.capas__rango {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: var(--acento-2);
+}
+
+.capas__pulgar {
+  position: absolute;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 var(--esp-1);
+  transform: translate(-50%, 50%);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+  color: var(--tinta);
+  transition: background-color var(--dur-instante) linear;
+}
+
+.capas__pulgar:hover {
+  background-color: var(--superficie-2);
+}
+
+.capas__pulgar:focus-visible {
+  outline-offset: 1px;
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.capas__rotulo {
+  font-size: var(--t-1);
+  line-height: 1;
+}
+
+.capas__solo.boton-plano {
+  width: 100%;
+  height: auto;
+  min-height: 32px;
+  justify-content: center;
+  padding: var(--esp-1);
+  font-size: var(--t-1);
+  line-height: var(--interlineado-justo);
+  white-space: normal;
+  text-align: center;
+}
+
+.capas__solo[aria-pressed="true"] {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.capas__solo:disabled {
+  color: var(--tinta-2);
+  background-color: var(--superficie);
+}
+
+/* ── Bloque seleccionado ── */
+
+.panel-bloque {
+  position: absolute;
+  top: var(--esp-3);
+  left: var(--esp-3);
+  width: min(280px, calc(100% - var(--visor3d-ancho-capas) - 2 * var(--esp-3) - 140px));
+  max-height: calc(100% - 2 * var(--esp-3) - 40px);
+  overflow: auto;
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+}
+
+.panel-bloque__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-2) var(--esp-2) var(--esp-2) var(--esp-3);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.panel-bloque__nombre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--t-3);
+  font-weight: 500;
+  color: var(--tinta);
+}
+
+.panel-bloque__cerrar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radio-2);
+  background: none;
+  color: var(--tinta-2);
+}
+
+.panel-bloque__cerrar:hover {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+.panel-bloque__cerrar svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.panel-bloque__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-2);
+}
+
+.panel-bloque__tabla th,
+.panel-bloque__tabla td {
+  padding: var(--esp-1) var(--esp-3);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  vertical-align: baseline;
+}
+
+.panel-bloque__tabla tr:last-child th,
+.panel-bloque__tabla tr:last-child td {
+  border-bottom: 0;
+}
+
+.panel-bloque__tabla th {
+  font-weight: 400;
+  text-align: left;
+  color: var(--tinta-2);
+}
+
+.panel-bloque__tabla td {
+  text-align: right;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,194 @@
+// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Ver LICENSE y NOTICE.
+
+import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
+import { motion } from "motion/react";
+import { obtenerAtlas, type AtlasCargado } from "../../api/atlas";
+import { cargarMalla, type Malla } from "../../api/visor";
+import { useVisor } from "../../estado/visor";
+import { muelle } from "../../estilos/movimiento";
+import { DeslizadorCapas } from "./DeslizadorCapas";
+import { PanelBloque } from "./PanelBloque";
+import "./Visor3D.css";
+
+// Three.js va en un trozo aparte: se pide al abrir el schematic, a la vez
+// que la malla, y no pesa en el arranque de la biblioteca.
+const cargarLienzo = () => import("./Lienzo");
+const Lienzo = lazy(cargarLienzo);
+
+type Carga =
+  | { tipo: "cargando" }
+  | { tipo: "error"; mensaje: string }
+  | { tipo: "lista"; malla: Malla; atlas: AtlasCargado | null };
+
+/** Esperas (ms) entre reintentos si el atlas no se pudo preparar todavía. */
+const ESPERAS_ATLAS = [1000, 2000, 4000];
+const dormir = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+
+const mensajeDe = (e: unknown) =>
+  typeof e === "object" && e !== null && "mensaje" in e && typeof e.mensaje === "string"
+    ? e.mensaje
+    : e instanceof Error
+      ? e.message
+      : String(e);
+
+/** ¿El evento de teclado viene de un campo de texto? Entonces no es un atajo. */
+const escribiendo = (e: KeyboardEvent) =>
+  e.target instanceof HTMLElement &&
+  (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
+
+interface Props {
+  id: string;
+  /** Lo que se ve mientras llega la malla (la miniatura plana); luego se funde. */
+  marcador: ReactNode;
+}
+
+/**
+ * Visor 3D de un schematic. Vive dentro de `.schematic__visor`, el elemento
+ * compartido con la lámina de la biblioteca: la miniatura sigue ahí como
+ * marcador hasta que la malla se ha dibujado una vez, y entonces el lienzo
+ * aparece por encima con un fundido.
+ */
+export function Visor3D({ id, marcador }: Props) {
+  const [carga, setCarga] = useState<Carga>({ tipo: "cargando" });
+  const [lista, setLista] = useState(false);
+
+  useEffect(() => {
+    let activo = true;
+    setCarga({ tipo: "cargando" });
+    setLista(false);
+    cargarLienzo().catch(() => {});
+
+    /** Atlas que casa con la malla, o null (sin jar o sin textura que mostrar). */
+    const atlasDe = async (malla: Malla) => {
+      if (!malla.atlas) return null;
+      try {
+        return await obtenerAtlas(malla.atlas.version);
+      } catch (e) {
+        console.warn("No se pudo cargar el atlas de texturas:", e);
+        return null;
+      }
+    };
+
+    (async () => {
+      const malla = await cargarMalla(id);
+      const atlas = await atlasDe(malla);
+      if (!activo) return;
+      useVisor.getState().reiniciar(malla.tamano[1]);
+      setCarga({ tipo: "lista", malla, atlas });
+      if (malla.atlas && atlas) return;
+
+      // La malla salió sin texturas (el atlas aún no estaba preparado): se
+      // espera al atlas y, cuando está, se pide la malla otra vez, porque los
+      // índices de textura de los materiales solo se resuelven al mallar.
+      for (let intento = 0; activo && intento <= ESPERAS_ATLAS.length; intento++) {
+        try {
+          const a = await obtenerAtlas(); // espera a que se genere
+          if (!a) return; // sin jar: colores planos
+          const conTexturas = await cargarMalla(id);
+          if (!activo) return;
+          if (conTexturas.atlas) {
+            const atlasFinal = await atlasDe(conTexturas);
+            if (activo && atlasFinal) setCarga({ tipo: "lista", malla: conTexturas, atlas: atlasFinal });
+            return;
+          }
+        } catch (e) {
+          console.warn("Atlas aún no disponible:", e);
+        }
+        if (intento < ESPERAS_ATLAS.length) await dormir(ESPERAS_ATLAS[intento]);
+      }
+    })().catch((e) => activo && setCarga({ tipo: "error", mensaje: mensajeDe(e) }));
+    return () => {
+      activo = false;
+    };
+  }, [id]);
+
+  // Atajos: F encuadra, Esc cierra la selección (antes de que App vuelva a la
+  // biblioteca: por eso en captura y con preventDefault), P el panel de
+  // rendimiento en desarrollo.
+  const hayMalla = carga.tipo === "lista";
+  useEffect(() => {
+    if (!hayMalla) return;
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || escribiendo(e)) return;
+      const s = useVisor.getState();
+      if (e.key === "Escape" && s.seleccion) {
+        e.preventDefault();
+        s.limpiarSeleccion();
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        s.pedirEncuadre();
+      } else if (import.meta.env.DEV && (e.key === "p" || e.key === "P")) {
+        s.alternarRendimiento();
+      }
+    };
+    window.addEventListener("keydown", alPulsar, true);
+    return () => window.removeEventListener("keydown", alPulsar, true);
+  }, [hayMalla]);
+
+  const alListo = useCallback(() => setLista(true), []);
+  const vacia = carga.tipo === "lista" && carga.malla.chunks.length === 0;
+  const transicion = muelle("vista");
+
+  let nota: ReactNode;
+  if (carga.tipo === "cargando") nota = <p className="visor3d__nota">Cargando el modelo…</p>;
+  else if (carga.tipo === "error")
+    nota = (
+      <p className="visor3d__nota visor3d__nota--error" role="alert">
+        No se pudo cargar el modelo en 3D: {carga.mensaje}
+      </p>
+    );
+  else if (vacia) nota = <p className="visor3d__nota">Este schematic no tiene bloques visibles.</p>;
+  else
+    nota = (
+      <p className="visor3d__nota">
+        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar · Clic: inspeccionar
+      </p>
+    );
+
+  return (
+    <>
+      <motion.div
+        className="visor3d__marcador"
+        initial={false}
+        animate={{ opacity: lista && !vacia ? 0 : 1 }}
+        transition={transicion}
+      >
+        {marcador}
+      </motion.div>
+
+      {carga.tipo === "lista" && !vacia && (
+        <motion.div
+          className="visor3d"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: lista ? 1 : 0 }}
+          transition={transicion}
+          inert={!lista}
+        >
+          <div className="visor3d__lienzo">
+            <Suspense fallback={null}>
+              <Lienzo id={id} malla={carga.malla} atlas={carga.atlas} onListo={alListo} />
+            </Suspense>
+          </div>
+
+          <PanelBloque />
+
+          <div className="visor3d__herramientas">
+            <button
+              type="button"
+              className="boton-plano"
+              onClick={() => useVisor.getState().pedirEncuadre()}
+            >
+              Encuadrar
+              <kbd>F</kbd>
+            </button>
+          </div>
+
+          <DeslizadorCapas origenY={carga.malla.origen[1]} />
+        </motion.div>
+      )}
+
+      {nota}
+    </>
+  );
+}

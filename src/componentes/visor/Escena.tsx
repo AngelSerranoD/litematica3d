@@ -1,0 +1,324 @@
+// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Ver LICENSE y NOTICE.
+
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentRef,
+} from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { GizmoHelper, GizmoViewport, Grid, OrbitControls } from "@react-three/drei";
+import {
+  BoxGeometry,
+  Color,
+  DoubleSide,
+  EdgesGeometry,
+  LineBasicMaterial,
+  PerspectiveCamera,
+  Raycaster,
+  Vector2,
+  Vector3,
+} from "three";
+import { bloqueEn, cargarMalla, type Malla } from "../../api/visor";
+import { capaMax, capaMin, useVisor } from "../../estado/visor";
+import { colorToken, hexToken, usoTema } from "./colores";
+import { aplicarCorte, crearGrupo, lanzarRayo, type GrupoVisor } from "./mallaThree";
+import { aplicarAtlas, crearUniformsCorte, type AtlasVisor, type UniformsCorte } from "./sombreado";
+
+/** Espera tras el último cambio del corte antes de pedir la malla cerrada. */
+const ESPERA_REMALLADO = 250;
+/** Más movimiento que esto entre pulsar y soltar es orbitar, no hacer clic. */
+const TOLERANCIA_CLIC = 4;
+/** Margen del gizmo de ejes desde la esquina inferior derecha (px). */
+export const MARGEN_GIZMO: [number, number] = [64, 64];
+/** Medio lado del cuadrado que ocupa el gizmo en pantalla (px). */
+const RADIO_GIZMO = 60;
+
+// r3f-perf solo existe en desarrollo: en producción `import.meta.env.DEV` es
+// false, la rama entera desaparece y el import dinámico no llega al bundle.
+const PanelRendimiento = import.meta.env.DEV
+  ? lazy(() => import("r3f-perf").then((m) => ({ default: m.Perf })))
+  : null;
+
+type Controles = ComponentRef<typeof OrbitControls>;
+
+interface Props {
+  id: string;
+  malla: Malla;
+  /** Texturas del schematic, o `null` (colores planos). */
+  atlas: AtlasVisor | null;
+  /** Se llama tras el primer fotograma con la malla dibujada. */
+  onListo: () => void;
+}
+
+/** Coloca la cámara para que el modelo entero quepa en pantalla. */
+function encuadrar(camara: PerspectiveCamera, controles: Controles | null, malla: Malla) {
+  const [ancho, alto, largo] = malla.tamano;
+  const centro = new Vector3(ancho / 2, alto / 2, largo / 2);
+  const radio = Math.max(Math.hypot(ancho, alto, largo) / 2, 1);
+  const vertical = (camara.fov * Math.PI) / 180;
+  const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * camara.aspect);
+  const distancia = (radio / Math.sin(Math.min(vertical, horizontal) / 2)) * 1.05;
+  // Desde +X +Z y algo por encima, como la miniatura isométrica.
+  const direccion = new Vector3(1, 0.85, 1.25).normalize();
+  camara.position.copy(centro).addScaledVector(direccion, distancia);
+  camara.near = Math.max(distancia / 1000, 0.05);
+  camara.far = distancia + radio * 8;
+  camara.updateProjectionMatrix();
+  if (controles) {
+    controles.target.copy(centro);
+    controles.maxDistance = distancia * 6;
+    controles.update();
+  } else {
+    camara.lookAt(centro);
+  }
+}
+
+export function Escena({ id, malla, atlas, onListo }: Props) {
+  const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const gl = useThree((s) => s.gl);
+  const invalidate = useThree((s) => s.invalidate);
+  const controles = useRef<Controles>(null);
+  const tema = usoTema();
+
+  // ── Mallas: la completa siempre; la cerrada (remallada con el corte) si la hay.
+  const corte = useMemo<UniformsCorte>(crearUniformsCorte, []);
+  // El atlas va por ref: al llegar solo cambian los uniforms y las tablas
+  // (efecto de más abajo), no se rehace la geometría.
+  const atlasRef = useRef(atlas);
+  atlasRef.current = atlas;
+  const completa = useMemo(
+    () => crearGrupo(malla, corte, atlasRef.current),
+    [malla, corte],
+  );
+  useEffect(() => () => completa.dispose(), [completa]);
+  const [cerrada, setCerrada] = useState<{ desde: number; hasta: number; g: GrupoVisor } | null>(
+    null,
+  );
+  useEffect(() => () => cerrada?.g.dispose(), [cerrada]);
+  const cerradaRef = useRef(cerrada);
+  cerradaRef.current = cerrada;
+  const visible = useRef<GrupoVisor>(completa);
+
+  /** Aplica el corte del estado: uniforms, chunks visibles y qué malla se ve. */
+  const aplicar = useRef(() => {});
+  aplicar.current = () => {
+    const s = useVisor.getState();
+    const desde = capaMin(s);
+    const hasta = capaMax(s);
+    corte.uDesde.value = desde;
+    corte.uHasta.value = hasta;
+    const c = cerradaRef.current;
+    const usarCerrada = c !== null && c.desde === desde && c.hasta === hasta;
+    completa.grupo.visible = !usarCerrada;
+    if (c) c.g.grupo.visible = usarCerrada;
+    visible.current = usarCerrada && c ? c.g : completa;
+    aplicarCorte(visible.current, desde, hasta);
+    invalidate();
+  };
+
+  // Remallado cerrado: al soltar el deslizador (o tras la última tecla).
+  const peticion = useRef(0);
+  useEffect(() => {
+    let espera: number | undefined;
+    const programar = () => {
+      window.clearTimeout(espera);
+      const s = useVisor.getState();
+      const desde = capaMin(s);
+      const hasta = capaMax(s);
+      const entero = desde <= 0 && hasta >= s.alto - 1;
+      if (entero) {
+        peticion.current++;
+        if (cerradaRef.current) setCerrada(null);
+        return;
+      }
+      const c = cerradaRef.current;
+      if (s.arrastrando || (c && c.desde === desde && c.hasta === hasta)) return;
+      espera = window.setTimeout(() => {
+        const n = ++peticion.current;
+        cargarMalla(id, [desde, hasta])
+          .then((m) => {
+            if (n !== peticion.current) return;
+            setCerrada({ desde, hasta, g: crearGrupo(m, corte, atlasRef.current) });
+          })
+          // Sin malla cerrada el corte sigue siendo correcto, solo hueco.
+          .catch((e) => console.warn("No se pudo remallar el corte:", e));
+      }, ESPERA_REMALLADO);
+    };
+    // Malla nueva (p. ej. la versión con texturas): la cerrada era de la
+    // anterior, se descarta y, si hay corte, se vuelve a pedir.
+    if (cerradaRef.current) {
+      cerradaRef.current = null;
+      setCerrada(null);
+    }
+    aplicar.current();
+    programar();
+    const quitar = useVisor.subscribe((s, antes) => {
+      const cambioRango = capaMin(s) !== capaMin(antes) || capaMax(s) !== capaMax(antes);
+      if (cambioRango) aplicar.current();
+      if (cambioRango || s.arrastrando !== antes.arrastrando) programar();
+    });
+    return () => {
+      quitar();
+      window.clearTimeout(espera);
+      peticion.current++;
+    };
+  }, [id, corte, completa]);
+
+  // Al llegar (o irse) la malla cerrada, se cambia antes de pintar: sin parpadeo.
+  useLayoutEffect(() => aplicar.current(), [cerrada, completa]);
+
+  // Atlas nuevo con la misma malla (p. ej. llegó después de pintar): se
+  // actualizan las tablas de los materiales ya creados.
+  useLayoutEffect(() => {
+    aplicarAtlas(completa.materiales, malla.materiales, atlas);
+    if (cerrada) aplicarAtlas(cerrada.g.materiales, cerrada.g.datos, atlas);
+    invalidate();
+  }, [atlas, completa, malla, cerrada, invalidate]);
+
+  // ── Encuadre: al cargar y cada vez que se pide (botón o tecla F).
+  const encuadre = useVisor((s) => s.encuadre);
+  // No depende de `malla`: al llegar la versión con texturas (mismo modelo,
+  // otra malla) la cámara se queda donde la dejó el usuario.
+  const mallaRef = useRef(malla);
+  mallaRef.current = malla;
+  useLayoutEffect(() => {
+    encuadrar(camera, controles.current, mallaRef.current);
+    invalidate();
+  }, [camera, id, encuadre, invalidate]);
+
+  // ── Picking: clic sin arrastre → bloque bajo el puntero.
+  useEffect(() => {
+    const lienzo = gl.domElement;
+    const raycaster = new Raycaster();
+    const ndc = new Vector2();
+    let inicio: { x: number; y: number } | null = null;
+    const alPulsar = (e: PointerEvent) => {
+      inicio = e.button === 0 ? { x: e.clientX, y: e.clientY } : null;
+    };
+    const alSoltar = (e: PointerEvent) => {
+      if (!inicio || e.button !== 0) return;
+      const movido = Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y);
+      inicio = null;
+      if (movido >= TOLERANCIA_CLIC) return;
+      const r = lienzo.getBoundingClientRect();
+      // El gizmo de ejes tiene sus propios clics.
+      const gx = r.right - MARGEN_GIZMO[0];
+      const gy = r.bottom - MARGEN_GIZMO[1];
+      if (Math.abs(e.clientX - gx) < RADIO_GIZMO && Math.abs(e.clientY - gy) < RADIO_GIZMO) return;
+      ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      raycaster.setFromCamera(ndc, camera);
+      const s = useVisor.getState();
+      const impacto = lanzarRayo(visible.current, raycaster, capaMin(s), capaMax(s));
+      if (!impacto) {
+        s.limpiarSeleccion();
+        return;
+      }
+      const { celda } = impacto;
+      s.seleccionar(celda);
+      bloqueEn(id, celda[0], celda[1], celda[2])
+        .then((b) => useVisor.getState().completarSeleccion(celda, b))
+        .catch(() => useVisor.getState().completarSeleccion(celda, null));
+    };
+    lienzo.addEventListener("pointerdown", alPulsar);
+    lienzo.addEventListener("pointerup", alSoltar);
+    return () => {
+      lienzo.removeEventListener("pointerdown", alPulsar);
+      lienzo.removeEventListener("pointerup", alSoltar);
+    };
+  }, [gl, camera, id]);
+
+  // ── Aviso de listo tras el primer fotograma con la malla.
+  const avisado = useRef(false);
+  useFrame(() => {
+    if (avisado.current) return;
+    avisado.current = true;
+    requestAnimationFrame(onListo);
+  });
+
+  // ── Colores de los tokens (se recalculan al cambiar de tema).
+  const colores = useMemo(
+    () => ({
+      celda: colorToken("--filete"),
+      seccion: colorToken("--filete-fuerte"),
+      seleccion: colorToken("--seleccion"),
+      ejes: [hexToken("--aviso"), hexToken("--acento"), hexToken("--tinta-2")] as [
+        string,
+        string,
+        string,
+      ],
+      rotulo: hexToken("--superficie"),
+    }),
+    // `tema` no se lee: solo marca cuándo hay que volver a leer los tokens.
+    [tema],
+  );
+  useEffect(() => invalidate(), [colores, invalidate]);
+
+  const verRendimiento = useVisor((s) => s.rendimiento);
+  const [ancho, , largo] = malla.tamano;
+  const radio = Math.hypot(...malla.tamano) / 2;
+
+  return (
+    <>
+      <OrbitControls ref={controles} makeDefault enableDamping dampingFactor={0.12} />
+      <primitive object={completa.grupo} dispose={null} />
+      {cerrada && <primitive object={cerrada.g.grupo} dispose={null} />}
+      <Grid
+        position={[ancho / 2, -0.01, largo / 2]}
+        args={[Math.ceil(ancho / 16) * 16 + 32, Math.ceil(largo / 16) * 16 + 32]}
+        cellSize={1}
+        cellThickness={0.6}
+        cellColor={colores.celda}
+        sectionSize={16}
+        sectionThickness={1}
+        sectionColor={colores.seccion}
+        fadeDistance={Math.max(radio * 6, 64)}
+        fadeStrength={1}
+        side={DoubleSide}
+      />
+      <Seleccion color={colores.seleccion} />
+      <GizmoHelper alignment="bottom-right" margin={MARGEN_GIZMO}>
+        <GizmoViewport axisColors={colores.ejes} labelColor={colores.rotulo} />
+      </GizmoHelper>
+      {PanelRendimiento && verRendimiento && (
+        <Suspense fallback={null}>
+          <PanelRendimiento position="bottom-left" />
+        </Suspense>
+      )}
+    </>
+  );
+}
+
+/**
+ * Caja de alambre sobre el bloque seleccionado, en el color de selección de
+ * los tokens. Con prueba de profundidad, como en el juego: dibujada encima de
+ * todo parecía flotar cuando el bloque estaba detrás de otro.
+ */
+function Seleccion({ color }: { color: Color }) {
+  const seleccion = useVisor((s) => s.seleccion);
+  const geometria = useMemo(() => new EdgesGeometry(new BoxGeometry(1.01, 1.01, 1.01)), []);
+  const material = useMemo(() => new LineBasicMaterial({ toneMapped: false }), []);
+  useEffect(
+    () => () => {
+      geometria.dispose();
+      material.dispose();
+    },
+    [geometria, material],
+  );
+  material.color.copy(color);
+  if (!seleccion) return null;
+  const [x, y, z] = seleccion.celda;
+  return (
+    <lineSegments
+      geometry={geometria}
+      material={material}
+      position={[x + 0.5, y + 0.5, z + 0.5]}
+      renderOrder={10}
+    />
+  );
+}

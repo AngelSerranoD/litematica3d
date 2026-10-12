@@ -1,0 +1,101 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+.ajustes {
+  margin: auto;
+  padding: 0;
+  width: min(440px, calc(100% - 2 * var(--esp-4)));
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+  color: var(--tinta);
+}
+
+.ajustes::backdrop {
+  background-color: color-mix(in srgb, var(--papel) 80%, transparent);
+}
+
+.ajustes__caja {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--esp-5);
+}
+
+.ajustes__titulo {
+  font-size: var(--t-rotulo-m);
+}
+
+.ajustes__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.ajustes__etiqueta {
+  font-size: var(--t-3);
+  font-weight: 500;
+}
+
+.ajustes__selector {
+  height: 32px;
+  padding: 0 var(--esp-3);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+  color: var(--tinta);
+  font: inherit;
+}
+
+.ajustes__selector:focus-visible {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: 1px;
+}
+
+.ajustes__selector:disabled {
+  color: var(--tinta-2);
+}
+
+.ajustes__ayuda {
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.ajustes__estado {
+  padding: var(--esp-2) var(--esp-3);
+  border: var(--grosor-filete) solid var(--filete);
+  border-radius: var(--radio-1);
+  font-size: var(--t-2);
+  color: var(--tinta);
+}
+
+.ajustes__error {
+  font-size: var(--t-2);
+  color: var(--aviso);
+}
+
+.ajustes__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+}
+
+.ajustes__guardar.boton-plano:not(:disabled) {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.ajustes__guardar.boton-plano:not(:disabled):hover {
+  background-color: var(--acento-2);
+}
+
+.ajustes__guardar.boton-plano:disabled {
+  color: var(--tinta-2);
+  cursor: default;
+}
+
+.ajustes__guardar.boton-plano:disabled:hover {
+  background-color: var(--superficie);
+}

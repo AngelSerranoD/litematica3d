@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useIsPresent } from "motion/react";
 import { Miniatura } from "../componentes/Miniatura";
+import { Visor3D } from "../componentes/visor/Visor3D";
 import {
   formatoDimensiones,
   formatoNumero,
@@ -81,16 +82,18 @@ export function Schematic({ id }: { id: string }) {
             layoutId={idVisor(id)}
             transition={{ layout: muelle("compartido") }}
           >
-            {dim && <Miniatura id={id} dimensiones={dim} layoutId={idBloque(id)} />}
+            {dim && (
+              <Visor3D
+                id={id}
+                marcador={<Miniatura id={id} dimensiones={dim} layoutId={idBloque(id)} />}
+              />
+            )}
             {!entrada && !cargando && (
               <p className="schematic__nota schematic__nota--centro" role="alert">
                 Este schematic ya no está en la biblioteca.
               </p>
             )}
           </motion.div>
-          <motion.p className="schematic__nota" variants={variantePieza} custom={direccion}>
-            Vista previa plana. El modelo en 3D se verá aquí.
-          </motion.p>
         </div>
 
         <motion.aside

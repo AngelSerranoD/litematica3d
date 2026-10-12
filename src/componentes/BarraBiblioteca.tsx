@@ -3,7 +3,8 @@
 
 import { memo, type Ref } from "react";
 import { useBiblioteca, type CampoOrden, type Orden } from "../estado/biblioteca";
-import { IconoBuscar, IconoLista, IconoRejilla, IconoSentido } from "./Iconos";
+import { useAjustes } from "../estado/ajustes";
+import { IconoAjustes, IconoBuscar, IconoLista, IconoRejilla, IconoSentido } from "./Iconos";
 import "./BarraBiblioteca.css";
 
 const CAMPOS: { campo: CampoOrden; etiqueta: string }[] = [
@@ -47,6 +48,7 @@ export const BarraBiblioteca = memo(function BarraBiblioteca({
   const alternarOrden = useBiblioteca((s) => s.alternarOrden);
   const establecerModoVista = useBiblioteca((s) => s.establecerModoVista);
   const elegirEImportar = useBiblioteca((s) => s.elegirEImportar);
+  const abrirAjustes = useAjustes((s) => s.abrir);
 
   return (
     // Sin role="toolbar": ese patrón pide mover el foco con las flechas, que
@@ -132,6 +134,17 @@ export const BarraBiblioteca = memo(function BarraBiblioteca({
           <IconoLista />
         </button>
       </div>
+
+      <button
+        type="button"
+        className="casilla casilla--icono"
+        aria-label="Ajustes"
+        aria-haspopup="dialog"
+        title="Ajustes"
+        onClick={() => void abrirAjustes()}
+      >
+        <IconoAjustes />
+      </button>
 
       <button
         type="button"

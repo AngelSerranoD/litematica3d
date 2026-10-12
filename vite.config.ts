@@ -11,6 +11,20 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(() => ({
   plugins: [react()],
 
+  build: {
+    // Three.js ocupa ~740 kB minificado y no se puede partir. Va aparte y se
+    // carga bajo demanda, así que el aviso de 500 kB no aplica a ese trozo.
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        // Three.js va en su propio trozo: se pide al abrir un schematic y no
+        // pesa en el arranque de la biblioteca.
+        manualChunks: (id: string) =>
+          id.includes("node_modules/three/") ? "three" : undefined,
+      },
+    },
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors
