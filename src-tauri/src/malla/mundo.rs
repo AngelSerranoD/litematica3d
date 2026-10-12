@@ -139,9 +139,9 @@ impl Mundo {
                         let hi: [i64; 3] =
                             std::array::from_fn(|e| (c[e] * 16 + 16).min(rel[e] + t[e]));
                         let clave = [cx as i32, cy as i32, cz as i32];
-                        let chunk = chunks
-                            .entry(clave)
-                            .or_insert_with(|| vec![0u32; VOLUMEN].into_boxed_slice());
+                        // El chunk se reserva al escribir su primer bloque no aire:
+                        // un archivo con regiones enormes y vacías no pide memoria.
+                        let mut chunk = chunks.remove(&clave);
                         for y in lo[1]..hi[1] {
                             for z in lo[2]..hi[2] {
                                 let ry = (y - rel[1]) as usize;
@@ -159,16 +159,21 @@ impl Mundo {
                                         .unwrap_or(0);
                                     if p != 0 {
                                         let lx = (x - c[0] * 16) as usize;
+                                        let chunk = chunk.get_or_insert_with(|| {
+                                            vec![0u32; VOLUMEN].into_boxed_slice()
+                                        });
                                         chunk[indice_local(lx, ly, lz)] = p;
                                     }
                                 }
                             }
                         }
+                        if let Some(chunk) = chunk {
+                            chunks.insert(clave, chunk);
+                        }
                     }
                 }
             }
         }
-        chunks.retain(|_, c| c.iter().any(|&p| p != 0));
         let total_bloques = chunks
             .values()
             .map(|c| c.iter().filter(|&&p| p != 0).count() as u64)
