@@ -1,0 +1,284 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/*
+ * Base: @font-face, reset, papel milimetrado, tipografía, foco, selección
+ * y barras de desplazamiento.
+ *
+ * Fuentes empaquetadas en local (SIL OFL 1.1, ver src/assets/fuentes/OFL.txt).
+ * Nada se descarga en tiempo de ejecución. Subconjuntos latin y latin-ext
+ * (este último solo para texto y cifras: nombres de schematics con letras de
+ * otras lenguas europeas); Silkscreen solo en latin, se usa en rótulos fijos.
+ */
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fuentes/instrument-sans-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fuentes/instrument-sans-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fuentes/instrument-sans-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fuentes/instrument-sans-latin-ext-500-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fuentes/instrument-sans-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fuentes/instrument-sans-latin-ext-600-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fuentes/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fuentes/jetbrains-mono-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fuentes/jetbrains-mono-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fuentes/jetbrains-mono-latin-ext-500-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Silkscreen";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fuentes/silkscreen-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+/* ── Reset mínimo ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden; /* la ventana no hace scroll; lo hace cada vista */
+  background-color: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  font-size: var(--t-3);
+  line-height: var(--interlineado);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd,
+figure,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+img,
+svg {
+  display: block;
+}
+
+/* ── Papel milimetrado ──
+ * Cuatro capas de líneas de 1 px con cortes duros (no son degradados a la
+ * vista: cada capa es una línea y un hueco transparente). La mayor cada
+ * centímetro, la menor cada 2 mm.
+ */
+.papel {
+  background-color: var(--papel);
+  background-image:
+    linear-gradient(to bottom, var(--rejilla-mayor) 1px, transparent 1px),
+    linear-gradient(to right, var(--rejilla-mayor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rejilla-menor) 1px, transparent 1px),
+    linear-gradient(to right, var(--rejilla-menor) 1px, transparent 1px);
+  background-size:
+    var(--rejilla-paso-mayor) var(--rejilla-paso-mayor),
+    var(--rejilla-paso-mayor) var(--rejilla-paso-mayor),
+    var(--rejilla-paso-menor) var(--rejilla-paso-menor),
+    var(--rejilla-paso-menor) var(--rejilla-paso-menor);
+  background-position: -1px -1px;
+}
+
+/* ── Tipografía ── */
+.rotulo {
+  font-family: var(--fuente-rotulo);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.cifras,
+code,
+kbd,
+samp {
+  font-family: var(--fuente-cifras);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: "zero" 1;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 var(--esp-1);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-1);
+  font-size: var(--t-1);
+  line-height: 16px;
+  color: var(--tinta-2);
+}
+
+/* ── Filetes ── */
+.filete-abajo {
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.filete-arriba {
+  border-top: var(--grosor-filete) solid var(--filete);
+}
+
+/* ── Foco visible: contorno de 2 px, nunca sombra ── */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: calc(var(--grosor-foco) * -1);
+}
+
+/* ── Selección de texto ── */
+::selection {
+  background-color: var(--seleccion);
+  color: var(--sobre-seleccion);
+}
+
+/* ── Barras de desplazamiento planas ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--filete-fuerte) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-left: var(--grosor-filete) solid var(--filete);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--filete-fuerte);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--tinta-2);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Movimiento reducido: ninguna transición CSS ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,0 +1,20 @@
+# Dependencias y compilados
+node_modules
+dist
+dist-ssr
+*.local
+src-tauri/target
+src-tauri/gen/schemas
+
+# Entorno y registros
+.env*
+*.log
+npm-debug.log*
+
+# Sistema y editores
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.sw?

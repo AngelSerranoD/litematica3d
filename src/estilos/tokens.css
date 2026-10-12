@@ -1,0 +1,183 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/*
+ * Tokens de diseño — dirección «Cuaderno de obra».
+ *
+ * Superficies planas separadas por filetes de 1 px, rejilla milimetrada de
+ * fondo, radios de 0 a 2 px. Sin sombras, sin degradados, sin elevación: el
+ * hover cambia relleno o filete, nunca la profundidad.
+ *
+ * Contrastes: ratio WCAG 2.x (luminancia relativa) calculado con script para
+ * cada pareja texto/fondo. Mínimo exigido: 4,5:1 en texto, 3:1 en el foco.
+ * Si se cambia un color, hay que volver a calcular sus ratios.
+ */
+
+:root {
+  /* ── Paleta base (fija, no se usa directamente en componentes) ── */
+  --paleta-hierba: #b3daa8; /* hierba clara */
+  --paleta-salvia: #a0bc8b;
+  --paleta-musgo: #aabc6d;
+  --paleta-oliva: #959360;
+  --paleta-tierra: #725b31;
+
+  /* ── Tema claro (por defecto) ── */
+  --papel: #ebf4e7; /* hierba aclarada: fondo con la rejilla */
+  --superficie: #f5faf3; /* hojas y paneles apoyados sobre el papel */
+  --superficie-2: #d9ebd2; /* relleno de hover y zonas hundidas */
+  /* tinta: tierra oscurecida.
+     13,14:1 sobre papel · 14,00:1 sobre superficie · 11,82:1 sobre superficie-2
+     7,14:1 sobre acento · 4,67:1 sobre acento-2 */
+  --tinta: #30261a;
+  /* tinta-2: 6,71:1 sobre papel · 7,15:1 sobre superficie · 6,04:1 sobre superficie-2 */
+  --tinta-2: #66512b;
+  --acento: #aabc6d; /* musgo; el texto encima va en --sobre-acento */
+  --acento-2: #959360; /* oliva */
+  --sobre-acento: #30261a; /* 7,14:1 sobre acento · 4,67:1 sobre acento-2 */
+  --aviso: #9e3b22; /* relleno de acciones destructivas (cerrar ventana) */
+  --sobre-aviso: #f5faf3; /* 6,40:1 sobre aviso */
+  /* foco: 5,72:1 sobre papel · 6,10:1 sobre superficie · 5,15:1 sobre superficie-2 (mín. 3:1) */
+  --foco: #725b31;
+  --filete: rgb(114 91 49 / 0.32); /* tierra al 32 % */
+  --filete-fuerte: rgb(114 91 49 / 0.6); /* tierra al 60 % */
+  --rejilla-menor: rgb(114 91 49 / 0.07); /* cada 2 mm */
+  --rejilla-mayor: rgb(114 91 49 / 0.13); /* cada centímetro */
+  --seleccion: #aabc6d;
+  --sobre-seleccion: #30261a;
+
+  color-scheme: light;
+
+  /* ── Espaciado (base 4 px) ── */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 24px;
+  --esp-7: 32px;
+  --esp-8: 48px;
+
+  /* ── Radios: casi rectos ── */
+  --radio-0: 0;
+  --radio-1: 1px;
+  --radio-2: 2px;
+
+  /* ── Filetes ── */
+  --grosor-filete: 1px;
+  --grosor-foco: 2px;
+
+  /* ── Rejilla del papel (1 mm ≈ 4 px; 2 mm la menor, 1 cm la mayor) ── */
+  --rejilla-paso-menor: 8px;
+  --rejilla-paso-mayor: 40px;
+
+  /* ── Tipografía ── */
+  --fuente-texto: "Instrument Sans", system-ui, sans-serif;
+  --fuente-cifras: "JetBrains Mono", ui-monospace, monospace;
+  --fuente-rotulo: "Silkscreen", "JetBrains Mono", monospace;
+
+  /* Escala de texto (Instrument Sans y JetBrains Mono) */
+  --t-1: 11px;
+  --t-2: 12px;
+  --t-3: 14px; /* cuerpo */
+  --t-4: 16px;
+  --t-5: 20px;
+  --t-6: 24px;
+  /* Silkscreen es una fuente de píxel: solo en múltiplos de 8 px */
+  --t-rotulo-s: 16px; /* logotipo */
+  --t-rotulo-m: 24px;
+  --t-rotulo-l: 32px; /* títulos de vista */
+
+  --interlineado: 1.45;
+  --interlineado-justo: 1.15;
+
+  /* ── Medidas de la interfaz ── */
+  --alto-barra-titulo: 36px;
+  --ancho-boton-ventana: 46px;
+
+  /* ── Movimiento ──
+   * Duraciones para transiciones CSS (cambios de relleno y filete).
+   * Los muelles los lee Motion desde aquí: src/estilos/movimiento.ts no
+   * repite los números, los toma de estas variables. Esta es la única fuente.
+   */
+  --dur-instante: 70ms;
+  --dur-corta: 140ms;
+  --dur-media: 220ms;
+  --curva-salida: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Muelle «vista»: cambio de vista; firme, sin rebote. */
+  --muelle-vista-rigidez: 420;
+  --muelle-vista-amortiguacion: 40;
+  --muelle-vista-masa: 1;
+  /* Muelle «compartido»: elemento compartido (miniatura → visor); un punto de vida. */
+  --muelle-compartido-rigidez: 320;
+  --muelle-compartido-amortiguacion: 32;
+  --muelle-compartido-masa: 1;
+  /* Muelle «pulsacion»: respuesta inmediata a clics y teclas. */
+  --muelle-pulsacion-rigidez: 700;
+  --muelle-pulsacion-amortiguacion: 38;
+  --muelle-pulsacion-masa: 0.6;
+}
+
+/* ── Tema oscuro ──
+ * Se aplica por preferencia del sistema salvo que se fuerce el claro, o
+ * siempre que se fuerce con data-tema="oscuro". Los dos bloques son iguales:
+ * CSS no permite compartir declaraciones entre @media y un selector.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --papel: #18130b; /* tierra muy oscura */
+    --superficie: #211a0f;
+    --superficie-2: #2d2415;
+    /* tinta: 11,88:1 sobre papel · 11,08:1 sobre superficie · 9,83:1 sobre superficie-2 */
+    --tinta: #b3daa8;
+    /* tinta-2: 8,85:1 sobre papel · 8,25:1 sobre superficie · 7,32:1 sobre superficie-2 */
+    --tinta-2: #a0bc8b;
+    --acento: #aabc6d;
+    --acento-2: #959360;
+    --sobre-acento: #18130b; /* 8,90:1 sobre acento · 5,82:1 sobre acento-2 */
+    --aviso: #8a3421;
+    --sobre-aviso: #b3daa8; /* 5,21:1 sobre aviso */
+    /* foco: 8,90:1 sobre papel · 8,30:1 sobre superficie · 7,36:1 sobre superficie-2 */
+    --foco: #aabc6d;
+    --filete: rgb(114 91 49 / 0.4);
+    --filete-fuerte: rgb(114 91 49 / 0.6);
+    --rejilla-menor: rgb(114 91 49 / 0.11);
+    --rejilla-mayor: rgb(114 91 49 / 0.22);
+    --seleccion: #aabc6d;
+    --sobre-seleccion: #18130b;
+    color-scheme: dark;
+  }
+}
+
+:root[data-tema="oscuro"] {
+  --papel: #18130b;
+  --superficie: #211a0f;
+  --superficie-2: #2d2415;
+  --tinta: #b3daa8;
+  --tinta-2: #a0bc8b;
+  --acento: #aabc6d;
+  --acento-2: #959360;
+  --sobre-acento: #18130b;
+  --aviso: #8a3421;
+  --sobre-aviso: #b3daa8;
+  --foco: #aabc6d;
+  --filete: rgb(114 91 49 / 0.4);
+  --filete-fuerte: rgb(114 91 49 / 0.6);
+  --rejilla-menor: rgb(114 91 49 / 0.11);
+  --rejilla-mayor: rgb(114 91 49 / 0.22);
+  --seleccion: #aabc6d;
+  --sobre-seleccion: #18130b;
+  color-scheme: dark;
+}
+
+/* Movimiento reducido: las transiciones CSS pasan a ser instantáneas.
+   (Motion lo respeta por su lado con MotionConfig reducedMotion="user".) */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instante: 0ms;
+    --dur-corta: 0ms;
+    --dur-media: 0ms;
+  }
+}

@@ -1,0 +1,85 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Las láminas miden 6 × 6 cm de la rejilla (240 px) y se solapan 1 px para
+   compartir filete: el borde de cada una cae sobre una línea mayor. */
+.biblioteca__rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 240px);
+  grid-auto-rows: 240px;
+  padding: var(--rejilla-paso-mayor);
+  padding-right: calc(var(--rejilla-paso-mayor) + 1px);
+}
+
+.biblioteca__rejilla > li {
+  position: relative;
+}
+
+.lamina {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% + 1px);
+  height: calc(100% + 1px);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-0);
+  text-align: left;
+}
+
+.lamina:hover,
+.lamina:focus-visible {
+  z-index: 1;
+}
+
+.lamina:hover .lamina__visor {
+  border-bottom-color: var(--filete-fuerte);
+  background-color: color-mix(in srgb, var(--superficie-2) 45%, transparent);
+}
+
+.lamina:hover .lamina__pie {
+  background-color: var(--superficie-2);
+}
+
+.lamina:focus-visible {
+  outline-offset: -1px;
+}
+
+.lamina__visor {
+  flex: 1;
+  min-height: 0;
+  padding: var(--esp-5);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  /* Transparente: el dibujo se apoya en la rejilla del papel, que no se
+     deforma cuando el visor vuela hacia la vista del schematic. */
+  background-color: transparent;
+  transition: background-color var(--dur-instante) linear;
+}
+
+/* Cajetín de la lámina: nombre y medidas. */
+.lamina__pie {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--esp-1);
+  height: 72px;
+  padding: 0 var(--esp-4);
+  background-color: var(--superficie);
+  transition: background-color var(--dur-instante) linear;
+}
+
+.lamina__nombre {
+  overflow: hidden;
+  font-size: var(--t-4);
+  font-weight: 500;
+  line-height: var(--interlineado-justo);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lamina__medidas {
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}

@@ -1,0 +1,25 @@
+Litematica3D
+Copyright © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+
+Autoría: Ángel Serrano Domínguez (GitHub: AngelSerranoD).
+Este proyecto se distribuye bajo licencia propietaria; ver el archivo LICENSE.
+
+Minecraft es una marca de Mojang AB / Microsoft. Este proyecto no está afiliado
+a Mojang ni a Microsoft y NO redistribuye assets de Mojang.
+
+== Componentes de terceros ==
+
+- Tauri — MIT / Apache-2.0 — https://tauri.app
+- React — MIT — https://react.dev
+- Motion — MIT — https://motion.dev
+- Zustand — MIT — https://github.com/pmndrs/zustand
+
+Fuentes (SIL Open Font License 1.1), empaquetadas en src/assets/fuentes/
+(texto completo de la licencia en src/assets/fuentes/OFL.txt; archivos woff2
+obtenidos de los paquetes @fontsource 5.3.0):
+- Instrument Sans — Copyright 2022 The Instrument Sans Project Authors
+  (https://github.com/Instrument/instrument-sans)
+- JetBrains Mono — Copyright 2020 The JetBrains Mono Project Authors
+  (https://github.com/JetBrains/JetBrainsMono)
+- Silkscreen — Copyright 2001 The Silkscreen Project Authors
+  (https://github.com/googlefonts/silkscreen)

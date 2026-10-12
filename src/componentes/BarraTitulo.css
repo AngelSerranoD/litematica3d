@@ -1,0 +1,109 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+.barra-titulo {
+  display: flex;
+  align-items: stretch;
+  height: var(--alto-barra-titulo);
+  background-color: var(--superficie);
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Lo que no es botón deja pasar el ratón a la zona de arrastre. */
+.barra-titulo__marca,
+.barra-titulo__lugar {
+  pointer-events: none;
+}
+
+.barra-titulo__marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 0 var(--esp-4) 0 var(--esp-3);
+  border-right: var(--grosor-filete) solid var(--filete);
+}
+
+.barra-titulo__icono {
+  width: 16px;
+  height: 16px;
+  image-rendering: auto;
+}
+
+.barra-titulo__nombre {
+  font-size: var(--t-rotulo-s);
+  color: var(--tinta);
+  /* Silkscreen dibuja en una rejilla de 8 px: sin interletrado añadido. */
+  transform: translateY(-1px);
+}
+
+.barra-titulo__lugar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-width: 0;
+  padding: 0 var(--esp-4);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+  white-space: nowrap;
+}
+
+.barra-titulo__separador {
+  color: var(--filete-fuerte);
+}
+
+.barra-titulo__actual {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--tinta);
+}
+
+.barra-titulo__botones {
+  display: flex;
+  border-left: var(--grosor-filete) solid var(--filete);
+}
+
+.boton-ventana {
+  display: grid;
+  place-items: center;
+  width: var(--ancho-boton-ventana);
+  color: var(--tinta-2);
+  transition:
+    background-color var(--dur-instante) linear,
+    color var(--dur-instante) linear;
+}
+
+.boton-ventana + .boton-ventana {
+  border-left: var(--grosor-filete) solid var(--filete);
+}
+
+.boton-ventana svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.boton-ventana__aspa {
+  shape-rendering: geometricPrecision;
+}
+
+.boton-ventana:hover {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+.boton-ventana:active {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.boton-ventana--cerrar:hover,
+.boton-ventana--cerrar:active {
+  background-color: var(--aviso);
+  color: var(--sobre-aviso);
+}

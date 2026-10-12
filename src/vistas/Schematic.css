@@ -1,0 +1,85 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+.vista__cabecera--schematic {
+  align-items: flex-end;
+}
+
+.vista__cabecera--schematic .boton-plano {
+  margin-bottom: var(--esp-1);
+}
+
+.vista__titulo--schematic {
+  overflow: hidden;
+  font-size: var(--t-rotulo-m);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.schematic__cuerpo {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.schematic__marco {
+  position: relative;
+  display: grid;
+  min-height: 320px;
+  padding: var(--rejilla-paso-mayor);
+}
+
+.schematic__visor {
+  min-height: 0;
+  padding: var(--esp-8);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.schematic__nota {
+  position: absolute;
+  left: calc(var(--rejilla-paso-mayor) + var(--esp-4));
+  bottom: calc(var(--rejilla-paso-mayor) + var(--esp-3));
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.schematic__ficha {
+  overflow: auto;
+  border-left: var(--grosor-filete) solid var(--filete-fuerte);
+  background-color: var(--superficie);
+}
+
+.ficha__fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.ficha__fila dt {
+  color: var(--tinta-2);
+}
+
+.ficha__fila dd {
+  font-size: var(--t-3);
+}
+
+.ficha__fila--sub {
+  padding-top: var(--esp-2);
+  padding-bottom: var(--esp-2);
+}
+
+.ficha__fila--sub dt {
+  padding-left: var(--esp-4);
+  font-size: var(--t-2);
+}
+
+.ficha__fila--sub dd {
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}

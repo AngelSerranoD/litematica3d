@@ -1,0 +1,8 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Punto de entrada de los estilos globales: tokens y base. */
+@import "./estilos/tokens.css";
+@import "./estilos/base.css";

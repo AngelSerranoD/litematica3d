@@ -1,0 +1,76 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Piezas comunes a las dos vistas. Las vistas se apilan en la misma celda
+   para que durante la transición convivan la que sale y la que entra. */
+
+.vista {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* La cabecera mide dos centímetros de la rejilla (2 × 40 px) y su filete
+   cae justo sobre una línea mayor del papel. */
+.vista__cabecera {
+  box-sizing: content-box;
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--esp-6);
+  height: var(--esp-7);
+  padding: var(--esp-8) var(--esp-7) 0 var(--rejilla-paso-mayor);
+  padding-bottom: 0;
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.vista__titulo {
+  min-width: 0;
+  font-size: var(--t-rotulo-l);
+  /* Silkscreen apoya en la línea base del papel: 8 px de aire bajo el rótulo. */
+  padding-bottom: var(--esp-2);
+  color: var(--tinta);
+}
+
+.vista__dato {
+  margin-left: auto;
+  padding-bottom: var(--esp-2);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+  white-space: nowrap;
+}
+
+/* Botón plano: filete, relleno liso al pasar, nunca sombra. */
+.boton-plano {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  height: 32px;
+  padding: 0 var(--esp-3);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+  color: var(--tinta);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color var(--dur-instante) linear;
+}
+
+.boton-plano svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+}
+
+.boton-plano:hover {
+  background-color: var(--superficie-2);
+}
+
+.boton-plano:active {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
