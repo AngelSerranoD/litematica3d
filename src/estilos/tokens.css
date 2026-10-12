@@ -118,6 +118,11 @@
   --muelle-pulsacion-rigidez: 700;
   --muelle-pulsacion-amortiguacion: 38;
   --muelle-pulsacion-masa: 0.6;
+  /* Muelle «caida»: un schematic recién importado cae en su sitio; corto,
+     con un rebote pequeño al tocar (amortiguación ≈ 0,6 de la crítica). */
+  --muelle-caida-rigidez: 600;
+  --muelle-caida-amortiguacion: 28;
+  --muelle-caida-masa: 0.8;
 }
 
 /* ── Tema oscuro ──

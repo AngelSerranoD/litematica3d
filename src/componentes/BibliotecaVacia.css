@@ -1,0 +1,54 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Recuadro de soltar: ocupa el cuerpo de la vista menos un centímetro de
+   margen, así sus filetes caen sobre líneas mayores del papel. */
+.vacia {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-4);
+  min-height: 320px;
+  margin: var(--rejilla-paso-mayor);
+  padding: var(--esp-8) var(--esp-7);
+  border: var(--grosor-filete) dashed var(--filete-fuerte);
+  text-align: center;
+  transition:
+    background-color var(--dur-corta) linear,
+    border-color var(--dur-corta) linear;
+}
+
+.vacia[data-soltando] {
+  border-style: solid;
+  border-color: var(--tinta);
+  background-color: color-mix(in srgb, var(--superficie-2) 70%, transparent);
+}
+
+.vacia__icono {
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--esp-2);
+}
+
+.vacia__titulo {
+  font-size: var(--t-rotulo-m);
+  color: var(--tinta);
+}
+
+.vacia__texto {
+  max-width: 52ch;
+  color: var(--tinta-2);
+}
+
+.vacia__boton {
+  margin-top: var(--esp-2);
+}
+
+/* Durante el arrastre solo cuenta soltar: el botón se aparta. */
+.vacia[data-soltando] .vacia__boton {
+  visibility: hidden;
+}

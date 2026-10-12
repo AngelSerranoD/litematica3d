@@ -1,0 +1,146 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Una franja de un centímetro de la rejilla (40 px) con casillas. */
+.barra-biblioteca {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  height: var(--rejilla-paso-mayor);
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+  background-color: var(--superficie);
+}
+
+.icono {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* ── Buscar ── */
+.barra-biblioteca__buscar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  /* El icono cae en la misma vertical que el borde izquierdo de las láminas. */
+  padding: 0 var(--esp-4) 0 var(--rejilla-paso-mayor);
+  color: var(--tinta-2);
+  cursor: text;
+}
+
+.barra-biblioteca__buscar:focus-within {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: calc(var(--grosor-foco) * -1);
+  color: var(--tinta);
+}
+
+.barra-biblioteca__buscar input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: var(--t-3);
+}
+
+.barra-biblioteca__buscar input:focus-visible {
+  outline: none;
+}
+
+.barra-biblioteca__buscar input::placeholder {
+  color: var(--tinta-2);
+  opacity: 1;
+}
+
+.barra-biblioteca__buscar input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* ── Casillas ── */
+.barra-biblioteca__grupo {
+  display: flex;
+  align-items: stretch;
+}
+
+.barra-biblioteca__etiqueta {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--esp-2) 0 var(--esp-4);
+  border-left: var(--grosor-filete) solid var(--filete);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.casilla {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 0 var(--esp-3) 0 var(--esp-4);
+  border-left: var(--grosor-filete) solid var(--filete);
+  color: var(--tinta-2);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-instante) linear,
+    color var(--dur-instante) linear;
+}
+
+/* «Ordenar» y su primera casilla van juntos: sin filete entre ellos. */
+.barra-biblioteca__etiqueta + .casilla {
+  border-left-color: transparent;
+}
+
+.casilla:hover {
+  background-color: color-mix(in srgb, var(--superficie-2) 55%, var(--superficie));
+  color: var(--tinta);
+}
+
+/* Sin cambio de peso: la casilla no debe cambiar de ancho al activarse. */
+.casilla[aria-pressed="true"] {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+/* Hueco fijo para la flecha: cambiar de campo no mueve las casillas. */
+.casilla__sentido {
+  display: inline-grid;
+  place-items: center;
+  width: 8px;
+}
+
+.casilla--icono {
+  justify-content: center;
+  width: var(--rejilla-paso-mayor);
+  padding: 0;
+}
+
+/* Importar: la única casilla con relleno de acento. */
+.casilla--importar {
+  padding: 0 var(--esp-4);
+  border-left-color: var(--filete-fuerte);
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+  font-weight: 500;
+}
+
+.casilla--importar:hover {
+  background-color: var(--acento-2);
+  color: var(--sobre-acento);
+}
+
+.casilla--importar kbd {
+  border-color: color-mix(in srgb, var(--sobre-acento) 45%, transparent);
+  color: var(--sobre-acento);
+}
+
+.barra-biblioteca__atajo {
+  flex: none;
+}

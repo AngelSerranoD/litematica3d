@@ -1,6 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
+import type { CSSProperties } from "react";
 import { motion } from "motion/react";
 import type { Dimensiones } from "../api/biblioteca";
 import { muelle } from "../estilos/movimiento";
@@ -23,13 +24,19 @@ interface Props {
   dimensiones: Dimensiones;
   /** Si se da, el dibujo es un elemento compartido entre vistas. */
   layoutId?: string;
+  /**
+   * Clase extra; con ella se pueden redefinir los colores de las caras
+   * (--bloque-superior, --bloque-frontal, --bloque-lateral, --bloque-arista).
+   */
+  className?: string;
+  style?: CSSProperties;
 }
 
 /**
  * Prisma isométrico con las proporciones del schematic: marcador plano hasta
  * que exista el visor 3D. Caras con relleno liso y aristas de 1 px.
  */
-export function Bloque({ dimensiones, layoutId }: Props) {
+export function Bloque({ dimensiones, layoutId, className, style }: Props) {
   const { ancho: a, alto: h, largo: l } = dimensiones;
 
   // Caras visibles desde +X +Z: la superior, la de Z = largo y la de X = ancho.
@@ -49,18 +56,34 @@ export function Bloque({ dimensiones, layoutId }: Props) {
     .map((v) => v.toFixed(3))
     .join(" ");
 
+  const clase = className ? `bloque ${className}` : "bloque";
+  const dibujo = (
+    <svg viewBox={viewBox} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <polygon className="bloque__cara bloque__cara--superior" points={trazo(superior)} />
+      <polygon className="bloque__cara bloque__cara--frontal" points={trazo(frontal)} />
+      <polygon className="bloque__cara bloque__cara--lateral" points={trazo(lateral)} />
+    </svg>
+  );
+
+  // Sin layoutId basta un div: cada componente de Motion cuesta, y en la
+  // biblioteca hay cientos de miniaturas.
+  if (!layoutId) {
+    return (
+      <div className={clase} style={style}>
+        {dibujo}
+      </div>
+    );
+  }
+
   // El layoutId va en un div: Motion no proyecta layout sobre elementos SVG.
   return (
     <motion.div
-      className="bloque"
+      className={clase}
+      style={style}
       layoutId={layoutId}
       transition={{ layout: muelle("compartido") }}
     >
-      <svg viewBox={viewBox} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-        <polygon className="bloque__cara bloque__cara--superior" points={trazo(superior)} />
-        <polygon className="bloque__cara bloque__cara--frontal" points={trazo(frontal)} />
-        <polygon className="bloque__cara bloque__cara--lateral" points={trazo(lateral)} />
-      </svg>
+      {dibujo}
     </motion.div>
   );
 }

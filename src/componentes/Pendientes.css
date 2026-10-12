@@ -1,0 +1,76 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+.pendientes {
+  display: flex;
+  flex-direction: column;
+}
+
+.pendiente {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+  min-height: var(--rejilla-paso-mayor);
+  padding: var(--esp-1) var(--esp-4) var(--esp-1) var(--rejilla-paso-mayor);
+  border-top: var(--grosor-filete) solid var(--filete-fuerte);
+  background-color: var(--superficie);
+  font-size: var(--t-3);
+}
+
+/* Cuenta atrás lineal: 2 px de tinta sobre el filete superior, que se
+   encoge hacia la izquierda hasta cero. Lineal a propósito: es un reloj. */
+.pendiente__cuenta {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--tinta-2);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation-name: cuenta-atras;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@keyframes cuenta-atras {
+  from {
+    transform: scaleX(var(--inicio, 1));
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Con movimiento reducido no hay barra: quedan los segundos en cifras. */
+@media (prefers-reduced-motion: reduce) {
+  .pendiente__cuenta {
+    display: none;
+  }
+}
+
+.pendiente__texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--tinta);
+}
+
+.pendiente__nombre {
+  font-weight: 500;
+}
+
+.pendiente__segundos {
+  flex: none;
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.pendiente .boton-plano {
+  height: 28px;
+}

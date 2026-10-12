@@ -16,6 +16,7 @@ use crate::biblioteca::Biblioteca;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let dir_datos = app.path().app_data_dir()?;
             let biblioteca = Biblioteca::abrir(&dir_datos)?;

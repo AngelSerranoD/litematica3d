@@ -12,6 +12,9 @@
   display: flex;
   flex-direction: column;
   overflow: auto;
+  /* Las piezas entran desplazadas 12 px en x: sin esto asoma una barra
+     horizontal durante la transición. */
+  overflow-x: hidden;
 }
 
 /* La cabecera mide dos centímetros de la rejilla (2 × 40 px) y su filete

@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useBiblioteca } from "../estado/biblioteca";
+import { Pendientes } from "./Pendientes";
 import "./Avisos.css";
 
 /** Superposición de «soltar archivos»: filete discontinuo y un texto. */
@@ -25,7 +26,7 @@ export function ZonaSoltar({ visible }: { visible: boolean }) {
   );
 }
 
-/** Franja plana inferior con los avisos; cada uno caduca solo. */
+/** Franja plana inferior: borrados por deshacer y avisos (cada aviso caduca solo). */
 export function Avisos() {
   const avisos = useBiblioteca((s) => s.avisos);
   const descartar = useBiblioteca((s) => s.descartarAviso);
@@ -39,24 +40,27 @@ export function Avisos() {
   }, [avisos, descartar]);
 
   return (
-    <div className="avisos" role="status" aria-live="polite">
-      <AnimatePresence initial={false}>
-        {avisos.map((a) => (
-          <motion.div
-            key={a.id}
-            className="aviso"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.14 }}
-          >
-            <p className="aviso__texto">{a.mensaje}</p>
-            <button type="button" className="boton-plano" onClick={() => descartar(a.id)}>
-              Cerrar
-            </button>
-          </motion.div>
-        ))}
-      </AnimatePresence>
+    <div className="avisos">
+      <Pendientes />
+      <div className="avisos__lista" role="status" aria-live="polite">
+        <AnimatePresence initial={false}>
+          {avisos.map((a) => (
+            <motion.div
+              key={a.id}
+              className="aviso"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.14 }}
+            >
+              <p className="aviso__texto">{a.mensaje}</p>
+              <button type="button" className="boton-plano" onClick={() => descartar(a.id)}>
+                Cerrar
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

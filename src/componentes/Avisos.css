@@ -27,6 +27,11 @@
   flex-direction: column;
 }
 
+.avisos__lista {
+  display: flex;
+  flex-direction: column;
+}
+
 .aviso {
   display: flex;
   align-items: baseline;

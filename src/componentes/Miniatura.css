@@ -1,0 +1,14 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Tres caras con relleno liso: luz cenital, la izquierda en su tono y la
+   derecha en penumbra. No son degradados: cada cara es un solo color. El
+   blanco y el negro solo aclaran u oscurecen el tono de la paleta. */
+.miniatura {
+  --bloque-superior: color-mix(in oklab, var(--bloque-base) 70%, #fff);
+  --bloque-frontal: var(--bloque-base);
+  --bloque-lateral: color-mix(in oklab, var(--bloque-base) 74%, #000);
+  --bloque-arista: color-mix(in oklab, var(--bloque-base) 40%, var(--paleta-tierra));
+}

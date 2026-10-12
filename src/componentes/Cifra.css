@@ -1,0 +1,13 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+.cifra {
+  white-space: nowrap;
+}
+
+/* Espacio fino entre grupos de miles (un sexto de cuadratín, aprox.). */
+.cifra__grupo + .cifra__grupo {
+  margin-left: 0.2em;
+}

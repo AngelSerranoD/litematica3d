@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useIsPresent } from "motion/react";
-import { Bloque } from "../componentes/Bloque";
+import { Miniatura } from "../componentes/Miniatura";
 import {
   formatoDimensiones,
   formatoNumero,
@@ -81,7 +81,7 @@ export function Schematic({ id }: { id: string }) {
             layoutId={idVisor(id)}
             transition={{ layout: muelle("compartido") }}
           >
-            {dim && <Bloque dimensiones={dim} layoutId={idBloque(id)} />}
+            {dim && <Miniatura id={id} dimensiones={dim} layoutId={idBloque(id)} />}
             {!entrada && !cargando && (
               <p className="schematic__nota schematic__nota--centro" role="alert">
                 Este schematic ya no está en la biblioteca.

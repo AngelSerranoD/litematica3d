@@ -15,7 +15,7 @@
 }
 
 .bloque__cara {
-  stroke: var(--tinta-2);
+  stroke: var(--bloque-arista, var(--tinta-2));
   stroke-width: 1;
   stroke-linejoin: miter;
   vector-effect: non-scaling-stroke;
@@ -23,13 +23,13 @@
 }
 
 .bloque__cara--superior {
-  fill: var(--acento);
+  fill: var(--bloque-superior, var(--acento));
 }
 
 .bloque__cara--frontal {
-  fill: var(--superficie-2);
+  fill: var(--bloque-frontal, var(--superficie-2));
 }
 
 .bloque__cara--lateral {
-  fill: var(--superficie);
+  fill: var(--bloque-lateral, var(--superficie));
 }
