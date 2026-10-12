@@ -25,6 +25,25 @@ pub use sponge::leer_varints;
 /// Máximo de posiciones (sumando regiones) que se aceptan: 512 Mi.
 pub const MAX_POSICIONES: u64 = 512 * 1024 * 1024;
 
+/// Máximo de posiciones sin datos que las respalden (aire implícito de las
+/// estructuras y de Sponge v3 sin bloques): 16 Mi, 64 MiB de índices. Sin este
+/// tope, un archivo de pocos bytes podría declarar un volumen enorme y obligar
+/// a reservar gigas antes de validar nada.
+pub const MAX_POSICIONES_IMPLICITAS: u64 = 16 * 1024 * 1024;
+
+/// Comprueba que un volumen sin datos densos detrás no se dispare: se admite
+/// hasta [`MAX_POSICIONES_IMPLICITAS`] o 8 posiciones por bloque declarado, lo
+/// que sea mayor (así el gasto de memoria crece con el tamaño del archivo).
+pub(crate) fn limitar_implicito(volumen: u64, declarados: u64) -> Result<(), ErrorSchematic> {
+    let tope = MAX_POSICIONES_IMPLICITAS.max(declarados.saturating_mul(8));
+    if volumen > tope {
+        return Err(ErrorSchematic::DemasiadoGrande(format!(
+            "declara {volumen} posiciones pero solo describe {declarados} bloques"
+        )));
+    }
+    Ok(())
+}
+
 /// Máximo de bytes NBT tras descomprimir (protege de «bombas» de compresión).
 pub const MAX_BYTES_DESCOMPRIMIDOS: u64 = 1024 * 1024 * 1024;
 

@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use super::modelo::{Formato, Region, Schematic, caja_englobante};
 use super::nbt::{EntradaPaleta, deserializar};
-use super::{ErrorSchematic, Paleta, reservar_bloques, validar_tamano};
+use super::{ErrorSchematic, Paleta, limitar_implicito, reservar_bloques, validar_tamano};
 
 #[derive(Deserialize)]
 struct Estructura {
@@ -51,6 +51,8 @@ pub(crate) fn leer(datos: &[u8]) -> Result<Schematic, ErrorSchematic> {
         .map(|p| paleta.insertar(p.estado()))
         .collect();
 
+    // La estructura es dispersa: lo no declarado es aire y no ocupa bytes.
+    limitar_implicito(tamano.volumen(), e.blocks.len() as u64)?;
     let volumen = tamano.volumen() as usize;
     let mut bloques = reservar_bloques(volumen as u64)?;
     bloques.resize(volumen, 0);

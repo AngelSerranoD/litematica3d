@@ -54,16 +54,25 @@ struct RegionNbt {
 pub(crate) fn leer(datos: &[u8]) -> Result<Schematic, ErrorSchematic> {
     let archivo: Archivo = deserializar(datos)?;
     let mut regiones = Vec::with_capacity(archivo.regiones.0.len());
-    let mut acumulado: u64 = 0;
+    // Se suman los volúmenes declarados antes de reservar ninguna región.
+    let total: u64 = archivo
+        .regiones
+        .0
+        .iter()
+        .map(|(_, r)| {
+            let lado = |v: i32| u64::from(v.unsigned_abs());
+            lado(r.tamano.x)
+                .saturating_mul(lado(r.tamano.y))
+                .saturating_mul(lado(r.tamano.z))
+        })
+        .fold(0u64, u64::saturating_add);
+    if total > MAX_POSICIONES {
+        return Err(ErrorSchematic::DemasiadoGrande(format!(
+            "sus regiones suman más de {MAX_POSICIONES} posiciones"
+        )));
+    }
     for (nombre, r) in archivo.regiones.0 {
-        let region = leer_region(nombre, r)?;
-        acumulado += region.tamano.volumen();
-        if acumulado > MAX_POSICIONES {
-            return Err(ErrorSchematic::DemasiadoGrande(format!(
-                "sus regiones suman más de {MAX_POSICIONES} posiciones"
-            )));
-        }
-        regiones.push(region);
+        regiones.push(leer_region(nombre, r)?);
     }
     let meta = archivo.metadatos;
     let (nombre, autor, descripcion, creado) = match meta {

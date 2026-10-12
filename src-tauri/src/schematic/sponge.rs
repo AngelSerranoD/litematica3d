@@ -11,7 +11,7 @@ use serde::Deserialize;
 use super::modelo::{Formato, Region, Schematic, caja_englobante};
 use super::nbt::deserializar;
 use super::{
-    ErrorSchematic, Paleta, normalizar_estado, reservar_bloques, texto_util, validar_tamano,
+    ErrorSchematic, Paleta, limitar_implicito, normalizar_estado, reservar_bloques, texto_util, validar_tamano,
 };
 
 /// Índice de paleta máximo admitido (evita tablas enormes con datos malos).
@@ -127,12 +127,15 @@ fn construir(
     )?;
     let volumen = tamano.volumen();
     let mut paleta = Paleta::nueva();
-    let mut indices = reservar_bloques(volumen)?;
+    // Se reserva solo tras comprobar que hay datos que respalden el volumen.
+    let mut indices;
 
     match bloques {
         // v3 sin bloques (solo biomas o entidades): todo aire.
         None => {
+            limitar_implicito(volumen, 0)?;
             let aire = paleta.insertar("minecraft:air".into());
+            indices = reservar_bloques(volumen)?;
             indices.resize(volumen as usize, aire);
         }
         Some((paleta_nbt, datos)) => {
@@ -145,6 +148,7 @@ fn construir(
                     bytes.len()
                 )));
             }
+            indices = reservar_bloques(volumen)?;
             let bytes: Vec<u8> = bytes.iter().map(|&b| b as u8).collect();
             let mut pos = 0usize;
             for _ in 0..volumen {
