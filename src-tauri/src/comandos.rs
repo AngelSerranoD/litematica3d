@@ -12,6 +12,7 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::biblioteca::{Biblioteca, Detalle, Entrada, Importacion};
 use crate::error::ErrorApp;
+use crate::materiales::{self, ListaMateriales, Opciones};
 
 /// Resultado de importar un archivo. El fallo de uno no aborta los demás.
 #[derive(Debug, Serialize)]
@@ -109,6 +110,21 @@ pub async fn renombrar(
 pub async fn eliminar(biblioteca: State<'_, Arc<Biblioteca>>, id: String) -> Result<(), ErrorApp> {
     let b = biblioteca.inner().clone();
     en_segundo_plano(move || b.eliminar(&id)).await
+}
+
+/// Lista de materiales de un schematic de la biblioteca.
+#[tauri::command]
+pub async fn materiales(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    id: String,
+    opciones: Opciones,
+) -> Result<ListaMateriales, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    en_segundo_plano(move || {
+        let (_, schem) = b.cargar(&id)?;
+        materiales::calcular(&schem, &opciones)
+    })
+    .await
 }
 
 #[cfg(test)]

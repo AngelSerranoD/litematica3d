@@ -30,6 +30,9 @@ pub enum ErrorApp {
     #[error("Ese schematic no está en la biblioteca.")]
     NoEncontrado,
 
+    #[error("El schematic no tiene ninguna región llamada «{nombre}».")]
+    RegionNoEncontrada { nombre: String },
+
     #[error(
         "No se encuentra el archivo de «{nombre}» dentro de la biblioteca; puede que se haya borrado a mano."
     )]
@@ -88,6 +91,7 @@ impl ErrorApp {
             ErrorApp::DemasiadoGrande { .. } => "demasiadoGrande",
             ErrorApp::FormatoDesconocido { .. } => "formatoDesconocido",
             ErrorApp::NoEncontrado => "noEncontrado",
+            ErrorApp::RegionNoEncontrada { .. } => "regionNoEncontrada",
             ErrorApp::ArchivoPerdido { .. } => "archivoPerdido",
             ErrorApp::NombreInvalido(_) => "nombreInvalido",
             ErrorApp::Io { .. } => "io",

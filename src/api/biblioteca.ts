@@ -47,6 +47,7 @@ export type TipoError =
   | "demasiadoGrande"
   | "formatoDesconocido"
   | "noEncontrado"
+  | "regionNoEncontrada"
   | "archivoPerdido"
   | "nombreInvalido"
   | "io"
@@ -59,6 +60,44 @@ export type TipoError =
 export interface ErrorApp {
   tipo: TipoError;
   mensaje: string;
+}
+
+/** Qué contar en la lista de materiales. */
+export interface OpcionesMateriales {
+  /** Contar agua y lava (solo fuentes) como cubos. */
+  incluirFluidos: boolean;
+  /** Solo esta región; `null`, todas. */
+  region: string | null;
+  /** Rango de alturas inclusivo, en coordenadas Y del schematic (las de `Region.origen`). */
+  yMin: number | null;
+  yMax: number | null;
+}
+
+/** Un ítem de la lista de materiales con su desglose. */
+export interface Material {
+  /** ID del ítem (`minecraft:…`); `litematica3d:desconocido` agrupa los IDs sin traducción. */
+  item: string;
+  cantidad: number;
+  tamanoStack: number;
+  /** `stacks × tamanoStack + sueltos = cantidad`. */
+  stacks: number;
+  sueltos: number;
+  /** Cajas de shulker llenas (27 stacks) y lo que queda fuera de ellas. */
+  shulkers: number;
+  stacksEnShulker: number;
+  sueltosEnShulker: number;
+}
+
+export interface ListaMateriales {
+  /** De más a menos cantidad. */
+  materiales: Material[];
+  totalItems: number;
+  /** Huecos de inventario necesarios. */
+  totalStacks: number;
+  /** Cajas de shulker para llevarlo todo mezclado. */
+  totalShulkers: number;
+  /** Bloques con ID antiguo sin traducción. */
+  desconocidos: number;
 }
 
 export type ResultadoImportacion =
@@ -98,6 +137,8 @@ export const obtener = (id: string) => llamar<Detalle>("obtener", { id });
 export const renombrar = (id: string, nombre: string) =>
   llamar<Entrada>("renombrar", { id, nombre });
 export const eliminar = (id: string) => llamar<null>("eliminar", { id });
+export const materiales = (id: string, opciones: OpcionesMateriales) =>
+  llamar<ListaMateriales>("materiales", { id, opciones });
 
 const numeros = new Intl.NumberFormat("es-ES");
 

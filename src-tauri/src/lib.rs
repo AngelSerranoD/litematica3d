@@ -4,6 +4,7 @@
 pub mod biblioteca;
 pub mod comandos;
 pub mod error;
+pub mod materiales;
 pub mod schematic;
 
 use std::sync::Arc;
@@ -27,6 +28,7 @@ pub fn run() {
             comandos::obtener,
             comandos::renombrar,
             comandos::eliminar,
+            comandos::materiales,
         ])
         .run(tauri::generate_context!())
         .expect("error al ejecutar la aplicación Tauri");
