@@ -106,6 +106,12 @@ fn aire_e_ignorados_no_cuentan() {
         ("minecraft:barrier", 2),
         ("minecraft:light[level=15,waterlogged=false]", 1),
         ("minecraft:structure_void", 1),
+        // No se obtienen como ítem en supervivencia.
+        (
+            "minecraft:chorus_plant[down=true,east=false,north=false,south=false,up=true,west=false]",
+            1,
+        ),
+        ("minecraft:frogspawn", 2),
         ("minecraft:stone", 3),
     ]);
     assert_eq!(c, mapa(&[("minecraft:stone", 3)]));
