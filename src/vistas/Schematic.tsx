@@ -1,29 +1,47 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useIsPresent } from "motion/react";
 import { Bloque } from "../componentes/Bloque";
-import { buscarEjemplo, formatoDimensiones } from "../datos/ejemplos";
+import {
+  formatoDimensiones,
+  formatoNumero,
+  nombreFormato,
+  obtener,
+  type Region,
+} from "../api/biblioteca";
+import { useBiblioteca } from "../estado/biblioteca";
 import { useNavegacion } from "../estado/navegacion";
 import { muelle } from "../estilos/movimiento";
 import { idBloque, idVisor, variantePieza, varianteVista } from "./transicion";
 import "./vistas.css";
 import "./Schematic.css";
 
-const numero = new Intl.NumberFormat("es-ES");
-
 export function Schematic({ id }: { id: string }) {
   const volver = useNavegacion((s) => s.volver);
   const direccion = useNavegacion((s) => s.direccion);
   // La vista que sale no debe recibir clics mientras se desvanece.
   const presente = useIsPresent();
-  const entrada = buscarEjemplo(id);
+  const entrada = useBiblioteca((s) => s.entradas.find((e) => e.id === id));
+  const cargando = useBiblioteca((s) => s.cargando);
+  const [regiones, setRegiones] = useState<Region[]>([]);
   const botonVolver = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     botonVolver.current?.focus({ preventScroll: true });
   }, []);
+
+  // Las regiones no van en la lista: se piden al abrir la ficha.
+  useEffect(() => {
+    let activo = true;
+    obtener(id)
+      .then((d) => activo && setRegiones(d.regiones))
+      .catch(() => activo && setRegiones([]));
+    return () => {
+      activo = false;
+    };
+  }, [id]);
 
   const dim = entrada?.dimensiones;
 
@@ -51,9 +69,9 @@ export function Schematic({ id }: { id: string }) {
           <kbd>Esc</kbd>
         </button>
         <h1 id="titulo-schematic" className="vista__titulo vista__titulo--schematic rotulo">
-          {entrada?.nombre ?? "Schematic"}
+          {entrada?.nombre ?? (cargando ? "" : "No encontrado")}
         </h1>
-        <p className="vista__dato cifras">{id}</p>
+        {entrada && <p className="vista__dato cifras">{nombreFormato(entrada.formato)}</p>}
       </motion.header>
 
       <div className="schematic__cuerpo">
@@ -64,6 +82,11 @@ export function Schematic({ id }: { id: string }) {
             transition={{ layout: muelle("compartido") }}
           >
             {dim && <Bloque dimensiones={dim} layoutId={idBloque(id)} />}
+            {!entrada && !cargando && (
+              <p className="schematic__nota schematic__nota--centro" role="alert">
+                Este schematic ya no está en la biblioteca.
+              </p>
+            )}
           </motion.div>
           <motion.p className="schematic__nota" variants={variantePieza} custom={direccion}>
             Vista previa plana. El modelo en 3D se verá aquí.
@@ -77,10 +100,22 @@ export function Schematic({ id }: { id: string }) {
           custom={direccion}
         >
           <dl>
-            <div className="ficha__fila">
-              <dt>Identificador</dt>
-              <dd className="cifras">{id}</dd>
-            </div>
+            {entrada && (
+              <>
+                <div className="ficha__fila">
+                  <dt>Formato</dt>
+                  <dd>{nombreFormato(entrada.formato)}</dd>
+                </div>
+                <div className="ficha__fila">
+                  <dt>Bloques</dt>
+                  <dd className="cifras">{formatoNumero(entrada.totalBloques)}</dd>
+                </div>
+                <div className="ficha__fila">
+                  <dt>Regiones</dt>
+                  <dd className="cifras">{formatoNumero(entrada.regiones)}</dd>
+                </div>
+              </>
+            )}
             {dim && (
               <>
                 <div className="ficha__fila">
@@ -102,12 +137,25 @@ export function Schematic({ id }: { id: string }) {
                 <div className="ficha__fila">
                   <dt>Volumen</dt>
                   <dd className="cifras">
-                    {numero.format(dim.ancho * dim.alto * dim.largo)} bloques
+                    {formatoNumero(dim.ancho * dim.alto * dim.largo)} bloques
                   </dd>
                 </div>
               </>
             )}
           </dl>
+          {regiones.length > 1 && (
+            <>
+              <h2 className="ficha__subtitulo rotulo">Regiones</h2>
+              <ul className="ficha__regiones">
+                {regiones.map((g) => (
+                  <li key={g.nombre} className="ficha__fila">
+                    <span>{g.nombre}</span>
+                    <span className="cifras">{formatoNumero(g.totalBloques)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </motion.aside>
       </div>
     </motion.section>

@@ -13,6 +13,20 @@ a Mojang ni a Microsoft y NO redistribuye assets de Mojang.
 - React — MIT — https://react.dev
 - Motion — MIT — https://motion.dev
 - Zustand — MIT — https://github.com/pmndrs/zustand
+- fastnbt — MIT / Apache-2.0 — https://github.com/owengage/fastnbt
+- flate2 — MIT / Apache-2.0 — https://github.com/rust-lang/flate2-rs
+- rusqlite (incluye SQLite, dominio público) — MIT — https://github.com/rusqlite/rusqlite
+- trash — MIT — https://github.com/ArturKovacs/trash
+- uuid, sha2, thiserror — MIT / Apache-2.0
+
+Datos de terceros:
+- src-tauri/datos/legado_bloques.json: tabla de IDs numéricos antiguos
+  («id:meta») a block states, extraída de data/pc/common/legacy.json de
+  PrismarineJS/minecraft-data (MIT) — https://github.com/PrismarineJS/minecraft-data
+
+Datos de prueba (src-tauri/tests/datos/): generados por generar.py, de este
+proyecto, con nbtlib (MIT) y litemapy (GPL-3.0). Ambas se usan solo como
+herramientas de desarrollo: no se enlazan ni se distribuyen con la app.
 
 Fuentes (SIL Open Font License 1.1), empaquetadas en src/assets/fuentes/
 (texto completo de la licencia en src/assets/fuentes/OFL.txt; archivos woff2

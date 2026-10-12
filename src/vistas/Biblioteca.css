@@ -83,3 +83,9 @@
   font-size: var(--t-2);
   color: var(--tinta-2);
 }
+
+/* Estado vacío o error: una línea sobre el papel, alineada con la rejilla. */
+.biblioteca__mensaje {
+  padding: var(--rejilla-paso-mayor);
+  color: var(--tinta-2);
+}

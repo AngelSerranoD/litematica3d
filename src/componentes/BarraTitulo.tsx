@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { buscarEjemplo } from "../datos/ejemplos";
+import { useBiblioteca } from "../estado/biblioteca";
 import { useNavegacion } from "../estado/navegacion";
 import icono from "../assets/icono-64.png";
 import "./BarraTitulo.css";
@@ -20,9 +20,11 @@ const EN_TAURI = isTauri();
 export function BarraTitulo() {
   const ruta = useNavegacion((s) => s.ruta);
   const maximizada = useMaximizada();
+  const nombre = useBiblioteca((s) =>
+    ruta.vista === "schematic" ? s.entradas.find((e) => e.id === ruta.id)?.nombre : undefined,
+  );
 
-  const lugar =
-    ruta.vista === "schematic" ? (buscarEjemplo(ruta.id)?.nombre ?? ruta.id) : null;
+  const lugar = ruta.vista === "schematic" ? (nombre ?? ruta.id) : null;
 
   return (
     <header className="barra-titulo" data-tauri-drag-region>

@@ -4,7 +4,8 @@
 import { useEffect, useRef } from "react";
 import { motion, useIsPresent } from "motion/react";
 import { Bloque } from "../componentes/Bloque";
-import { EJEMPLOS, formatoDimensiones } from "../datos/ejemplos";
+import { formatoDimensiones, formatoNumero } from "../api/biblioteca";
+import { useBiblioteca } from "../estado/biblioteca";
 import { useNavegacion } from "../estado/navegacion";
 import { muelle } from "../estilos/movimiento";
 import { idBloque, idVisor, variantePieza, varianteVista } from "./transicion";
@@ -18,6 +19,14 @@ export function Biblioteca() {
   const presente = useIsPresent();
   const ultimoId = useNavegacion((s) => s.ultimoId);
   const rejilla = useRef<HTMLUListElement>(null);
+  const entradas = useBiblioteca((s) => s.entradas);
+  const cargando = useBiblioteca((s) => s.cargando);
+  const error = useBiblioteca((s) => s.error);
+  const cargar = useBiblioteca((s) => s.cargar);
+
+  useEffect(() => {
+    void cargar();
+  }, [cargar]);
 
   // Al volver, el foco regresa a la lámina que se abrió.
   useEffect(() => {
@@ -42,11 +51,24 @@ export function Biblioteca() {
         <h1 id="titulo-biblioteca" className="vista__titulo rotulo">
           Biblioteca
         </h1>
-        <p className="vista__dato cifras">{EJEMPLOS.length} schematics</p>
+        <p className="vista__dato cifras">
+          {cargando ? "" : `${formatoNumero(entradas.length)} ${entradas.length === 1 ? "schematic" : "schematics"}`}
+        </p>
       </motion.header>
 
+      {error && (
+        <p className="biblioteca__mensaje" role="alert">
+          No se pudo leer la biblioteca. {error.mensaje}
+        </p>
+      )}
+      {!cargando && !error && entradas.length === 0 && (
+        <p className="biblioteca__mensaje">
+          Arrastra aquí archivos .litematic, .schem, .schematic o .nbt
+        </p>
+      )}
+
       <ul className="biblioteca__rejilla" ref={rejilla}>
-        {EJEMPLOS.map((e) => (
+        {entradas.map((e) => (
           <motion.li key={e.id} variants={variantePieza} custom={direccion}>
             <button
               type="button"

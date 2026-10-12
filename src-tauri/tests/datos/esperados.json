@@ -1,0 +1,454 @@
+{
+  "litematic_simple.litematic": {
+    "formato": "litematic",
+    "ancho": 7,
+    "alto": 6,
+    "largo": 8,
+    "total_bloques": 241,
+    "regiones": 1,
+    "nombre": "Casita de prueba",
+    "autor": "Ángel Serrano",
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:oak_log[axis=y]"
+      },
+      {
+        "region": 0,
+        "x": 6,
+        "y": 5,
+        "z": 7,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 6,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:oak_log[axis=y]"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 3,
+        "bloque": "minecraft:cave_air"
+      },
+      {
+        "region": 0,
+        "x": 3,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 4,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "litematic_multi.litematic": {
+    "formato": "litematic",
+    "ancho": 27,
+    "alto": 6,
+    "largo": 14,
+    "total_bloques": 86,
+    "regiones": 2,
+    "nombre": "Dos regiones",
+    "autor": "Ángel Serrano",
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 2,
+        "z": 3,
+        "bloque": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 3,
+        "y": 0,
+        "z": 1,
+        "bloque": "minecraft:grass_block[snowy=false]"
+      },
+      {
+        "region": 1,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 1,
+        "x": 2,
+        "y": 3,
+        "z": 4,
+        "bloque": "minecraft:stone"
+      },
+      {
+        "region": 1,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:lantern[hanging=false,waterlogged=false]"
+      }
+    ]
+  },
+  "sponge_v2.schem": {
+    "formato": "sponge",
+    "ancho": 10,
+    "alto": 6,
+    "largo": 7,
+    "total_bloques": 355,
+    "regiones": 1,
+    "nombre": "Sponge v2 grande",
+    "autor": "Ángel Serrano",
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:test_123[level=3]"
+      },
+      {
+        "region": 0,
+        "x": 9,
+        "y": 5,
+        "z": 6,
+        "bloque": "minecraft:test_88"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:test_57[level=1]"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 2,
+        "bloque": "minecraft:cave_air"
+      },
+      {
+        "region": 0,
+        "x": 3,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 4,
+        "z": 2,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "sponge_v3.schem": {
+    "formato": "sponge",
+    "ancho": 4,
+    "alto": 3,
+    "largo": 5,
+    "total_bloques": 46,
+    "regiones": 1,
+    "nombre": "Sponge v3 pequeño",
+    "autor": "Ángel Serrano",
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:lantern[hanging=false,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 3,
+        "y": 2,
+        "z": 4,
+        "bloque": "minecraft:lantern[hanging=false,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:lantern[hanging=false,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 3,
+        "y": 0,
+        "z": 1,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "mcedit.schematic": {
+    "formato": "mcedit",
+    "ancho": 6,
+    "alto": 4,
+    "largo": 5,
+    "total_bloques": 87,
+    "regiones": 1,
+    "nombre": null,
+    "autor": null,
+    "version_datos": null,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:oak_stairs[facing=west,half=bottom,shape=outer_right]"
+      },
+      {
+        "region": 0,
+        "x": 5,
+        "y": 3,
+        "z": 4,
+        "bloque": "minecraft:stone"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:oak_stairs[facing=west,half=bottom,shape=outer_right]"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 3,
+        "y": 0,
+        "z": 1,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "estructura.nbt": {
+    "formato": "estructura",
+    "ancho": 5,
+    "alto": 4,
+    "largo": 6,
+    "total_bloques": 70,
+    "regiones": 1,
+    "nombre": null,
+    "autor": null,
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 3,
+        "z": 5,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 0,
+        "z": 1,
+        "bloque": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "estructura_palettes.nbt": {
+    "formato": "estructura",
+    "ancho": 5,
+    "alto": 4,
+    "largo": 6,
+    "total_bloques": 70,
+    "regiones": 1,
+    "nombre": null,
+    "autor": null,
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 3,
+        "z": 5,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 0,
+        "z": 1,
+        "bloque": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "sin_comprimir.nbt": {
+    "formato": "estructura",
+    "ancho": 5,
+    "alto": 4,
+    "largo": 6,
+    "total_bloques": 70,
+    "regiones": 1,
+    "nombre": null,
+    "autor": null,
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 3,
+        "z": 5,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 4,
+        "y": 0,
+        "z": 1,
+        "bloque": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  },
+  "corrupto.litematic": {
+    "error": true
+  },
+  "basura.schem": {
+    "error": true
+  },
+  "sponge_como_schematic.schematic": {
+    "formato": "sponge",
+    "ancho": 3,
+    "alto": 3,
+    "largo": 3,
+    "total_bloques": 21,
+    "regiones": 1,
+    "nombre": "Sponge con extension legada",
+    "autor": "Ángel Serrano",
+    "version_datos": 3953,
+    "muestras": [
+      {
+        "region": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:oak_planks"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 2,
+        "z": 2,
+        "bloque": "minecraft:glass"
+      },
+      {
+        "region": 0,
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "bloque": "minecraft:air"
+      },
+      {
+        "region": 0,
+        "x": 2,
+        "y": 0,
+        "z": 2,
+        "bloque": "minecraft:stone"
+      }
+    ]
+  }
+}

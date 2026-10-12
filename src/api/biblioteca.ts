@@ -1,0 +1,119 @@
+// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Ver LICENSE y NOTICE.
+
+import { invoke } from "@tauri-apps/api/core";
+
+/** Dimensiones de un schematic en bloques (ejes de Minecraft: X, Y, Z). */
+export interface Dimensiones {
+  ancho: number;
+  alto: number;
+  largo: number;
+}
+
+export type Formato = "litematic" | "sponge" | "mcedit" | "estructura";
+
+export interface Entrada {
+  id: string;
+  nombre: string;
+  autor: string | null;
+  descripcion: string | null;
+  formato: Formato;
+  dimensiones: Dimensiones;
+  totalBloques: number;
+  regiones: number;
+  versionDatos: number | null;
+  /** Milisegundos desde la época Unix. */
+  fechaCreacion: number | null;
+  fechaImportacion: number;
+  nombreOriginal: string | null;
+  tamanoArchivo: number;
+}
+
+export interface Region {
+  nombre: string;
+  origen: [number, number, number];
+  tamano: Dimensiones;
+  tamanoPaleta: number;
+  totalBloques: number;
+}
+
+export interface Detalle {
+  entrada: Entrada;
+  regiones: Region[];
+}
+
+export type TipoError =
+  | "archivoCorrupto"
+  | "demasiadoGrande"
+  | "formatoDesconocido"
+  | "noEncontrado"
+  | "archivoPerdido"
+  | "nombreInvalido"
+  | "io"
+  | "baseDatos"
+  | "papelera"
+  | "versionBiblioteca"
+  | "interno";
+
+/** Error de los comandos de Rust; `mensaje` viene en español, listo para enseñar. */
+export interface ErrorApp {
+  tipo: TipoError;
+  mensaje: string;
+}
+
+export type ResultadoImportacion =
+  | { estado: "importado"; entrada: Entrada }
+  | { estado: "duplicado"; entrada: Entrada }
+  | { estado: "error"; ruta: string; error: ErrorApp };
+
+/** Convierte lo que rechace `invoke` en un ErrorApp (tipo «interno» si no lo es). */
+export function normalizarError(e: unknown): ErrorApp {
+  if (
+    typeof e === "object" &&
+    e !== null &&
+    "tipo" in e &&
+    "mensaje" in e &&
+    typeof e.tipo === "string" &&
+    typeof e.mensaje === "string"
+  ) {
+    return e as ErrorApp;
+  }
+  const mensaje =
+    typeof e === "string" ? e : e instanceof Error ? e.message : "Error inesperado.";
+  return { tipo: "interno", mensaje };
+}
+
+async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise<T> {
+  try {
+    return await invoke<T>(orden, args);
+  } catch (e) {
+    throw normalizarError(e);
+  }
+}
+
+export const importar = (rutas: string[]) =>
+  llamar<ResultadoImportacion[]>("importar", { rutas });
+export const listar = () => llamar<Entrada[]>("listar");
+export const obtener = (id: string) => llamar<Detalle>("obtener", { id });
+export const renombrar = (id: string, nombre: string) =>
+  llamar<Entrada>("renombrar", { id, nombre });
+export const eliminar = (id: string) => llamar<null>("eliminar", { id });
+
+const numeros = new Intl.NumberFormat("es-ES");
+
+/** Número con separador de miles español: «12.345». */
+export const formatoNumero = (n: number): string => numeros.format(n);
+
+/** «9 × 31 × 9»: ancho × alto × largo. */
+export function formatoDimensiones({ ancho, alto, largo }: Dimensiones): string {
+  return `${ancho} × ${alto} × ${largo}`;
+}
+
+const NOMBRES_FORMATO: Record<Formato, string> = {
+  litematic: "Litematica (.litematic)",
+  sponge: "Sponge (.schem)",
+  mcedit: "MCEdit (.schematic)",
+  estructura: "Estructura (.nbt)",
+};
+
+export const nombreFormato = (f: Formato): string => NOMBRES_FORMATO[f];

@@ -23,6 +23,16 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+fastnbt = "2.6.3"
+flate2 = "1.1.10"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+trash = "5.2.9"
+uuid = { version = "1.28", features = ["v4"] }
+sha2 = "0.11.0"
+thiserror = "2.0.21"
+
+[dev-dependencies]
+tempfile = "3.27"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

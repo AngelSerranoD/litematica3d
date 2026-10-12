@@ -3,8 +3,10 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig } from "motion/react";
+import { Avisos, ZonaSoltar } from "./componentes/Avisos";
 import { BarraTitulo } from "./componentes/BarraTitulo";
 import { useNavegacion } from "./estado/navegacion";
+import { usoSoltarArchivos } from "./estado/usoSoltarArchivos";
 import { muelle } from "./estilos/movimiento";
 import { Biblioteca } from "./vistas/Biblioteca";
 import { Schematic } from "./vistas/Schematic";
@@ -14,6 +16,7 @@ export default function App() {
   const ruta = useNavegacion((s) => s.ruta);
   const direccion = useNavegacion((s) => s.direccion);
   const volver = useNavegacion((s) => s.volver);
+  const soltando = usoSoltarArchivos();
 
   // Esc vuelve a la biblioteca desde cualquier punto del schematic.
   useEffect(() => {
@@ -40,6 +43,8 @@ export default function App() {
               )}
             </AnimatePresence>
           </LayoutGroup>
+          <ZonaSoltar visible={soltando} />
+          <Avisos />
         </main>
       </div>
     </MotionConfig>

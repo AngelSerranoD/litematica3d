@@ -83,3 +83,21 @@
   font-size: var(--t-2);
   color: var(--tinta-2);
 }
+
+.schematic__nota--centro {
+  position: static;
+  align-self: center;
+  justify-self: center;
+}
+
+.ficha__subtitulo {
+  padding: var(--esp-4) var(--esp-4) var(--esp-2);
+  font-size: var(--t-rotulo-s);
+  color: var(--tinta);
+}
+
+.ficha__regiones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

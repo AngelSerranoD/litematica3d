@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { motion } from "motion/react";
-import type { Dimensiones } from "../datos/ejemplos";
+import type { Dimensiones } from "../api/biblioteca";
 import { muelle } from "../estilos/movimiento";
 import "./Bloque.css";
 
