@@ -50,6 +50,8 @@ interface EstadoMateriales {
   nombres: Record<string, string> | null;
   modelo: ModeloAbierto | null;
   cargarNombres: () => void;
+  /** Tira los nombres (cambiaron las texturas): se vuelven a pedir. */
+  olvidarNombres: () => void;
   publicarModelo: (id: string, malla: Malla, atlas: AtlasCargado | null) => void;
 }
 
@@ -122,6 +124,8 @@ function urlDeAtlas(imagen: ImageBitmap): Promise<string | null> {
 }
 
 let pidiendoNombres = false;
+/** Sube al olvidar los nombres: la petición en vuelo deja de valer. */
+let generacionNombres = 0;
 
 export const useMateriales = create<EstadoMateriales>()((set, get) => ({
   nombres: null,
@@ -132,16 +136,25 @@ export const useMateriales = create<EstadoMateriales>()((set, get) => ({
     const nombres = get().nombres;
     if ((nombres !== null && Object.keys(nombres).length > 0) || pidiendoNombres) return;
     pidiendoNombres = true;
+    const mia = generacionNombres;
     nombresItems()
-      .then((nombres) => set({ nombres }))
+      .then((nombres) => {
+        if (mia === generacionNombres) set({ nombres });
+      })
       .catch((e) => {
         // Sin nombres no se rompe nada: se humanizan los IDs.
         console.warn("No se pudieron cargar los nombres de los ítems:", e);
-        set({ nombres: {} });
+        if (mia === generacionNombres) set({ nombres: {} });
       })
       .finally(() => {
-        pidiendoNombres = false;
+        if (mia === generacionNombres) pidiendoNombres = false;
       });
+  },
+
+  olvidarNombres: () => {
+    generacionNombres++;
+    pidiendoNombres = false;
+    set({ nombres: null });
   },
 
   publicarModelo: (id, malla, atlas) => {

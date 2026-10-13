@@ -17,7 +17,7 @@ use crate::biblioteca::{Biblioteca, Detalle, Entrada, Importacion};
 use crate::error::ErrorApp;
 use crate::malla::{self, BloqueSeleccionado, CacheVisor, DatosAtlas, FuenteTexturas, Mundo};
 use crate::materiales::{self, ListaMateriales, Opciones};
-use crate::texturas::versiones::VersionMinecraft;
+use crate::texturas::versiones::{self, VersionMinecraft};
 use crate::texturas::{Ajustes, GestorTexturas};
 
 /// Resultado de importar un archivo. El fallo de uno no aborta los demás.
@@ -274,20 +274,33 @@ pub fn ajustes(texturas: State<'_, Arc<GestorTexturas>>) -> Ajustes {
     texturas.ajustes()
 }
 
-/// Guarda los ajustes; si cambia la versión o la carpeta, descarta el atlas
-/// activo y empieza a preparar el nuevo en segundo plano.
+/// Guarda los ajustes. Devuelve `true` si cambian las texturas (la versión
+/// que se usa de verdad ya no es la misma): entonces se ha descartado el atlas
+/// activo y el nuevo empieza a prepararse en segundo plano.
 #[tauri::command]
 pub async fn guardar_ajustes(
     texturas: State<'_, Arc<GestorTexturas>>,
     ajustes: Ajustes,
-) -> Result<(), ErrorApp> {
+) -> Result<bool, ErrorApp> {
     let g = texturas.inner().clone();
     en_segundo_plano(move || {
-        g.guardar_ajustes(ajustes)?;
-        preparar_en_fondo(g);
-        Ok(())
+        let cambian = g.guardar_ajustes(ajustes)?;
+        if cambian {
+            preparar_en_fondo(g);
+        }
+        Ok(cambian)
     })
     .await
+}
+
+/// Carpeta `.minecraft` que se usa sin elegir ninguna: la primera habitual
+/// que existe (`%APPDATA%\.minecraft` en Windows). `null` si no hay ninguna.
+#[tauri::command]
+pub fn carpeta_minecraft_por_defecto() -> Option<String> {
+    versiones::carpetas_por_defecto()
+        .into_iter()
+        .next()
+        .map(|p| p.to_string_lossy().into_owned())
 }
 
 /// PNG del atlas de la versión elegida (lo genera si hace falta, la primera

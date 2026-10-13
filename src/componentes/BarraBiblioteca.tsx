@@ -140,7 +140,8 @@ export const BarraBiblioteca = memo(function BarraBiblioteca({
         className="casilla casilla--icono"
         aria-label="Ajustes"
         aria-haspopup="dialog"
-        title="Ajustes"
+        aria-keyshortcuts="Control+,"
+        title="Ajustes (Ctrl+,)"
         onClick={() => void abrirAjustes()}
       >
         <IconoAjustes />

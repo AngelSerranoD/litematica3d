@@ -28,6 +28,7 @@ import {
   type CampoOrden,
   type Orden,
 } from "../estado/biblioteca";
+import { useAjustes } from "../estado/ajustes";
 import { useFoco } from "../estado/foco";
 import { useNavegacion } from "../estado/navegacion";
 import { variantePieza, varianteVista } from "./transicion";
@@ -273,7 +274,7 @@ export function Biblioteca({ soltando }: { soltando: boolean }) {
   // ── Atajos globales mientras se ve la biblioteca ──
   useEffect(() => {
     const alPulsar = (e: KeyboardEvent) => {
-      if (!ultimo.current.presente || e.defaultPrevented) return;
+      if (!ultimo.current.presente || e.defaultPrevented || useAjustes.getState().abierto) return;
       const tecla = e.key.toLowerCase();
       const ctrl = e.ctrlKey || e.metaKey;
 

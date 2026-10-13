@@ -3,14 +3,18 @@
  * Ver LICENSE y NOTICE.
  */
 
+/* Ajustes: una hoja plana con filas separadas por filetes. Sin sombras. */
+
 .ajustes {
   margin: auto;
   padding: 0;
-  width: min(440px, calc(100% - 2 * var(--esp-4)));
+  width: min(560px, calc(100% - 2 * var(--esp-4)));
+  max-height: calc(100% - 2 * var(--esp-4));
   border: var(--grosor-filete) solid var(--filete-fuerte);
   border-radius: var(--radio-2);
   background-color: var(--superficie);
   color: var(--tinta);
+  overflow: auto;
 }
 
 .ajustes::backdrop {
@@ -20,33 +24,174 @@
 .ajustes__caja {
   display: flex;
   flex-direction: column;
-  gap: var(--esp-4);
-  padding: var(--esp-5);
+}
+
+.ajustes__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
 }
 
 .ajustes__titulo {
   font-size: var(--t-rotulo-m);
 }
 
-.ajustes__campo {
+.ajustes__tecla {
+  margin-left: var(--esp-1);
+}
+
+/* ── Filas: etiqueta a la izquierda, control a la derecha ── */
+
+.ajustes__filas {
   display: flex;
   flex-direction: column;
-  gap: var(--esp-2);
+}
+
+.ajustes__fila {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: var(--esp-2) var(--esp-4);
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: var(--grosor-filete) solid var(--filete);
 }
 
 .ajustes__etiqueta {
+  padding-top: 6px;
   font-size: var(--t-3);
   font-weight: 500;
 }
 
+.ajustes__control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.ajustes__ayuda {
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+@media (max-width: 520px) {
+  .ajustes__fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ajustes__etiqueta {
+    padding-top: 0;
+  }
+}
+
+/* ── Tema: tira de tres segmentos ── */
+
+.segmentos {
+  display: inline-flex;
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+}
+
+.segmentos__opcion {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  height: 30px;
+  padding: 0 var(--esp-4);
+  color: var(--tinta-2);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-instante) linear,
+    color var(--dur-instante) linear;
+}
+
+.segmentos__opcion + .segmentos__opcion {
+  border-left: var(--grosor-filete) solid var(--filete);
+}
+
+.segmentos__opcion:hover {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+.segmentos__opcion:has(.segmentos__entrada:checked) {
+  color: var(--sobre-acento);
+}
+
+.segmentos__opcion:has(.segmentos__entrada:focus-visible) {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: 1px;
+  z-index: 1;
+}
+
+/* La entrada nativa queda invisible pero sigue dando teclado (flechas). */
+.segmentos__entrada,
+.interruptor__entrada {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.segmentos__marca {
+  position: absolute;
+  inset: 0;
+  background-color: var(--acento);
+}
+
+.segmentos__texto {
+  position: relative;
+  font-size: var(--t-3);
+  font-weight: 500;
+}
+
+/* ── Carpeta ── */
+
+.ajustes__ruta {
+  max-width: 100%;
+  padding: var(--esp-1) var(--esp-2);
+  border: var(--grosor-filete) solid var(--filete);
+  border-radius: var(--radio-1);
+  background-color: var(--papel);
+  font-size: var(--t-2);
+  overflow-wrap: anywhere;
+}
+
+.ajustes__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.ajustes .boton-plano:disabled {
+  color: var(--tinta-2);
+  cursor: default;
+}
+
+.ajustes .boton-plano:disabled:hover {
+  background-color: var(--superficie);
+}
+
+/* ── Versión ── */
+
 .ajustes__selector {
+  width: 100%;
   height: 32px;
-  padding: 0 var(--esp-3);
+  padding: 0 var(--esp-2);
   border: var(--grosor-filete) solid var(--filete-fuerte);
   border-radius: var(--radio-2);
   background-color: var(--superficie);
   color: var(--tinta);
-  font: inherit;
+  font-size: var(--t-3);
+  transition: background-color var(--dur-instante) linear;
+}
+
+.ajustes__selector:hover:not(:disabled) {
+  background-color: var(--superficie-2);
 }
 
 .ajustes__selector:focus-visible {
@@ -58,44 +203,87 @@
   color: var(--tinta-2);
 }
 
-.ajustes__ayuda {
+.ajustes__estado {
+  width: 100%;
+  padding: var(--esp-1) var(--esp-2);
+  border-left: var(--grosor-foco) solid var(--filete-fuerte);
+  font-size: var(--t-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Interruptor (fluidos) ── */
+
+.interruptor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: var(--t-3);
+  cursor: pointer;
+}
+
+.interruptor__entrada {
+  z-index: 1;
+}
+
+.interruptor__pista {
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 18px;
+  padding: 1px;
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+  transition: background-color var(--dur-instante) linear;
+}
+
+.interruptor:hover .interruptor__pista {
+  background-color: var(--superficie-2);
+}
+
+.interruptor__entrada:checked + .interruptor__pista {
+  border-color: var(--acento-2);
+  background-color: var(--acento);
+}
+
+.interruptor__entrada:focus-visible + .interruptor__pista {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: 1px;
+}
+
+.interruptor__boton {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radio-1);
+  background-color: var(--tinta-2);
+}
+
+.interruptor__entrada:checked + .interruptor__pista .interruptor__boton {
+  background-color: var(--sobre-acento);
+}
+
+/* ── Pie ── */
+
+.ajustes__pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2) var(--esp-4);
+  padding: var(--esp-3) var(--esp-5);
   font-size: var(--t-2);
   color: var(--tinta-2);
 }
 
-.ajustes__estado {
-  padding: var(--esp-2) var(--esp-3);
-  border: var(--grosor-filete) solid var(--filete);
-  border-radius: var(--radio-1);
-  font-size: var(--t-2);
+/* El rojo de aviso no llega a 4,5:1 como texto en el tema oscuro: va en el
+   filete y el texto en tinta. */
+.ajustes__error {
+  padding-left: var(--esp-2);
+  border-left: var(--grosor-foco) solid var(--aviso);
   color: var(--tinta);
 }
 
-.ajustes__error {
-  font-size: var(--t-2);
-  color: var(--aviso);
-}
-
-.ajustes__acciones {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--esp-2);
-}
-
-.ajustes__guardar.boton-plano:not(:disabled) {
-  background-color: var(--acento);
-  color: var(--sobre-acento);
-}
-
-.ajustes__guardar.boton-plano:not(:disabled):hover {
-  background-color: var(--acento-2);
-}
-
-.ajustes__guardar.boton-plano:disabled {
-  color: var(--tinta-2);
-  cursor: default;
-}
-
-.ajustes__guardar.boton-plano:disabled:hover {
-  background-color: var(--superficie);
+.ajustes__atajos .ajustes__tecla {
+  margin: 0 var(--esp-1) 0 0;
 }

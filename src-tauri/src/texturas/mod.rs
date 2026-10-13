@@ -34,7 +34,19 @@ use atlas::{Atlas, ESQUEMA_ATLAS, MetaAtlas};
 use modelos::Recursos;
 use versiones::VersionMinecraft;
 
-/// `ajustes.json` (en `app_config_dir`).
+/// Tema de la interfaz. `Sistema` sigue `prefers-color-scheme`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Tema {
+    Claro,
+    Oscuro,
+    #[default]
+    Sistema,
+}
+
+/// `ajustes.json` (en `app_config_dir`). Todos los campos tienen valor por
+/// defecto: un archivo de una versión anterior (sin `tema` ni
+/// `incluirFluidos`) se sigue leyendo.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Ajustes {
@@ -45,6 +57,20 @@ pub struct Ajustes {
     /// Carpeta `.minecraft` elegida a mano; sin ella se buscan las habituales.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ruta_minecraft: Option<String>,
+    /// Tema de la interfaz (solo lo usa el frontend).
+    #[serde(default)]
+    pub tema: Tema,
+    /// Contar agua y lava en la lista de materiales (`Opciones::incluir_fluidos`).
+    #[serde(default)]
+    pub incluir_fluidos: bool,
+}
+
+impl Ajustes {
+    /// ¿Cambia algo que afecte a las texturas o a los nombres de los ítems?
+    fn mismo_minecraft(&self, otros: &Ajustes) -> bool {
+        self.version_minecraft == otros.version_minecraft
+            && self.ruta_minecraft == otros.ruta_minecraft
+    }
 }
 
 /// Id de ítem → nombre en inglés.
@@ -141,9 +167,21 @@ impl GestorTexturas {
             .clone()
     }
 
-    /// Guarda los ajustes. Si cambian la versión o la carpeta, se descarta el
-    /// atlas activo (la próxima preparación carga el nuevo).
-    pub fn guardar_ajustes(&self, nuevos: Ajustes) -> Result<(), ErrorApp> {
+    /// Guarda los ajustes y devuelve si cambian las texturas: si la versión
+    /// que se usa de verdad (id y jar) ya no es la misma, se descartan el
+    /// atlas activo y los nombres en memoria (la próxima preparación carga
+    /// los nuevos). Cambiar el tema o los fluidos no toca nada de eso.
+    ///
+    /// `ruta_minecraft` vacía cuenta como `None`; si no, tiene que ser una
+    /// carpeta que exista y tenga `versions/` (si no, error y no se guarda).
+    pub fn guardar_ajustes(&self, mut nuevos: Ajustes) -> Result<bool, ErrorApp> {
+        nuevos.ruta_minecraft = nuevos
+            .ruta_minecraft
+            .map(|r| r.trim().to_string())
+            .filter(|r| !r.is_empty());
+        if let Some(r) = &nuevos.ruta_minecraft {
+            versiones::validar_carpeta(Path::new(r)).map_err(ErrorApp::CarpetaMinecraft)?;
+        }
         if let Some(dir) = self.ruta_ajustes.parent() {
             fs::create_dir_all(dir).map_err(|e| ErrorApp::io("crear la carpeta de ajustes", e))?;
         }
@@ -152,13 +190,21 @@ impl GestorTexturas {
         let tmp = self.ruta_ajustes.with_extension("json.tmp");
         fs::write(&tmp, json).map_err(|e| ErrorApp::io("guardar los ajustes", e))?;
         fs::rename(&tmp, &self.ruta_ajustes).map_err(|e| ErrorApp::io("guardar los ajustes", e))?;
-        let mut a = self.ajustes.lock().unwrap_or_else(|e| e.into_inner());
-        if *a != nuevos {
-            *a = nuevos;
-            drop(a);
-            *self.activo.lock().unwrap_or_else(|e| e.into_inner()) = None;
+
+        let mismo_minecraft = self.ajustes().mismo_minecraft(&nuevos);
+        if mismo_minecraft {
+            *self.ajustes.lock().unwrap_or_else(|e| e.into_inner()) = nuevos;
+            return Ok(false);
         }
-        Ok(())
+        let antes = self.version_elegida();
+        *self.ajustes.lock().unwrap_or_else(|e| e.into_inner()) = nuevos;
+        let despues = self.version_elegida();
+        let cambian = antes != despues;
+        if cambian {
+            *self.activo.lock().unwrap_or_else(|e| e.into_inner()) = None;
+            *self.nombres.lock().unwrap_or_else(|e| e.into_inner()) = None;
+        }
+        Ok(cambian)
     }
 
     /// Carpetas `.minecraft` donde buscar.

@@ -16,11 +16,25 @@ export interface VersionMinecraft {
   esRelease: boolean;
 }
 
+/** Tema de la interfaz; «sistema» sigue `prefers-color-scheme`. */
+export type Tema = "claro" | "oscuro" | "sistema";
+
+/** `ajustes.json` (docs/visor.md, sección 11.1). */
 export interface Ajustes {
-  /** Versión elegida, o `null` para la primera de la lista. */
+  /** Versión elegida, o `null` para la automática (la primera de la lista). */
   versionMinecraft: string | null;
+  /** Carpeta `.minecraft` elegida a mano; sin ella, la habitual. */
   rutaMinecraft?: string;
+  tema: Tema;
+  /** Contar agua y lava en la lista de materiales. */
+  incluirFluidos: boolean;
 }
+
+export const AJUSTES_POR_DEFECTO: Ajustes = {
+  versionMinecraft: null,
+  tema: "sistema",
+  incluirFluidos: false,
+};
 
 async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise<T> {
   try {
@@ -32,7 +46,15 @@ async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise
 
 export const versionesMinecraft = () => llamar<VersionMinecraft[]>("versiones_minecraft");
 export const ajustes = () => llamar<Ajustes>("ajustes");
-export const guardarAjustes = (a: Ajustes) => llamar<null>("guardar_ajustes", { ajustes: a });
+/**
+ * Guarda los ajustes. `true` si cambian las texturas (la versión que se usa
+ * de verdad ya no es la misma): hay que llamar a `texturasCambiadas()`.
+ * Una carpeta `.minecraft` que no vale da un error `carpetaMinecraft`.
+ */
+export const guardarAjustes = (a: Ajustes) => llamar<boolean>("guardar_ajustes", { ajustes: a });
+/** Carpeta `.minecraft` que se usa sin elegir ninguna, o `null` si no hay. */
+export const carpetaMinecraftPorDefecto = () =>
+  llamar<string | null>("carpeta_minecraft_por_defecto");
 export const atlasInfo = () => llamar<DatosAtlas | null>("atlas_info");
 
 /** Atlas ya decodificado: la imagen (v = 0 abajo) y sus datos. */

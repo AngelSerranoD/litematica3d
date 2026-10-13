@@ -3,21 +3,28 @@
 
 import { create } from "zustand";
 import {
+  AJUSTES_POR_DEFECTO,
   ajustes as leerAjustes,
   atlasInfo,
+  carpetaMinecraftPorDefecto,
   guardarAjustes,
-  invalidarAtlas,
   versionesMinecraft,
   type Ajustes,
+  type Tema,
   type VersionMinecraft,
 } from "../api/atlas";
+import { normalizarError } from "../api/biblioteca";
 import type { DatosAtlas } from "../api/visor";
+import { texturasCambiadas } from "./texturas";
 
 /**
- * Estado del panel de ajustes (versión de Minecraft para las texturas).
+ * Ajustes de la app: tema, carpeta `.minecraft`, versión de las texturas e
+ * incluir fluidos en los materiales. Viven en `ajustes.json` (lo gestiona
+ * Rust, docs/visor.md 11.1); aquí está la copia del frontend.
  *
- * Los selectores que usa el panel devuelven valores primitivos o referencias
- * que solo cambian al cambiar el dato: nada construye arrays nuevos.
+ * Cada cambio se guarda al momento (no hay botón «Guardar»): el tema y los
+ * fluidos se aplican antes de que vuelva Rust y, si Rust lo rechaza, se
+ * deshacen. Los guardados van en cola, uno detrás de otro.
  */
 
 /** Estado del atlas de texturas de la versión elegida. */
@@ -29,26 +36,25 @@ export type EstadoAtlas =
 
 interface EstadoAjustesStore {
   abierto: boolean;
+  /** Leyendo las versiones instaladas (al abrir o al cambiar de carpeta). */
   cargando: boolean;
+  /** Hay un guardado en marcha. */
   guardando: boolean;
   error: string | null;
   versiones: VersionMinecraft[];
-  /** Ajustes guardados en disco. */
-  guardados: Ajustes | null;
-  /** Versión marcada en el selector (aún sin guardar). */
-  elegida: string | null;
+  /** Carpeta `.minecraft` que se usa sin elegir ninguna (`null` si no hay). */
+  carpetaPorDefecto: string | null;
+  /** Ajustes en vigor (los de por defecto hasta que llegan de Rust). */
+  guardados: Ajustes;
   atlas: EstadoAtlas;
 
+  /** Lee los ajustes al arrancar y aplica el tema. */
+  iniciar: () => Promise<void>;
   abrir: () => Promise<void>;
   cerrar: () => void;
-  elegir: (id: string) => void;
-  guardar: () => Promise<void>;
+  /** Cambia uno o varios ajustes y los guarda. */
+  cambiar: (cambios: Partial<Ajustes>) => Promise<void>;
 }
-
-const mensajeDe = (e: unknown) =>
-  typeof e === "object" && e !== null && "mensaje" in e && typeof e.mensaje === "string"
-    ? e.mensaje
-    : "Error inesperado.";
 
 /** Versión que se usa de verdad: la guardada si está instalada; si no, la primera. */
 export function versionEfectiva(versiones: VersionMinecraft[], guardada: string | null): string | null {
@@ -56,11 +62,43 @@ export function versionEfectiva(versiones: VersionMinecraft[], guardada: string 
   return versiones[0]?.id ?? null;
 }
 
+// ── Tema ──
+
+/** Copia del tema en localStorage solo para pintar el primer fotograma sin parpadeo. */
+const CLAVE_TEMA = "litematica3d.tema";
+
+/** Pone `data-tema` en <html> (sin él, manda `prefers-color-scheme`). */
+export function aplicarTema(tema: Tema): void {
+  const raiz = document.documentElement;
+  if (tema === "sistema") delete raiz.dataset.tema;
+  else raiz.dataset.tema = tema;
+  try {
+    localStorage.setItem(CLAVE_TEMA, tema);
+  } catch {
+    // Sin almacenamiento: solo se pierde el primer fotograma.
+  }
+}
+
+/** Tema de la última sesión (antes de que respondan los ajustes de Rust). */
+export function aplicarTemaRecordado(): void {
+  let tema: string | null = null;
+  try {
+    tema = localStorage.getItem(CLAVE_TEMA);
+  } catch {
+    // Sin almacenamiento: «sistema».
+  }
+  if (tema === "claro" || tema === "oscuro") document.documentElement.dataset.tema = tema;
+}
+
+// ── Atlas ──
+
 /** Espera (ms) entre consultas al atlas mientras se prepara, y cuántas veces. */
 const ESPERA_ATLAS = 1000;
 const INTENTOS_ATLAS = 20;
 /** Cambia en cada consulta nueva: la anterior deja de actualizar el estado. */
 let consulta = 0;
+/** Guardados en cola: el siguiente parte de lo que dejó el anterior. */
+let cola: Promise<void> = Promise.resolve();
 
 export const useAjustes = create<EstadoAjustesStore>()((set, get) => {
   /** Mira si el atlas está listo; si no, reintenta mientras se prepara. */
@@ -89,31 +127,46 @@ export const useAjustes = create<EstadoAjustesStore>()((set, get) => {
     }
   };
 
+  /** Vuelve a leer las versiones instaladas (y el estado del atlas). */
+  const leerVersiones = async () => {
+    set({ cargando: true });
+    try {
+      const [versiones, carpetaPorDefecto] = await Promise.all([
+        versionesMinecraft(),
+        carpetaMinecraftPorDefecto(),
+      ]);
+      set({ versiones, carpetaPorDefecto, cargando: false });
+      if (get().abierto) void vigilarAtlas(versiones.length > 0);
+    } catch (e) {
+      set({ cargando: false, error: normalizarError(e).mensaje });
+    }
+  };
+
   return {
     abierto: false,
     cargando: false,
     guardando: false,
     error: null,
     versiones: [],
-    guardados: null,
-    elegida: null,
+    carpetaPorDefecto: null,
+    guardados: AJUSTES_POR_DEFECTO,
     atlas: { tipo: "comprobando" },
+
+    iniciar: async () => {
+      try {
+        const guardados = { ...AJUSTES_POR_DEFECTO, ...(await leerAjustes()) };
+        set({ guardados });
+        aplicarTema(guardados.tema);
+      } catch (e) {
+        // Sin ajustes se sigue con los de por defecto (y el tema recordado).
+        console.warn("No se pudieron leer los ajustes:", e);
+      }
+    },
 
     abrir: async () => {
       if (get().abierto) return;
-      set({ abierto: true, cargando: true, error: null });
-      try {
-        const [versiones, guardados] = await Promise.all([versionesMinecraft(), leerAjustes()]);
-        set({
-          versiones,
-          guardados,
-          elegida: versionEfectiva(versiones, guardados.versionMinecraft),
-          cargando: false,
-        });
-        void vigilarAtlas(versiones.length > 0);
-      } catch (e) {
-        set({ cargando: false, error: mensajeDe(e) });
-      }
+      set({ abierto: true, error: null });
+      await leerVersiones();
     },
 
     cerrar: () => {
@@ -121,28 +174,29 @@ export const useAjustes = create<EstadoAjustesStore>()((set, get) => {
       set({ abierto: false });
     },
 
-    elegir: (id) => set({ elegida: id, error: null }),
-
-    guardar: async () => {
-      const { guardados, elegida, versiones, guardando } = get();
-      if (guardando || !guardados || !elegida) return;
-      set({ guardando: true, error: null });
-      try {
-        const nuevos: Ajustes = { ...guardados, versionMinecraft: elegida };
-        await guardarAjustes(nuevos);
-        // El atlas en memoria era de la versión anterior.
-        invalidarAtlas();
-        set({ guardados: nuevos, guardando: false });
-        void vigilarAtlas(versiones.length > 0);
-      } catch (e) {
-        set({ guardando: false, error: mensajeDe(e) });
-      }
+    cambiar: (cambios) => {
+      const trabajo = cola.then(async () => {
+        const anteriores = get().guardados;
+        const nuevos: Ajustes = { ...anteriores, ...cambios };
+        // `rutaMinecraft: undefined` vuelve a la carpeta habitual.
+        if ("rutaMinecraft" in cambios && !cambios.rutaMinecraft) delete nuevos.rutaMinecraft;
+        set({ guardados: nuevos, guardando: true, error: null });
+        if (nuevos.tema !== anteriores.tema) aplicarTema(nuevos.tema);
+        try {
+          const cambianTexturas = await guardarAjustes(nuevos);
+          set({ guardando: false });
+          if (nuevos.rutaMinecraft !== anteriores.rutaMinecraft) await leerVersiones();
+          if (cambianTexturas) {
+            texturasCambiadas();
+            void vigilarAtlas(get().versiones.length > 0);
+          }
+        } catch (e) {
+          set({ guardados: anteriores, guardando: false, error: normalizarError(e).mensaje });
+          if (nuevos.tema !== anteriores.tema) aplicarTema(anteriores.tema);
+        }
+      });
+      cola = trabajo;
+      return trabajo;
     },
   };
 });
-
-/** ¿Hay un cambio de versión sin guardar? (selector atómico) */
-export const hayCambios = (s: EstadoAjustesStore) =>
-  s.guardados !== null &&
-  s.elegida !== null &&
-  s.elegida !== versionEfectiva(s.versiones, s.guardados.versionMinecraft);

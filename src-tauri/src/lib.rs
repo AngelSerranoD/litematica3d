@@ -52,6 +52,7 @@ pub fn run() {
             comandos::versiones_minecraft,
             comandos::ajustes,
             comandos::guardar_ajustes,
+            comandos::carpeta_minecraft_por_defecto,
             comandos::atlas,
             comandos::atlas_info,
         ])

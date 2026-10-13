@@ -54,6 +54,7 @@ export type TipoError =
   | "baseDatos"
   | "papelera"
   | "versionBiblioteca"
+  | "carpetaMinecraft"
   | "interno";
 
 /** Error de los comandos de Rust; `mensaje` viene en español, listo para enseñar. */

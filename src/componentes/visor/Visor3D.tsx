@@ -1,11 +1,13 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { obtenerAtlas, type AtlasCargado } from "../../api/atlas";
 import { cargarMalla, type Malla } from "../../api/visor";
+import { useAjustes } from "../../estado/ajustes";
 import { useMateriales } from "../../estado/materiales";
+import { useTexturas } from "../../estado/texturas";
 import { useVisor } from "../../estado/visor";
 import { muelle } from "../../estilos/movimiento";
 import { DeslizadorCapas } from "./DeslizadorCapas";
@@ -53,12 +55,19 @@ interface Props {
 export function Visor3D({ id, marcador }: Props) {
   const [carga, setCarga] = useState<Carga>({ tipo: "cargando" });
   const [lista, setLista] = useState(false);
+  // Al cambiar de texturas (Ajustes) se vuelven a pedir la malla y el atlas
+  // del mismo schematic, sin pasar por «cargando» ni reiniciar las capas.
+  const generacionTexturas = useTexturas((s) => s.generacion);
+  const idCargado = useRef<string | null>(null);
 
   useEffect(() => {
     let activo = true;
-    setCarga({ tipo: "cargando" });
-    setLista(false);
-    cargarLienzo().catch(() => {});
+    const recarga = idCargado.current === id;
+    if (!recarga) {
+      setCarga({ tipo: "cargando" });
+      setLista(false);
+      cargarLienzo().catch(() => {});
+    }
 
     /** Atlas que casa con la malla, o null (sin jar o sin textura que mostrar). */
     const atlasDe = async (malla: Malla) => {
@@ -75,7 +84,8 @@ export function Visor3D({ id, marcador }: Props) {
       const malla = await cargarMalla(id);
       const atlas = await atlasDe(malla);
       if (!activo) return;
-      useVisor.getState().reiniciar(malla.tamano[1]);
+      if (!recarga) useVisor.getState().reiniciar(malla.tamano[1]);
+      idCargado.current = id;
       setCarga({ tipo: "lista", malla, atlas });
       if (malla.atlas && atlas) return;
 
@@ -102,7 +112,7 @@ export function Visor3D({ id, marcador }: Props) {
     return () => {
       activo = false;
     };
-  }, [id]);
+  }, [id, generacionTexturas]);
 
   // Atajos: F encuadra, Esc cierra la selección (antes de que App vuelva a la
   // biblioteca: por eso en captura y con preventDefault), P el panel de
@@ -112,6 +122,7 @@ export function Visor3D({ id, marcador }: Props) {
     if (!hayMalla) return;
     const alPulsar = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || escribiendo(e)) return;
+      if (useAjustes.getState().abierto) return; // el diálogo de ajustes tiene el teclado
       const s = useVisor.getState();
       if (e.key === "Escape" && s.seleccion) {
         e.preventDefault();

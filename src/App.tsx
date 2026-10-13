@@ -6,6 +6,7 @@ import { AnimatePresence, LayoutGroup, MotionConfig } from "motion/react";
 import { Avisos, ZonaSoltar } from "./componentes/Avisos";
 import { BarraTitulo } from "./componentes/BarraTitulo";
 import { PanelAjustes } from "./componentes/PanelAjustes";
+import { useAjustes } from "./estado/ajustes";
 import { useBiblioteca } from "./estado/biblioteca";
 import { useNavegacion } from "./estado/navegacion";
 import { usoCierreVentana } from "./estado/usoCierreVentana";
@@ -25,10 +26,24 @@ export default function App() {
   const vacia = useBiblioteca((s) => !s.cargando && !s.error && s.entradas.length === 0);
   usoCierreVentana();
 
-  // Esc vuelve a la biblioteca desde cualquier punto del schematic.
+  // Ajustes guardados (tema, fluidos…) desde el arranque.
+  useEffect(() => {
+    void useAjustes.getState().iniciar();
+  }, []);
+
+  // Esc vuelve a la biblioteca desde cualquier punto del schematic (salvo con
+  // los ajustes abiertos: ahí Esc solo cierra el diálogo). Ctrl+, abre los
+  // ajustes desde cualquier vista.
   useEffect(() => {
     const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !e.defaultPrevented) volver();
+      if (e.defaultPrevented) return;
+      const ajustes = useAjustes.getState();
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === ",") {
+        e.preventDefault();
+        void ajustes.abrir();
+      } else if (e.key === "Escape" && !ajustes.abierto) {
+        volver();
+      }
     };
     window.addEventListener("keydown", alPulsar);
     return () => window.removeEventListener("keydown", alPulsar);

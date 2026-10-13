@@ -525,6 +525,7 @@ fn ajustes_version_elegida_cache_e_invalidacion() {
     g.guardar_ajustes(Ajustes {
         version_minecraft: None,
         ruta_minecraft: Some(mc.path().to_string_lossy().into_owned()),
+        ..Default::default()
     })
     .unwrap();
     assert_eq!(g.version_elegida().unwrap().id, "1.21.8");
@@ -541,6 +542,7 @@ fn ajustes_version_elegida_cache_e_invalidacion() {
     g.guardar_ajustes(Ajustes {
         version_minecraft: Some("1.20.1".into()),
         ruta_minecraft: Some(mc.path().to_string_lossy().into_owned()),
+        ..Default::default()
     })
     .unwrap();
     assert!(g.listo().is_none());
@@ -558,18 +560,117 @@ fn ajustes_version_elegida_cache_e_invalidacion() {
     g2.guardar_ajustes(Ajustes {
         version_minecraft: Some("9.9".into()),
         ruta_minecraft: Some(mc.path().to_string_lossy().into_owned()),
+        ..Default::default()
     })
     .unwrap();
     assert_eq!(g2.version_elegida().unwrap().id, "1.21.8");
 
     // Sin ningún jar: no hay atlas y no es un error.
     let vacio = tempfile::tempdir().unwrap();
+    std::fs::create_dir(vacio.path().join("versions")).unwrap();
     g2.guardar_ajustes(Ajustes {
         version_minecraft: None,
         ruta_minecraft: Some(vacio.path().to_string_lossy().into_owned()),
+        ..Default::default()
     })
     .unwrap();
     assert!(g2.preparar().unwrap().is_none());
+}
+
+#[test]
+fn guardar_ajustes_dice_si_cambian_las_texturas() {
+    let mc = mc_falso();
+    let datos = tempfile::tempdir().unwrap();
+    let g = GestorTexturas::nuevo(&datos.path().join("cache"), &datos.path().join("config"));
+    let ruta = Some(mc.path().to_string_lossy().into_owned());
+    let base = Ajustes {
+        ruta_minecraft: ruta.clone(),
+        ..Default::default()
+    };
+    g.guardar_ajustes(base.clone()).unwrap();
+    g.preparar().unwrap().expect("atlas");
+
+    // Tema y fluidos no tocan las texturas: el atlas activo sigue.
+    let estetico = Ajustes {
+        tema: Tema::Oscuro,
+        incluir_fluidos: true,
+        ..base.clone()
+    };
+    assert!(!g.guardar_ajustes(estetico.clone()).unwrap());
+    assert!(g.listo().is_some());
+    assert_eq!(g.ajustes(), estetico);
+
+    // Elegir a mano la misma versión que la automática tampoco.
+    let misma = Ajustes {
+        version_minecraft: Some("1.21.8".into()),
+        ..estetico.clone()
+    };
+    assert!(!g.guardar_ajustes(misma.clone()).unwrap());
+    assert!(g.listo().is_some());
+
+    // Otra versión sí: fuera el atlas activo.
+    let otra = Ajustes {
+        version_minecraft: Some("1.20.1".into()),
+        ..misma
+    };
+    assert!(g.guardar_ajustes(otra).unwrap());
+    assert!(g.listo().is_none());
+
+    // Ruta vacía = automática (no se guarda la cadena vacía).
+    g.guardar_ajustes(Ajustes {
+        ruta_minecraft: Some("  ".into()),
+        ..Default::default()
+    })
+    .unwrap();
+    assert_eq!(g.ajustes().ruta_minecraft, None);
+
+    // El archivo guarda todo y se relee igual.
+    g.guardar_ajustes(estetico.clone()).unwrap();
+    let g2 = GestorTexturas::nuevo(&datos.path().join("cache"), &datos.path().join("config"));
+    assert_eq!(g2.ajustes(), estetico);
+    let json = std::fs::read_to_string(datos.path().join("config/ajustes.json")).unwrap();
+    assert!(json.contains("\"tema\": \"oscuro\""), "{json}");
+    assert!(json.contains("\"incluirFluidos\": true"), "{json}");
+}
+
+#[test]
+fn ajustes_de_una_version_anterior_se_leen_con_valores_por_defecto() {
+    let a: Ajustes = serde_json::from_str(r#"{ "versionMinecraft": "1.21.8" }"#).unwrap();
+    assert_eq!(a.version_minecraft.as_deref(), Some("1.21.8"));
+    assert_eq!(a.tema, Tema::Sistema);
+    assert!(!a.incluir_fluidos);
+    let a: Ajustes =
+        serde_json::from_str(r#"{ "tema": "claro", "incluirFluidos": true }"#).unwrap();
+    assert_eq!(a.tema, Tema::Claro);
+    assert!(a.incluir_fluidos);
+    assert_eq!(a.version_minecraft, None);
+}
+
+#[test]
+fn carpeta_minecraft_invalida_no_se_guarda() {
+    let datos = tempfile::tempdir().unwrap();
+    let config = datos.path().join("config");
+    let g = GestorTexturas::nuevo(&datos.path().join("cache"), &config);
+    let sin_versions = tempfile::tempdir().unwrap();
+    let no_existe = sin_versions.path().join("no-existe");
+    for (ruta, trozo) in [
+        (sin_versions.path().to_path_buf(), "versions"),
+        (no_existe, "no existe"),
+        (PathBuf::from("relativa/.minecraft"), "ruta completa"),
+    ] {
+        let e = g
+            .guardar_ajustes(Ajustes {
+                ruta_minecraft: Some(ruta.to_string_lossy().into_owned()),
+                ..Default::default()
+            })
+            .unwrap_err();
+        assert_eq!(e.tipo(), "carpetaMinecraft");
+        assert!(e.to_string().contains(trozo), "{e}");
+    }
+    assert!(!config.join("ajustes.json").exists());
+    assert_eq!(g.ajustes(), Ajustes::default());
+    let mc = mc_falso();
+    assert!(versiones::validar_carpeta(mc.path()).is_ok());
 }
 
 // ---------------------------------------------------------------- malla

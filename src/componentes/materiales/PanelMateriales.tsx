@@ -23,7 +23,9 @@ import {
 import { elegirDestinoCsv } from "../../api/dialogo";
 import { comprobacion, guardarTexto, marcar } from "../../api/materiales";
 import { useBiblioteca } from "../../estado/biblioteca";
+import { useAjustes } from "../../estado/ajustes";
 import { useMateriales, type AtlasIconos, type IconoItem } from "../../estado/materiales";
+import { useTexturas } from "../../estado/texturas";
 import { capaMax, capaMin, useVisor } from "../../estado/visor";
 import { Cifra } from "../Cifra";
 import { CifraAnimada } from "../CifraAnimada";
@@ -49,8 +51,6 @@ const ESPERA_CALCULO_MS = 140;
 const LADO_ICONO = 16;
 /** Filas que saltan RePág / AvPág en la lista. */
 const SALTO_PAGINA = 10;
-/** Agua y lava no cuentan: no se colocan como bloques del inventario. */
-const INCLUIR_FLUIDOS = false;
 
 const ORDENES: { campo: CampoOrdenMateriales; etiqueta: string }[] = [
   { campo: "cantidad", etiqueta: "Cantidad" },
@@ -77,6 +77,10 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   const avisar = useBiblioteca((s) => s.avisar);
   const nombres = useMateriales((s) => s.nombres);
   const cargarNombres = useMateriales((s) => s.cargarNombres);
+  // Con otras texturas, los nombres se vuelven a pedir (otra versión).
+  const generacionTexturas = useTexturas((s) => s.generacion);
+  // Agua y lava: por defecto no cuentan (se activa en Ajustes).
+  const incluirFluidos = useAjustes((s) => s.guardados.incluirFluidos);
   const modelo = useMateriales((s) => (s.modelo?.id === id ? s.modelo : null));
 
   const [region, setRegion] = useState<string | null>(null);
@@ -103,7 +107,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
       ? `Y ${yDeCapa(capaDesde, modelo.origenY)}–${yDeCapa(capaHasta, modelo.origenY)}`
       : null;
 
-  useEffect(() => cargarNombres(), [cargarNombres]);
+  useEffect(() => cargarNombres(), [cargarNombres, generacionTexturas]);
 
   // La región elegida puede no existir al cambiar de schematic.
   useEffect(() => {
@@ -121,7 +125,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
       const rango: [number, number] | null =
         capaDesde !== null && capaHasta !== null ? [capaDesde, capaHasta] : null;
       materiales(id, {
-        incluirFluidos: INCLUIR_FLUIDOS,
+        incluirFluidos,
         region,
         yMin: null,
         yMax: null,
@@ -139,7 +143,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
         });
     }, ESPERA_CALCULO_MS);
     return () => window.clearTimeout(temporizador);
-  }, [id, region, capaDesde, capaHasta, arrastrando]);
+  }, [id, region, capaDesde, capaHasta, arrastrando, incluirFluidos]);
 
   // Al desmontar, cualquier respuesta en vuelo se descarta.
   useEffect(() => () => void ++ultima.current, []);

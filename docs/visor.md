@@ -30,7 +30,8 @@ lector espejo (`malla::binario::leer`) que usan las pruebas.
 | `bloque_en` | `{ id: string, x: number, y: number, z: number }` | `BloqueSeleccionado \| null`          |
 | `versiones_minecraft` | — | `VersionMinecraft[]` (sección 11.1) |
 | `ajustes`   | — | `Ajustes` |
-| `guardar_ajustes` | `{ ajustes: Ajustes }` | `void` |
+| `guardar_ajustes` | `{ ajustes: Ajustes }` | `boolean`: `true` si cambian las texturas (sección 11.6) |
+| `carpeta_minecraft_por_defecto` | — | `string \| null`: la `.minecraft` habitual que existe |
 | `atlas`     | — | `ArrayBuffer` con el PNG del atlas; **vacío** (`byteLength === 0`) si no hay ningún jar |
 | `atlas_info` | — | `DatosAtlas \| null` (el atlas ya preparado; no genera nada) |
 
@@ -313,7 +314,12 @@ derivados.
 
 ```ts
 interface VersionMinecraft { id: string; ruta: string; esRelease: boolean }
-interface Ajustes { versionMinecraft: string | null; rutaMinecraft?: string }
+interface Ajustes {
+  versionMinecraft: string | null;        // null = automática (la primera de la lista)
+  rutaMinecraft?: string;                 // sin ella, las carpetas habituales
+  tema: "claro" | "oscuro" | "sistema";   // solo frontend: data-tema en <html>
+  incluirFluidos: boolean;                // opción de la lista de materiales
+}
 interface DatosAtlas {
   version: string;             // versión de Minecraft del atlas
   ancho: number; alto: number; // píxeles, potencias de dos
@@ -328,7 +334,8 @@ interface DatosAtlas {
 // Firmas sugeridas para src/api:
 versionesMinecraft(): Promise<VersionMinecraft[]>  // invoke("versiones_minecraft")
 ajustes(): Promise<Ajustes>                         // invoke("ajustes")
-guardarAjustes(ajustes: Ajustes): Promise<void>     // invoke("guardar_ajustes", { ajustes })
+guardarAjustes(ajustes: Ajustes): Promise<boolean>  // invoke("guardar_ajustes", { ajustes })
+carpetaMinecraftPorDefecto(): Promise<string | null> // invoke("carpeta_minecraft_por_defecto")
 atlas(): Promise<ArrayBuffer | null>                // invoke("atlas"); byteLength 0 → null
 atlasInfo(): Promise<DatosAtlas | null>             // invoke("atlas_info")
 ```
@@ -344,9 +351,17 @@ atlasInfo(): Promise<DatosAtlas | null>             // invoke("atlas_info")
   antigua (`releaseTime`).
 - **Versión usada**: `versionMinecraft` de los ajustes si está instalada; si no
   (o es `null`), la primera de la lista.
-- **Ajustes**: `ajustes.json` en `app_config_dir`. Al cambiar la versión o la
-  carpeta se descarta el atlas activo y empieza a prepararse el nuevo en
-  segundo plano.
+- **Ajustes**: `ajustes.json` en `app_config_dir` (lo escribe Rust, a un
+  temporal y renombrando). Todos los campos tienen valor por defecto: un
+  archivo antiguo sin `tema` ni `incluirFluidos` se sigue leyendo.
+  `rutaMinecraft` vacía cuenta como ausente; si no, tiene que ser absoluta,
+  existir y tener `versions/`, o `guardar_ajustes` falla con un error
+  `carpetaMinecraft` y no guarda nada.
+- **Cambio de texturas**: `guardar_ajustes` compara la versión que se usa de
+  verdad (id y jar) antes y después. Si cambia, descarta el atlas activo y los
+  nombres en memoria, empieza a preparar el nuevo atlas en segundo plano y
+  devuelve `true`. Cambiar el tema o los fluidos (o elegir a mano la misma
+  versión que la automática) devuelve `false` y no toca nada.
 
 ### 11.2 Atlas
 
@@ -461,6 +476,24 @@ Punto de enganche en Rust: `textura_de(fuente, estado, cara)` en
 `malla/apariencia.rs` recibe la `FuenteTexturas` (el atlas activo,
 `texturas::Activo`) que `comandos::malla` pasa a `mallar_con_texturas`;
 `mallar` a secas sigue sin texturas (pruebas y rendimiento).
+
+### 11.6 «Texturas cambiadas» en el frontend
+
+`src/estado/texturas.ts`. Cuando `guardar_ajustes` devuelve `true`, los
+ajustes llaman a `texturasCambiadas()`, que:
+
+1. tira el atlas en memoria (`invalidarAtlas()`, `src/api/atlas.ts`);
+2. tira los nombres de los ítems (`useMateriales.olvidarNombres()`);
+3. sube `useTexturas.generacion`.
+
+Quien dependa de las texturas escucha esa generación:
+
+- el visor (`Visor3D`) vuelve a pedir la malla y el atlas del mismo schematic
+  sin reiniciar las capas ni la cámara (primero sale con colores y, cuando el
+  atlas nuevo está listo, con texturas);
+- la pantalla de materiales vuelve a pedir los nombres;
+- fuera de React: `alCambiarTexturas((generacion) => …)` devuelve la función
+  para dejar de escuchar (pensado para regenerar las miniaturas).
 
 ## 12. Mejoras futuras
 

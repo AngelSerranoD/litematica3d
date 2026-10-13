@@ -32,3 +32,14 @@ export async function elegirDestinoCsv(nombrePropuesto: string): Promise<string 
   if (!ruta) return null;
   return /\.csv$/i.test(ruta) ? ruta : `${ruta}.csv`;
 }
+
+/** Pide la carpeta `.minecraft`. Devuelve `null` si se cancela. */
+export async function elegirCarpetaMinecraft(desde?: string): Promise<string | null> {
+  const ruta = await open({
+    directory: true,
+    multiple: false,
+    title: "Carpeta de Minecraft (.minecraft)",
+    defaultPath: desde,
+  });
+  return typeof ruta === "string" ? ruta : null;
+}

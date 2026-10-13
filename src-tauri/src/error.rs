@@ -59,6 +59,10 @@ pub enum ErrorApp {
     )]
     VersionBiblioteca,
 
+    /// La carpeta `.minecraft` elegida en los ajustes no vale.
+    #[error("{0}")]
+    CarpetaMinecraft(String),
+
     #[error("Error interno de la aplicación.")]
     Interno(String),
 }
@@ -98,6 +102,7 @@ impl ErrorApp {
             ErrorApp::BaseDatos(_) => "baseDatos",
             ErrorApp::Papelera { .. } => "papelera",
             ErrorApp::VersionBiblioteca => "versionBiblioteca",
+            ErrorApp::CarpetaMinecraft(_) => "carpetaMinecraft",
             ErrorApp::Interno(_) => "interno",
         }
     }

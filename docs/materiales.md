@@ -21,6 +21,7 @@ Convenciones (las mismas que el resto de comandos):
 ```ts
 opciones: {
   incluirFluidos?: boolean;        // agua y lava (solo fuentes) como cubos; por defecto false
+                                   // (el panel lo toma de Ajustes: `incluirFluidos` de ajustes.json)
   region?: string | null;          // solo esa región; null = todas
   yMin?: number | null;            // Y mínima inclusiva, coordenadas del SCHEMATIC
   yMax?: number | null;            // Y máxima inclusiva, coordenadas del SCHEMATIC
@@ -102,7 +103,9 @@ jar devuelve `{}` y el frontend humaniza el id en Title Case («Oak Planks»).
 
 De dónde salen: `assets/minecraft/lang/en_us.json` dentro del jar de la versión
 de Minecraft elegida en los ajustes (la misma de las texturas); en las versiones
-modernas está siempre ahí, sin tocar los assets del launcher.
+modernas está siempre ahí, sin tocar los assets del launcher. Al cambiar de
+versión o de carpeta en los ajustes (`texturasCambiadas()`, docs/visor.md 11.6)
+el frontend tira los nombres y los vuelve a pedir.
 
 Del archivo de idioma se toman las claves `block.minecraft.<x>` e
 `item.minecraft.<x>` (sin más puntos) como `minecraft:<x>`; si están las dos,

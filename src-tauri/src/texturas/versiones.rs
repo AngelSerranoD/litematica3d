@@ -49,6 +49,26 @@ pub fn carpetas_por_defecto() -> Vec<PathBuf> {
     c
 }
 
+/// Comprueba que `ruta` sirve como carpeta `.minecraft`: absoluta, que
+/// existe y que tiene `versions/`. El error va en español, listo para enseñar.
+pub fn validar_carpeta(ruta: &Path) -> Result<(), String> {
+    let r = ruta.display();
+    if !ruta.is_absolute() {
+        return Err(format!(
+            "La carpeta de Minecraft tiene que ser una ruta completa («{r}»)."
+        ));
+    }
+    if !ruta.is_dir() {
+        return Err(format!("La carpeta «{r}» no existe."));
+    }
+    if !ruta.join("versions").is_dir() {
+        return Err(format!(
+            "En «{r}» no hay carpeta «versions»: no parece una instalación de Minecraft (.minecraft)."
+        ));
+    }
+    Ok(())
+}
+
 /// Versiones con jar utilizable en estas carpetas `.minecraft`, sin repetir
 /// id (gana la primera carpeta). Orden: releases vanilla primero y, dentro de
 /// cada grupo, de la más reciente a la más antigua.
