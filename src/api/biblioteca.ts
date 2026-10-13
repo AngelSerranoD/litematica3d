@@ -2,6 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { invoke } from "@tauri-apps/api/core";
+import { gruposDeMiles } from "../componentes/formato";
 
 /** Dimensiones de un schematic en bloques (ejes de Minecraft: X, Y, Z). */
 export interface Dimensiones {
@@ -161,10 +162,11 @@ export const eliminar = (id: string) => llamar<null>("eliminar", { id });
 export const materiales = (id: string, opciones: OpcionesMateriales) =>
   llamar<ListaMateriales>("materiales", { id, opciones });
 
-const numeros = new Intl.NumberFormat("es-ES");
-
-/** Número con separador de miles español: «12.345». */
-export const formatoNumero = (n: number): string => numeros.format(n);
+/**
+ * Número en texto con los mismos grupos que `Cifra`, separados por un espacio
+ * fino irrompible: «2 932», «12 345».
+ */
+export const formatoNumero = (n: number): string => gruposDeMiles(n).join(" ");
 
 /** «9 × 31 × 9»: ancho × alto × largo. */
 export function formatoDimensiones({ ancho, alto, largo }: Dimensiones): string {

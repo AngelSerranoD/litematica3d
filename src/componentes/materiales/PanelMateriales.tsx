@@ -83,6 +83,8 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   // Agua y lava: por defecto no cuentan (se activa en Ajustes).
   const incluirFluidos = useAjustes((s) => s.guardados.incluirFluidos);
   const modelo = useMateriales((s) => (s.modelo?.id === id ? s.modelo : null));
+  const extras = useMateriales((s) => s.extras);
+  const completarIconos = useMateriales((s) => s.completarIconos);
 
   const [region, setRegion] = useState<string | null>(null);
   const [soloVisibles, setSoloVisibles] = useState(true);
@@ -190,6 +192,16 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   // ── Filas ──
   const lista = calculo.estado === "listo" ? calculo.lista : null;
   const todas = useMemo(() => (lista ? aFilas(lista.materiales, nombres) : []), [lista, nombres]);
+  // Los ítems que no son un bloque de la malla (el destino de una regla, como
+  // `dirt` para un `dirt_path`) piden su icono por id.
+  useEffect(() => {
+    if (modelo && todas.length) completarIconos(todas.map((f) => f.item));
+  }, [modelo, todas, completarIconos]);
+  const iconos = useMemo(() => {
+    if (!modelo) return null;
+    if (extras?.modelo !== modelo || !extras.iconos.size) return modelo.iconos;
+    return new Map([...extras.iconos, ...modelo.iconos]);
+  }, [modelo, extras]);
   const filas = useMemo(
     () => filtrarYOrdenar(todas, busqueda, orden, ocultarReunidos, reunidos),
     [todas, busqueda, orden, ocultarReunidos, reunidos],
@@ -372,7 +384,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
       <Lista
         filas={filas}
         reunidos={reunidos}
-        iconos={modelo?.iconos ?? null}
+        iconos={iconos}
         atlas={modelo?.atlas ?? null}
         alternar={alternarReunido}
         vacia={

@@ -410,6 +410,29 @@ pub async fn plan_familia(
     .await
 }
 
+/// Reemplazos de cada estado de `estados_origen` por el bloque de
+/// `estado_destino` conservando las propiedades de cada uno (para las filas
+/// de familia que agrupan varios estados del mismo bloque).
+#[tauri::command]
+pub async fn destinos_conservando(
+    texturas: State<'_, Arc<GestorTexturas>>,
+    catalogos: State<'_, Arc<CacheCatalogo>>,
+    estado_destino: String,
+    estados_origen: Vec<String>,
+) -> Result<Vec<Reemplazo>, ErrorApp> {
+    let g = texturas.inner().clone();
+    let c = catalogos.inner().clone();
+    en_segundo_plano(move || {
+        let destino = validar_estado(&estado_destino)?;
+        let origenes = estados_origen
+            .iter()
+            .map(|e| validar_estado(e))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(catalogo(&g, &c).reemplazos_conservando(&destino, &origenes))
+    })
+    .await
+}
+
 /// Schematic combinado del id, leído y parseado del archivo (sin caché).
 fn cargar_mundo(b: &Biblioteca, id: &str) -> Result<Mundo, ErrorApp> {
     let (entrada, schem) = b.cargar(id)?;

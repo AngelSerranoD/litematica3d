@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { motion, useIsPresent } from "motion/react";
+import { Cifra } from "../componentes/Cifra";
 import { Miniatura } from "../componentes/Miniatura";
 import { ConfirmacionEdicion } from "../componentes/edicion/ConfirmacionEdicion";
 import { PanelEdicion } from "../componentes/edicion/PanelEdicion";
@@ -10,7 +11,6 @@ import { PanelMateriales } from "../componentes/materiales/PanelMateriales";
 import { Visor3D } from "../componentes/visor/Visor3D";
 import {
   formatoDimensiones,
-  formatoNumero,
   nombreFormato,
   obtener,
   type Region,
@@ -246,11 +246,11 @@ export function Schematic({ id }: { id: string }) {
                         </div>
                         <div className="ficha__fila">
                           <dt>Bloques</dt>
-                          <dd className="cifras">{formatoNumero(entrada.totalBloques)}</dd>
+                          <dd><Cifra valor={entrada.totalBloques} /></dd>
                         </div>
                         <div className="ficha__fila">
                           <dt>Regiones</dt>
-                          <dd className="cifras">{formatoNumero(entrada.regiones)}</dd>
+                          <dd><Cifra valor={entrada.regiones} /></dd>
                         </div>
                       </>
                     )}
@@ -274,8 +274,8 @@ export function Schematic({ id }: { id: string }) {
                         </div>
                         <div className="ficha__fila">
                           <dt>Volumen</dt>
-                          <dd className="cifras">
-                            {formatoNumero(dim.ancho * dim.alto * dim.largo)} bloques
+                          <dd>
+                            <Cifra valor={dim.ancho * dim.alto * dim.largo} /> bloques
                           </dd>
                         </div>
                       </>
@@ -288,7 +288,7 @@ export function Schematic({ id }: { id: string }) {
                         {regiones.map((g) => (
                           <li key={g.nombre} className="ficha__fila">
                             <span>{g.nombre}</span>
-                            <span className="cifras">{formatoNumero(g.totalBloques)}</span>
+                            <Cifra valor={g.totalBloques} />
                           </li>
                         ))}
                       </ul>

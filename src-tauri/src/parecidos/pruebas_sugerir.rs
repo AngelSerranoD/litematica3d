@@ -450,3 +450,34 @@ fn plan_sin_la_forma_en_la_familia_destino_usa_todo_el_catalogo() {
     assert_eq!(*d, mejor[0].estado);
     let _: &Reemplazo = &plan[0];
 }
+
+#[test]
+fn reemplazos_conservando_mantiene_las_propiedades_de_cada_escalera() {
+    let norte = "minecraft:oak_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]";
+    let sur = "minecraft:oak_stairs[facing=south,half=top,shape=inner_left,waterlogged=false]";
+    // El destino elegido para la primera (con su facing=north).
+    let elegido = cat()
+        .parecidos(norte, 1)
+        .pop()
+        .expect("hay una escalera parecida");
+    let r = cat().reemplazos_conservando(&elegido.estado, &[norte.into(), sur.into()]);
+    assert_eq!(r.len(), 2);
+    assert_eq!(r[0].estado_origen, norte);
+    assert_eq!(r[0].estado_destino, elegido.estado);
+    assert_eq!(cat().forma(&r[1].estado_destino), FormaBloque::Escalera);
+    assert_eq!(
+        r[1].estado_destino,
+        cat().bloque(&elegido.id).unwrap().estado_desde(sur)
+    );
+    for (esperado, dest) in [
+        ("facing=south", &r[1].estado_destino),
+        ("half=top", &r[1].estado_destino),
+        ("shape=inner_left", &r[1].estado_destino),
+        ("facing=north", &r[0].estado_destino),
+    ] {
+        assert!(
+            dest.contains(esperado),
+            "{dest} debería contener {esperado}"
+        );
+    }
+}

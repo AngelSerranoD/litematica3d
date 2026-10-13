@@ -51,9 +51,14 @@
   left: var(--esp-4);
   bottom: var(--esp-3);
   max-width: calc(100% - 240px);
+  width: fit-content;
   margin: 0;
+  padding: 4px 8px;
   font-size: var(--t-2);
-  color: var(--tinta-2);
+  color: var(--tinta);
+  background: var(--papel);
+  border: 1px solid var(--filete-fuerte);
+  border-radius: 0;
   pointer-events: none;
 }
 

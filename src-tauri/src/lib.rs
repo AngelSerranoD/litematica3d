@@ -81,6 +81,7 @@ pub fn run() {
             comandos::miembros_familia,
             comandos::familias_parecidas,
             comandos::plan_familia,
+            comandos::destinos_conservando,
             comandos::malla,
             comandos::malla_miniatura,
             comandos::guardar_miniatura,

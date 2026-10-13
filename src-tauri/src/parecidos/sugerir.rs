@@ -338,6 +338,23 @@ impl Catalogo {
             })
             .collect()
     }
+
+    /// Reemplazo de cada estado de `origenes` por el bloque de `destino`
+    /// conservando las propiedades de cada origen (`facing`, `half`, `shape`…)
+    /// que el destino admite: la misma regla que el destino de
+    /// [`Catalogo::parecidos`] y de [`Catalogo::plan_familia`]
+    /// ([`InfoBloque::estado_desde`]). Si el destino no está en el catálogo se
+    /// usa tal cual.
+    pub fn reemplazos_conservando(&self, destino: &str, origenes: &[String]) -> Vec<Reemplazo> {
+        let info = self.bloque(destino);
+        origenes
+            .iter()
+            .map(|o| Reemplazo {
+                estado_origen: o.clone(),
+                estado_destino: info.map_or_else(|| destino.to_string(), |i| i.estado_desde(o)),
+            })
+            .collect()
+    }
 }
 
 /// Block states de `s` (todas las regiones, sin aire) con las posiciones

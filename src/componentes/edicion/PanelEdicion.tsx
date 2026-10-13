@@ -1,7 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { useEffect, useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { formatoNumero, nombreFormato } from "../../api/biblioteca";
 import type { FamiliaParecida, Parecido, Rgb } from "../../api/parecidos";
@@ -16,8 +16,10 @@ import {
   type ReemplazoPendiente,
   type SeleccionFamilia,
 } from "../../estado/edicion";
+import { agruparMiembros, type GrupoFamilia } from "../../estado/edicionPura";
 import { useMateriales } from "../../estado/materiales";
 import { muelle } from "../../estilos/movimiento";
+import { Cifra } from "../Cifra";
 import { CifraAnimada } from "../CifraAnimada";
 import { fechaCompleta } from "../formato";
 import { nombreItem } from "../materiales/logica";
@@ -588,30 +590,37 @@ function FilaFamiliaDestino({
   );
 }
 
-/** Tabla origen → destino de la familia: una fila por estado presente. */
+/**
+ * Tabla origen → destino de la familia: una fila por bloque presente (los
+ * estados con distinto `facing`, `half`… se agrupan; cada uno conserva sus
+ * propiedades al aplicar).
+ */
 function TablaFamilia({ familia }: { familia: SeleccionFamilia }) {
   const reemplazos = useEdicion((s) => s.reemplazos);
   const lista = useEdicion((s) => s.lista);
   const destinoDe = new Map(reemplazos.map((r) => [r.estadoOrigen, r.estadoDestino]));
   const abierta = lista?.objetivo.tipo === "reemplazo" ? lista.objetivo.estadoOrigen : null;
-  const cambian = familia.miembros.filter((m) => destinoDe.has(m.estado)).length;
+  const grupos = useMemo(() => agruparMiembros(familia.miembros), [familia.miembros]);
+  const destinoGrupo = (g: GrupoFamilia) =>
+    g.estados.map((e) => destinoDe.get(e)).find((d) => d !== undefined) ?? null;
+  const cambian = grupos.filter((g) => destinoGrupo(g) !== null).length;
 
   return (
     <>
       <p className="parecidos__titulo">
         <span className="rotulo">Origen → destino</span>
         <span className="parecidos__leyenda cifras">
-          {formatoNumero(cambian)} de {formatoNumero(familia.miembros.length)} cambian
+          {formatoNumero(cambian)} de {formatoNumero(grupos.length)} cambian
         </span>
       </p>
       <ul className="tabla-familia" aria-label="Bloques de la familia y por qué se cambian">
-        {familia.miembros.map((m) => (
+        {grupos.map((g) => (
           <FilaFamilia
-            key={m.estado}
-            estado={m.estado}
-            cantidad={m.cantidad}
-            destino={destinoDe.get(m.estado) ?? null}
-            lista={abierta === m.estado && lista ? lista : null}
+            key={g.id}
+            estados={g.estados}
+            cantidad={g.cantidad}
+            destino={destinoGrupo(g)}
+            lista={abierta === g.estados[0] && lista ? lista : null}
           />
         ))}
       </ul>
@@ -620,24 +629,26 @@ function TablaFamilia({ familia }: { familia: SeleccionFamilia }) {
 }
 
 function FilaFamilia({
-  estado,
+  estados,
   cantidad,
   destino,
   lista,
 }: {
-  estado: string;
+  /** Estados del mismo bloque (el primero lo representa). */
+  estados: string[];
   cantidad: number;
   destino: string | null;
   /** Lista de parecidos abierta para esta fila. */
   lista: Lista | null;
 }) {
+  const estado = estados[0];
   const nombre = useNombre(estado);
   const nombreDestino = useNombre(destino ?? estado);
   const idLista = `lista-familia-${estado.replace(/[^a-z0-9]+/gi, "-")}`;
   const alternar = () => {
     const e = useEdicion.getState();
     if (lista) e.cerrarLista();
-    else e.abrirLista({ tipo: "reemplazo", estadoOrigen: estado });
+    else e.abrirLista({ tipo: "reemplazo", estadoOrigen: estado, hermanos: estados.slice(1) });
   };
   return (
     <li className="fila-familia">
@@ -673,7 +684,7 @@ function FilaFamilia({
             className="pendiente-edicion__quitar"
             aria-label={`Dejar ${nombre} como está (no cambiarlo por ${nombreDestino})`}
             title="Dejar como está"
-            onClick={() => useEdicion.getState().quitarReemplazo(estado)}
+            onClick={() => estados.forEach((e) => useEdicion.getState().quitarReemplazo(e))}
           >
             <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
               <path d="M1 1L9 9M9 1L1 9" />
@@ -877,12 +888,16 @@ function SeccionHistorial() {
           <div className="historial__datos">
             <p className="historial__fecha">{fechaCompleta(v.fecha)}</p>
             <p className="historial__detalle">
-              {v.motivo === "aplicar"
-                ? `Antes de cambiar ${formatoNumero(v.cambios)} ${v.cambios === 1 ? "bloque" : "bloques"}`
-                : "Antes de restaurar otra versión"}
+              {v.motivo === "aplicar" ? (
+                <>
+                  Antes de cambiar <Cifra valor={v.cambios} /> {v.cambios === 1 ? "bloque" : "bloques"}
+                </>
+              ) : (
+                "Antes de restaurar otra versión"
+              )}
             </p>
-            <p className="historial__detalle cifras">
-              {nombreFormato(v.formato)} · {formatoNumero(v.totalBloques)} bloques
+            <p className="historial__detalle">
+              {nombreFormato(v.formato)} · <Cifra valor={v.totalBloques} /> bloques
             </p>
           </div>
           <button

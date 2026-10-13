@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { create } from "zustand";
-import type { AtlasCargado } from "../api/atlas";
+import { celdasAtlas, coloresBloques, MAX_CELDAS_ATLAS, type AtlasCargado, type CeldaAtlas } from "../api/atlas";
 import { nombresItems } from "../api/materiales";
 import type { CaraMaterial, DatosAtlas, Malla } from "../api/visor";
 
@@ -55,7 +55,21 @@ interface EstadoMateriales {
   /** Tira los nombres (cambiaron las texturas): se vuelven a pedir. */
   olvidarNombres: () => void;
   publicarModelo: (id: string, malla: Malla, atlas: AtlasCargado | null) => void;
+  /**
+   * Iconos de ítems que no salen de la malla (el ítem de una regla de
+   * materiales, p. ej. `dirt` para un `dirt_path`), atados al modelo con el
+   * que se resolvieron: si cambia el modelo o su atlas, ya no valen.
+   */
+  extras: { modelo: ModeloAbierto; iconos: Map<string, IconoItem> } | null;
+  /** Resuelve por id de ítem el icono de los que falten en el modelo abierto. */
+  completarIconos: (items: string[]) => void;
 }
+
+/** Orden de preferencia de caras en `CARAS_ATLAS`: sur, norte, este, oeste, cruz, arriba, abajo. */
+const ORDEN_CARAS_ATLAS = [3, 2, 5, 4, 6, 0, 1];
+
+/** Ítems ya pedidos para cada modelo (para no repetir llamadas). */
+const pedidosExtras = new WeakMap<ModeloAbierto, Set<string>>();
 
 /** Caras preferidas para el icono: el lateral es lo que identifica casi todo. */
 const PREFERENCIA_CARA: CaraMaterial[] = [
@@ -67,6 +81,15 @@ const PREFERENCIA_CARA: CaraMaterial[] = [
   "arriba",
   "abajo",
 ];
+
+/** La celda que mejor representa a un bloque (lateral antes que arriba/abajo). */
+function celdaDeFila(fila: (CeldaAtlas | null)[] | undefined): CeldaAtlas | null {
+  for (const i of ORDEN_CARAS_ATLAS) {
+    const c = fila?.[i];
+    if (c) return c;
+  }
+  return null;
+}
 
 function iconosDe(malla: Malla, conTexturas: boolean): Map<string, IconoItem> {
   const mejores = new Map<string, { rango: number; icono: IconoItem }>();
@@ -132,6 +155,7 @@ let generacionNombres = 0;
 export const useMateriales = create<EstadoMateriales>()((set, get) => ({
   nombres: null,
   modelo: null,
+  extras: null,
 
   cargarNombres: () => {
     // Vacío (sin Minecraft todavía) se vuelve a pedir la próxima vez.
@@ -167,13 +191,14 @@ export const useMateriales = create<EstadoMateriales>()((set, get) => ({
       iconos: iconosDe(malla, conTexturas),
       atlas: null,
     };
-    set({ modelo });
+    set({ modelo, extras: null });
     if (!conTexturas || !atlas || !malla.atlas) return;
     const datos = malla.atlas;
     void urlDeAtlas(atlas.imagen).then((url) => {
       // Si mientras tanto se publicó otro modelo, este ya no manda.
       if (!url || get().modelo !== modelo) return;
       set({
+        extras: null, // el modelo cambia de objeto: los extras se vuelven a resolver
         modelo: {
           ...modelo,
           atlas: {
@@ -186,5 +211,55 @@ export const useMateriales = create<EstadoMateriales>()((set, get) => ({
         },
       });
     });
+  },
+
+  completarIconos: (items) => {
+    const modelo = get().modelo;
+    if (!modelo) return;
+    let pedidos = pedidosExtras.get(modelo);
+    if (!pedidos) pedidosExtras.set(modelo, (pedidos = new Set()));
+    const faltan = [...new Set(items)].filter((i) => !modelo.iconos.has(i) && !pedidos.has(i));
+    if (!faltan.length) return;
+    faltan.forEach((i) => pedidos.add(i));
+    // El ítem se busca como bloque del mismo id; si no lo es (un cubo, un huevo…),
+    // no hay textura ni color y la fila se queda con el cuadrado neutro.
+    const datos = modelo.atlas?.datos;
+    const resolver = async (): Promise<Map<string, IconoItem>> => {
+      const nuevos = new Map<string, IconoItem>();
+      for (let i = 0; i < faltan.length; i += MAX_CELDAS_ATLAS) {
+        const tanda = faltan.slice(i, i + MAX_CELDAS_ATLAS);
+        const r = datos ? await celdasAtlas(tanda) : null;
+        if (r && datos && r.atlas.version === datos.version) {
+          tanda.forEach((item, k) => {
+            const celda = celdaDeFila(r.celdas[k]);
+            if (!celda) return;
+            nuevos.set(item, {
+              color: `rgb(${celda.color[0]} ${celda.color[1]} ${celda.color[2]})`,
+              textura: {
+                x: (celda.celda % datos.celdasPorFila) * datos.tamCelda + datos.relleno,
+                y: Math.floor(celda.celda / datos.celdasPorFila) * datos.tamCelda + datos.relleno,
+              },
+            });
+          });
+        } else {
+          // Sin atlas (sin jar): color plano.
+          const colores = await coloresBloques(tanda);
+          tanda.forEach((item, k) => {
+            const c = colores[k];
+            if (c) nuevos.set(item, { color: `rgb(${c[0]} ${c[1]} ${c[2]})`, textura: null });
+          });
+        }
+      }
+      return nuevos;
+    };
+    resolver()
+      .then((nuevos) => {
+        const s = get();
+        // Si mientras tanto cambió el modelo (o su atlas), este resultado ya no vale.
+        if (s.modelo !== modelo || !nuevos.size) return;
+        const previos = s.extras?.modelo === modelo ? s.extras.iconos : new Map<string, IconoItem>();
+        set({ extras: { modelo, iconos: new Map([...previos, ...nuevos]) } });
+      })
+      .catch((e) => console.warn("No se pudieron resolver los iconos de los ítems:", e));
   },
 }));

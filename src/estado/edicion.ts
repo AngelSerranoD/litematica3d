@@ -16,6 +16,7 @@ import {
   type Version,
 } from "../api/edicion";
 import {
+  destinosConservando,
   familiaDe,
   familiasParecidas,
   miembrosFamilia,
@@ -78,7 +79,13 @@ export type ObjetivoLista =
   /** El bloque pinchado: elegir crea un `CambioPendiente` en su posición. */
   | { tipo: "bloque"; pinchado: Pinchado }
   /** Una fila de la tabla origen → destino de una familia: elegir cambia su destino. */
-  | { tipo: "reemplazo"; estadoOrigen: string };
+  | {
+      tipo: "reemplazo";
+      /** Estado representante de la fila (el que se busca en la lista). */
+      estadoOrigen: string;
+      /** Otros estados del mismo bloque (otro `facing`…) que cambian con él. */
+      hermanos?: string[];
+    };
 
 export interface ListaParecidos {
   objetivo: ObjetivoLista;
@@ -257,16 +264,7 @@ let tandaProgramada = false;
 
 const mensajeDe = (e: unknown) => normalizarError(e).mensaje;
 
-/** Bloques que tocarían los pendientes (los reemplazos sin cantidad no suman). */
-export function bloquesAfectados(cambios: CambioPendiente[], reemplazos: ReemplazoPendiente[]) {
-  let total = cambios.length;
-  let exacto = true;
-  for (const r of reemplazos) {
-    if (r.cantidad === null) exacto = false;
-    else total += r.cantidad;
-  }
-  return { total, exacto };
-}
+export { bloquesAfectados } from "./edicionPura";
 
 /** Caras preferidas para el icono de un bloque: el lateral identifica casi todo. */
 const ORDEN_ICONO = [3, 2, 5, 4, 6, 0, 1]; // sur, norte, este, oeste, cruz, arriba, abajo
@@ -470,7 +468,19 @@ export const useEdicion = create<EstadoEdicion>()((set, get) => {
       const lista = get().lista;
       if (!lista) return;
       if (lista.objetivo.tipo === "reemplazo") {
-        get().fijarDestinoReemplazo(lista.objetivo.estadoOrigen, p.estado);
+        const { estadoOrigen, hermanos = [] } = lista.objetivo;
+        get().fijarDestinoReemplazo(estadoOrigen, p.estado);
+        // Cada hermano conserva sus propias propiedades (facing, half…): las
+        // resuelve Rust con la misma regla que las sugerencias.
+        if (hermanos.length > 0) {
+          destinosConservando(p.estado, hermanos)
+            .then((rs) => {
+              for (const r of rs) get().fijarDestinoReemplazo(r.estadoOrigen, r.estadoDestino);
+            })
+            .catch((e) =>
+              set((s) => (s.lista ? { lista: { ...s.lista, mensaje: mensajeDe(e) } } : {})),
+            );
+        }
         return;
       }
       const { celda, bloque } = lista.objetivo.pinchado;

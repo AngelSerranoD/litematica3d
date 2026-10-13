@@ -118,3 +118,11 @@ export const familiasParecidas = (familia: string, n?: number) =>
  */
 export const planFamilia = (id: string, familiaOrigen: string, familiaDestino: string) =>
   llamar<Reemplazo[]>("plan_familia", { id, familiaOrigen, familiaDestino });
+
+/**
+ * Reemplazo de cada estado de `estadosOrigen` por el bloque de `estadoDestino`
+ * conservando las propiedades de cada uno (facing, half, shape…); lo resuelve
+ * Rust con la misma regla que las sugerencias.
+ */
+export const destinosConservando = (estadoDestino: string, estadosOrigen: string[]) =>
+  llamar<Reemplazo[]>("destinos_conservando", { estadoDestino, estadosOrigen });
