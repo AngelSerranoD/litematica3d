@@ -28,3 +28,9 @@ npm-debug.log*
 *.keystore
 *.msi
 *.exe
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+*.app
+build/

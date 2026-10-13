@@ -395,7 +395,12 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
  */
 function Seleccion({ color }: { color: Color }) {
   const seleccion = useVisor((s) => s.seleccion);
-  const geometria = useMemo(() => new EdgesGeometry(new BoxGeometry(1.01, 1.01, 1.01)), []);
+  const geometria = useMemo(() => {
+    const caja = new BoxGeometry(1.01, 1.01, 1.01);
+    const aristas = new EdgesGeometry(caja);
+    caja.dispose();
+    return aristas;
+  }, []);
   const material = useMemo(() => new LineBasicMaterial({ toneMapped: false }), []);
   useEffect(
     () => () => {

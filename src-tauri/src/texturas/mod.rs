@@ -21,6 +21,7 @@ pub(crate) mod pruebas;
 
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -33,6 +34,20 @@ use crate::malla::{Cara, DatosAtlas, FuenteTexturas, TexturaCara};
 use atlas::{Atlas, ESQUEMA_ATLAS, MetaAtlas};
 use modelos::Recursos;
 use versiones::VersionMinecraft;
+
+/// Tope por entrada del jar. Las texturas y el idioma ocupan como mucho unos
+/// cientos de KB; un jar manipulado no puede forzar reservas mayores.
+const MAX_ENTRADA_JAR: u64 = 16 * 1024 * 1024;
+
+/// Lee una entrada del jar sin fiarse del tamaño que declara su cabecera.
+pub(crate) fn leer_entrada_jar(entrada: impl Read, declarado: u64) -> io::Result<Vec<u8>> {
+    let mut bytes = Vec::with_capacity(declarado.min(MAX_ENTRADA_JAR) as usize);
+    entrada.take(MAX_ENTRADA_JAR + 1).read_to_end(&mut bytes)?;
+    if bytes.len() as u64 > MAX_ENTRADA_JAR {
+        return Err(io::Error::other("entrada del jar demasiado grande"));
+    }
+    Ok(bytes)
+}
 
 /// Tema de la interfaz. `Sistema` sigue `prefers-color-scheme`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]

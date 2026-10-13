@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permisos mínimos de la ventana principal: escuchar eventos (abrir archivo, soltar archivos, redimensionar, cerrar), controles de la barra de título propia y diálogos de abrir y guardar",
+  "description": "Permisos mínimos de la ventana principal: escuchar eventos (abrir archivo, soltar archivos, redimensionar, cerrar), controles de la barra de título propia y diálogo de abrir (el de guardar lo abre Rust)",
   "windows": [
     "main"
   ],
@@ -15,7 +15,6 @@
     "core:window:allow-start-dragging",
     "core:window:allow-close",
     "core:window:allow-destroy",
-    "dialog:allow-open",
-    "dialog:allow-save"
+    "dialog:allow-open"
   ]
 }

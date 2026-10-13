@@ -101,7 +101,12 @@ const segundosHasta = (vence: number) => Math.max(0, Math.ceil((vence - Date.now
 function useSegundosHasta(vence: number): number {
   const [segundos, setSegundos] = useState(() => segundosHasta(vence));
   useEffect(() => {
-    const t = window.setInterval(() => setSegundos(segundosHasta(vence)), 200);
+    const t = window.setInterval(() => {
+      const quedan = segundosHasta(vence);
+      setSegundos(quedan);
+      // A cero ya no cambia: no hace falta seguir mirando el reloj.
+      if (quedan === 0) window.clearInterval(t);
+    }, 200);
     return () => window.clearInterval(t);
   }, [vence]);
   return segundos;

@@ -13,7 +13,8 @@ use std::sync::Arc;
 
 use serde::Serialize;
 use tauri::ipc::{InvokeBody, Request, Response};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Manager, State, WebviewWindow};
+use tauri_plugin_dialog::DialogExt;
 
 use crate::biblioteca::{Biblioteca, Detalle, Edicion, Entrada, Importacion, Version};
 use crate::edicion::{Cambio, Reemplazo, validar_estado};
@@ -194,7 +195,7 @@ pub async fn nombres_items(app: AppHandle) -> HashMap<String, String> {
         .unwrap_or_default()
 }
 
-/// Extensiones que acepta `guardar_texto`.
+/// Extensiones que acepta `escribir_texto`.
 const EXTENSIONES_TEXTO: [&str; 2] = ["csv", "txt"];
 
 /// Escribe `contenido` (UTF-8, tal cual) en `ruta`, que tiene que ser
@@ -212,11 +213,60 @@ pub fn escribir_texto(ruta: &Path, contenido: &str) -> Result<(), ErrorApp> {
     fs::write(ruta, contenido).map_err(|e| ErrorApp::io("guardar el archivo", e))
 }
 
-/// Guarda un archivo de texto en la ruta elegida con el diálogo de guardar
-/// (la exportación CSV de la lista de materiales).
+/// Pide con el diálogo nativo dónde guardar y garantiza la extensión `ext`.
+/// `None` si el usuario cancela. El diálogo se abre aquí y no en el frontend
+/// para que los comandos solo escriban donde el usuario ha elegido, nunca en
+/// una ruta que llegue del webview. Bloquea: solo en segundo plano.
+fn pedir_destino(
+    ventana: &WebviewWindow,
+    titulo: &str,
+    propuesto: &str,
+    filtro: &str,
+    ext: &str,
+) -> Option<PathBuf> {
+    let ruta = ventana
+        .dialog()
+        .file()
+        .set_parent(ventana)
+        .set_title(titulo)
+        .set_file_name(propuesto)
+        .add_filter(filtro, &[ext])
+        .blocking_save_file()?
+        .into_path()
+        .ok()?;
+    if ruta
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case(ext))
+    {
+        return Some(ruta);
+    }
+    let mut con_ext = ruta.into_os_string();
+    con_ext.push(".");
+    con_ext.push(ext);
+    Some(con_ext.into())
+}
+
+/// Pide dónde guardar la lista de materiales y escribe el CSV. `false` si el
+/// usuario cancela.
 #[tauri::command]
-pub async fn guardar_texto(ruta: String, contenido: String) -> Result<(), ErrorApp> {
-    en_segundo_plano(move || escribir_texto(Path::new(&ruta), &contenido)).await
+pub async fn guardar_csv(
+    ventana: WebviewWindow,
+    nombre: String,
+    contenido: String,
+) -> Result<bool, ErrorApp> {
+    en_segundo_plano(move || {
+        let Some(ruta) = pedir_destino(
+            &ventana,
+            "Guardar lista de materiales",
+            &nombre,
+            "CSV (Excel, separado por punto y coma)",
+            "csv",
+        ) else {
+            return Ok(false);
+        };
+        escribir_texto(&ruta, &contenido).map(|()| true)
+    })
+    .await
 }
 
 /// Aplica cambios puntuales y reemplazos a la copia de la biblioteca
@@ -268,16 +318,30 @@ pub async fn restaurar_version(
     .await
 }
 
-/// Escribe la copia actual como .litematic en la ruta elegida con el diálogo
-/// de guardar (absoluta y acabada en `.litematic`).
+/// Pide dónde exportar y escribe la copia actual como .litematic. Devuelve la
+/// ruta elegida, o `None` si el usuario cancela.
 #[tauri::command]
 pub async fn exportar_schematic(
+    ventana: WebviewWindow,
     biblioteca: State<'_, Arc<Biblioteca>>,
     id: String,
-    ruta: String,
-) -> Result<(), ErrorApp> {
+    nombre: String,
+) -> Result<Option<String>, ErrorApp> {
     let b = biblioteca.inner().clone();
-    en_segundo_plano(move || b.exportar(&id, Path::new(&ruta))).await
+    en_segundo_plano(move || {
+        let Some(ruta) = pedir_destino(
+            &ventana,
+            "Exportar schematic",
+            &nombre,
+            "Litematica (.litematic)",
+            "litematic",
+        ) else {
+            return Ok(None);
+        };
+        b.exportar(&id, &ruta)?;
+        Ok(Some(ruta.to_string_lossy().into_owned()))
+    })
+    .await
 }
 
 /// Cuántos parecidos o familias se devuelven si no se dice.
@@ -774,7 +838,7 @@ mod pruebas {
     }
 
     #[test]
-    fn guardar_texto_solo_csv_o_txt_con_ruta_absoluta() {
+    fn escribir_texto_solo_csv_o_txt_con_ruta_absoluta() {
         let tmp = tempfile::tempdir().unwrap();
         for nombre in ["lista.csv", "lista.TXT"] {
             let ruta = tmp.path().join(nombre);

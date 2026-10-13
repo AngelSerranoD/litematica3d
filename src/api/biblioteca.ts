@@ -1,7 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { invoke } from "@tauri-apps/api/core";
+import { llamar } from "./llamar";
 import { gruposDeMiles } from "../componentes/formato";
 
 /** Dimensiones de un schematic en bloques (ejes de Minecraft: X, Y, Z). */
@@ -126,31 +126,6 @@ export type ResultadoImportacion =
   | { estado: "importado"; entrada: Entrada }
   | { estado: "duplicado"; entrada: Entrada }
   | { estado: "error"; ruta: string; error: ErrorApp };
-
-/** Convierte lo que rechace `invoke` en un ErrorApp (tipo «interno» si no lo es). */
-export function normalizarError(e: unknown): ErrorApp {
-  if (
-    typeof e === "object" &&
-    e !== null &&
-    "tipo" in e &&
-    "mensaje" in e &&
-    typeof e.tipo === "string" &&
-    typeof e.mensaje === "string"
-  ) {
-    return e as ErrorApp;
-  }
-  const mensaje =
-    typeof e === "string" ? e : e instanceof Error ? e.message : "Error inesperado.";
-  return { tipo: "interno", mensaje };
-}
-
-async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(orden, args);
-  } catch (e) {
-    throw normalizarError(e);
-  }
-}
 
 export const importar = (rutas: string[]) =>
   llamar<ResultadoImportacion[]>("importar", { rutas });

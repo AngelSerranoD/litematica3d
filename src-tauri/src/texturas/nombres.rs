@@ -13,7 +13,6 @@
 
 use std::collections::HashMap;
 use std::fs;
-use std::io::Read;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -69,7 +68,6 @@ fn desde_jar(jar: &Path) -> Option<Vec<u8>> {
     let f = fs::File::open(jar).ok()?;
     let mut zip = zip::ZipArchive::new(std::io::BufReader::new(f)).ok()?;
     let mut e = zip.by_name(LANG_JAR).ok()?;
-    let mut bytes = Vec::with_capacity(e.size() as usize);
-    e.read_to_end(&mut bytes).ok()?;
-    Some(bytes)
+    let declarado = e.size();
+    super::leer_entrada_jar(&mut e, declarado).ok()
 }

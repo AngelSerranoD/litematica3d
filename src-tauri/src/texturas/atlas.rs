@@ -21,7 +21,6 @@
 
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
-use std::io::Read;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -124,8 +123,8 @@ pub fn leer_jar(ruta: &Path, con_png: bool) -> Result<ContenidoJar, String> {
         let Some((tipo, clave)) = destino else {
             continue;
         };
-        let mut bytes = Vec::with_capacity(e.size() as usize);
-        e.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+        let declarado = e.size();
+        let bytes = super::leer_entrada_jar(&mut e, declarado).map_err(|e| e.to_string())?;
         match tipo {
             0 => blockstates.push((clave, bytes)),
             1 => modelos.push((clave, bytes)),

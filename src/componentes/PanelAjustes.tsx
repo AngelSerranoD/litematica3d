@@ -4,7 +4,7 @@
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import type { Tema } from "../api/atlas";
-import { normalizarError } from "../api/biblioteca";
+import { normalizarError } from "../api/llamar";
 import { elegirCarpetaMinecraft } from "../api/dialogo";
 import { useAjustes, versionEfectiva, type EstadoAtlas } from "../estado/ajustes";
 import { muelle } from "../estilos/movimiento";

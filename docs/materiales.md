@@ -117,12 +117,14 @@ Caché: en memoria por versión y en disco en
 `<app_cache_dir>/texturas/<versión>/nombres_en.json` (junto al atlas). Si sale
 vacío no se guarda en disco, para volver a mirarlo en el próximo arranque.
 
-## 5. `guardar_texto(ruta, contenido) -> null`
+## 5. `guardar_csv(nombre, contenido) -> bool`
 
-Escribe `contenido` en `ruta` en UTF-8, tal cual (sin BOM; si Excel lo necesita
-para los acentos, el frontend puede empezar el texto con `﻿`). La ruta la
-elige el usuario con el diálogo de guardar (`dialog:allow-save` en
-`src-tauri/capabilities/default.json`).
+Abre desde Rust el diálogo de guardar (con `nombre` como propuesta; si a la
+ruta elegida le falta `.csv`, se le añade) y escribe `contenido` en UTF-8, tal
+cual (sin BOM; si Excel lo necesita para los acentos, el frontend puede empezar
+el texto con `﻿`). Devuelve `false` si el usuario cancela. El frontend no
+manda la ruta, así que no puede escribir fuera de lo que elija el usuario; por
+eso la ventana tampoco tiene `dialog:allow-save`.
 
 Por seguridad solo acepta rutas absolutas que acaben en `.csv` o `.txt` (sin
 distinguir mayúsculas). Si no, error `nombreInvalido` y no escribe nada. Si

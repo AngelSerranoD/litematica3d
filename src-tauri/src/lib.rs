@@ -12,6 +12,9 @@ pub mod parecidos;
 pub mod schematic;
 pub mod texturas;
 
+#[cfg(test)]
+mod espejos;
+
 use std::sync::Arc;
 
 use tauri::{Emitter, Manager};
@@ -71,7 +74,7 @@ pub fn run() {
             comandos::comprobacion,
             comandos::marcar,
             comandos::nombres_items,
-            comandos::guardar_texto,
+            comandos::guardar_csv,
             comandos::aplicar_cambios,
             comandos::historial,
             comandos::restaurar_version,

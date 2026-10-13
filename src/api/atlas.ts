@@ -6,8 +6,7 @@
 // GPU la crea el visor a partir del ImageBitmap, así este módulo queda en el
 // trozo principal y los ajustes no arrastran a Three.
 
-import { invoke } from "@tauri-apps/api/core";
-import { normalizarError } from "./biblioteca";
+import { llamar } from "./llamar";
 import type { DatosAtlas } from "./visor";
 
 export interface VersionMinecraft {
@@ -35,14 +34,6 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   tema: "sistema",
   incluirFluidos: false,
 };
-
-async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(orden, args);
-  } catch (e) {
-    throw normalizarError(e);
-  }
-}
 
 export const versionesMinecraft = () => llamar<VersionMinecraft[]>("versiones_minecraft");
 export const ajustes = () => llamar<Ajustes>("ajustes");

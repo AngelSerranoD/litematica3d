@@ -16,12 +16,11 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   formatoNumero,
   materiales,
-  normalizarError,
   type ListaMateriales,
   type Region,
 } from "../../api/biblioteca";
-import { elegirDestinoCsv } from "../../api/dialogo";
-import { comprobacion, guardarTexto, marcar } from "../../api/materiales";
+import { normalizarError } from "../../api/llamar";
+import { comprobacion, guardarCsv, marcar } from "../../api/materiales";
 import { useBiblioteca } from "../../estado/biblioteca";
 import { useAjustes } from "../../estado/ajustes";
 import { useEdicion } from "../../estado/edicion";
@@ -244,11 +243,10 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
     }
   };
 
-  const guardarCsv = async () => {
+  const alGuardarCsv = async () => {
     try {
-      const ruta = await elegirDestinoCsv(nombreArchivo(titulo));
-      if (!ruta) return;
-      await guardarTexto(ruta, csvLista(filas, reunidos));
+      const guardado = await guardarCsv(nombreArchivo(titulo), csvLista(filas, reunidos));
+      if (!guardado) return;
       avisar("Lista de materiales guardada en CSV.");
     } catch (e) {
       avisar(`No se pudo guardar el CSV: ${normalizarError(e).mensaje}`);
@@ -409,7 +407,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
           type="button"
           className="boton-plano"
           disabled={!hayLista}
-          onClick={() => void guardarCsv()}
+          onClick={() => void alGuardarCsv()}
         >
           Guardar CSV
         </button>

@@ -160,19 +160,21 @@ historial. Índice, caché del visor y miniatura se actualizan igual que al
 aplicar. `cambios` es 0. Errores: `versionNoEncontrada` (no existe o ya se
 podó), `archivoPerdido`, `archivoCorrupto`, `io`, `baseDatos`.
 
-### `exportar_schematic(id, ruta) -> null`
+### `exportar_schematic(id, nombre) -> string | null`
 
 ```rust
-async fn exportar_schematic(id: String, ruta: String) -> Result<(), ErrorApp>
+async fn exportar_schematic(id: String, nombre: String) -> Result<Option<String>, ErrorApp>
 ```
 ```ts
-exportarSchematic(id: string, ruta: string): Promise<null>
-elegirDestinoLitematic(nombrePropuesto: string): Promise<string | null> // src/api/dialogo.ts
+exportarSchematic(id: string, nombre: string): Promise<string | null>
 ```
 
-Escribe la copia actual en `ruta`, elegida con el diálogo de guardar. Igual
-que `guardar_texto`, solo acepta rutas absolutas que acaben en `.litematic`
-(sin distinguir mayúsculas); si no, `nombreInvalido` y no escribe nada. Tampoco
+Abre desde Rust el diálogo de guardar, con `nombre` como propuesta, y escribe
+la copia actual en la ruta elegida (si le falta `.litematic`, se le añade).
+Devuelve esa ruta, o `null` si el usuario cancela. El frontend nunca manda la
+ruta: así un webview comprometido no puede escribir donde quiera. Aun así, la
+biblioteca solo acepta rutas absolutas que acaben en `.litematic` (sin
+distinguir mayúsculas); si no, `nombreInvalido` y no escribe nada. Tampoco
 deja exportar dentro de la carpeta de copias de la biblioteca (pisaría la copia
 de otro schematic): también `nombreInvalido`. Si la
 copia es `.litematic` sale tal cual; si no, se convierte con el escritor
@@ -258,8 +260,8 @@ pueden tener el archivo abierto un instante), como con las miniaturas.
   volver a pedir la malla del visor y, si está abierta, la lista de materiales.
 - Deshacer = `restaurarVersion(id, edicion.version)`; rehacer =
   `restaurarVersion(id, historial[0].version)` justo después de deshacer.
-- Para exportar: `elegirDestinoLitematic(entrada.nombre)` y
-  `exportarSchematic(id, ruta)`.
+- Para exportar: `exportarSchematic(id, entrada.nombre)` (el diálogo lo abre
+  Rust).
 - Iconos de bloques que no están en el schematic (la lista de parecidos) y
   previsualización: `celdas_atlas(estados) -> { atlas, celdas } | null`
   (`src/api/atlas.ts`, como mucho 256 estados por llamada). Una fila por

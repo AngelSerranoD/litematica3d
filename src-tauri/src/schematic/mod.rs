@@ -82,6 +82,7 @@ impl ErrorSchematic {
 pub fn cargar(bytes: &[u8]) -> Result<Schematic, ErrorSchematic> {
     let datos = descomprimir(bytes)?;
     let datos: &[u8] = &datos;
+    nbt::comprobar_profundidad(datos)?;
     let sondeo: Sondeo = nbt::deserializar(datos)?;
 
     let schematic = if sondeo.regions.is_some() {

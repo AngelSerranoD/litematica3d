@@ -154,6 +154,8 @@ export function csvLista(filas: Fila[], reunidos: ReadonlySet<string>): string {
 /** Nombre de archivo propuesto: sin caracteres que Windows no admite. */
 export function nombreArchivo(titulo: string): string {
   const limpio = titulo
+    // Los caracteres de control también están prohibidos en nombres de Windows.
+    // oxlint-disable-next-line no-control-regex
     .replace(/[<>:"/\\|?*\u0000-\u001f]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();

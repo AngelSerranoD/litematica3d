@@ -4,8 +4,7 @@
 // Malla del visor 3D: decodifica el binario del comando `malla` (formato en
 // docs/visor.md) a typed arrays que apuntan al mismo ArrayBuffer, sin copiar.
 
-import { invoke } from "@tauri-apps/api/core";
-import { normalizarError } from "./biblioteca";
+import { llamar } from "./llamar";
 
 /** Versión del formato binario que entiende este decodificador. */
 export const VERSION_MALLA = 1;
@@ -219,12 +218,7 @@ export async function cargarMalla(id: string, capas?: [number, number]): Promise
  * `malla_miniatura`) y lo decodifica.
  */
 export async function pedirMalla(orden: string, args: Record<string, unknown>): Promise<Malla> {
-  let respuesta: unknown;
-  try {
-    respuesta = await invoke(orden, args);
-  } catch (e) {
-    throw normalizarError(e);
-  }
+  const respuesta = await llamar<unknown>(orden, args);
   const buffer =
     respuesta instanceof ArrayBuffer
       ? respuesta
@@ -241,11 +235,7 @@ export async function bloqueEn(
   y: number,
   z: number,
 ): Promise<BloqueSeleccionado | null> {
-  try {
-    return await invoke<BloqueSeleccionado | null>("bloque_en", { id, x, y, z });
-  } catch (e) {
-    throw normalizarError(e);
-  }
+  return llamar<BloqueSeleccionado | null>("bloque_en", { id, x, y, z });
 }
 
 /**

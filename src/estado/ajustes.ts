@@ -13,7 +13,7 @@ import {
   type Tema,
   type VersionMinecraft,
 } from "../api/atlas";
-import { normalizarError } from "../api/biblioteca";
+import { normalizarError } from "../api/llamar";
 import type { DatosAtlas } from "../api/visor";
 import { texturasCambiadas } from "./texturas";
 

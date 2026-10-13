@@ -3,8 +3,7 @@
 
 import { create } from "zustand";
 import { celdasAtlas, coloresBloques, MAX_CELDAS_ATLAS, type CeldaAtlas } from "../api/atlas";
-import { normalizarError } from "../api/biblioteca";
-import { elegirDestinoLitematic } from "../api/dialogo";
+import { normalizarError } from "../api/llamar";
 import {
   aplicarCambios,
   exportarSchematic,
@@ -801,9 +800,8 @@ export const useEdicion = create<EstadoEdicion>()((set, get) => {
       if (!id || get().ocupado) return;
       set({ ocupado: "exportar", error: null });
       try {
-        const ruta = await elegirDestinoLitematic(nombre);
+        const ruta = await exportarSchematic(id, nombre);
         if (!ruta) return;
-        await exportarSchematic(id, ruta);
         useBiblioteca.getState().avisar(`Exportado a ${ruta}`);
       } catch (e) {
         const mensaje = `No se pudo exportar: ${mensajeDe(e)}`;

@@ -8,8 +8,9 @@ use std::sync::Mutex;
 
 /// Extensiones que la app abre. Espejo de `EXTENSIONES_ADMITIDAS` en
 /// `src/api/dialogo.ts` y de `fileAssociations` en `tauri.conf.json`: si se
-/// cambia una, hay que cambiar las tres. (`.mcstructure` no está soportado.)
-const EXTENSIONES: [&str; 4] = [".litematic", ".schem", ".schematic", ".nbt"];
+/// cambia una, hay que cambiar las tres (lo comprueba `espejos.rs`).
+/// `.mcstructure` no está soportado.
+pub(crate) const EXTENSIONES: [&str; 4] = [".litematic", ".schem", ".schematic", ".nbt"];
 
 /// Primera ruta válida de `args` (el primer elemento es el ejecutable y se
 /// salta). Ignora las opciones (`-x`, `--y`) y las extensiones no admitidas.

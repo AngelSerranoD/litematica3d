@@ -5,16 +5,7 @@
 // los ítems (en inglés) y guardado del CSV. El cálculo en sí es `materiales`
 // (src/api/biblioteca.ts).
 
-import { invoke } from "@tauri-apps/api/core";
-import { normalizarError } from "./biblioteca";
-
-async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(orden, args);
-  } catch (e) {
-    throw normalizarError(e);
-  }
-}
+import { llamar } from "./llamar";
 
 /** IDs de ítem (`minecraft:…`) marcados como reunidos en este schematic. */
 export const comprobacion = (id: string) => llamar<string[]>("comprobacion", { id });
@@ -29,6 +20,9 @@ export const marcar = (id: string, item: string, reunido: boolean) =>
  */
 export const nombresItems = () => llamar<Record<string, string>>("nombres_items");
 
-/** Escribe texto en un archivo elegido por el usuario (solo `.csv` o `.txt`). */
-export const guardarTexto = (ruta: string, contenido: string) =>
-  llamar<null>("guardar_texto", { ruta, contenido });
+/**
+ * Pide con el diálogo de guardar dónde dejar el CSV y lo escribe. `false` si
+ * el usuario cancela.
+ */
+export const guardarCsv = (nombre: string, contenido: string) =>
+  llamar<boolean>("guardar_csv", { nombre, contenido });

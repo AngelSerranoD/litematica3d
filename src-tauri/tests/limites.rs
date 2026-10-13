@@ -104,3 +104,43 @@ fn litematic_con_regiones_enormes_se_rechaza_antes_de_reservar() {
     ]);
     assert!(cargar(&bytes(&nbt)).is_err());
 }
+
+/// Compounds anidados `niveles` veces, con un litematic mínimo en la raíz
+/// para que llegue a deserializarse si pasa el filtro.
+fn anidado(niveles: usize) -> Vec<u8> {
+    let mut v = compuesto(vec![]);
+    for _ in 0..niveles {
+        v = compuesto(vec![("a", v)]);
+    }
+    bytes(&compuesto(vec![("Regions", compuesto(vec![])), ("x", v)]))
+}
+
+#[test]
+fn nbt_anidado_sin_fin_se_rechaza_sin_desbordar_la_pila() {
+    // Unos pocos KB con 100 000 niveles: antes desbordaba la pila y cerraba la app.
+    let mut datos = Vec::new();
+    datos.extend_from_slice(&[10, 0, 0]);
+    for _ in 0..100_000 {
+        datos.extend_from_slice(&[10, 0, 1, b'a']);
+    }
+    datos.extend(std::iter::repeat_n(0u8, 100_001));
+    let err = cargar(&datos).expect_err("debe rechazarse");
+    assert!(format!("{err:?}").contains("niveles"), "{err:?}");
+}
+
+#[test]
+fn nbt_en_el_limite_de_profundidad_no_se_rechaza_por_anidar() {
+    let err = cargar(&anidado(120)).err().map(|e| format!("{e:?}"));
+    assert!(!err.is_some_and(|e| e.contains("niveles")));
+    let err = cargar(&anidado(200)).expect_err("debe rechazarse");
+    assert!(format!("{err:?}").contains("niveles"), "{err:?}");
+}
+
+#[test]
+fn lista_de_tipo_end_con_elementos_se_rechaza() {
+    // Lista de tipo End que declara 2^31-1 elementos: fastnbt entraba en pánico.
+    let mut datos = vec![10, 0, 0, 9, 0, 1, b'l', 0];
+    datos.extend_from_slice(&i32::MAX.to_be_bytes());
+    datos.push(0);
+    assert!(cargar(&datos).is_err());
+}

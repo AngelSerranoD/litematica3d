@@ -9,6 +9,7 @@ modos: exacto, en stacks y en shulkers. Funciona sin conexión.
 
 - Tauri 2 (Rust) como contenedor de escritorio
 - React 19 + TypeScript + Vite
+- Three.js con @react-three/fiber y drei para el visor 3D
 - Motion (animaciones) y Zustand (estado)
 - Núcleo en Rust: parsers propios de los cuatro formatos sobre `fastnbt`
   (detección por contenido, no por extensión) y biblioteca en
@@ -35,6 +36,7 @@ npm install            # instala dependencias
 npm run tauri dev      # modo desarrollo
 npm run tauri build    # genera el instalador
 npm run build          # solo comprueba tipos y compila el frontend
+npm test               # tests del frontend (Vitest)
 cd src-tauri && cargo test   # tests del núcleo (formatos, biblioteca y malla)
 ```
 

@@ -4,8 +4,9 @@
 // Miniaturas isométricas de la biblioteca: comandos de Rust y URL del PNG
 // guardado (docs/miniaturas.md). Sin Three.js: el render va en su propio trozo.
 
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import { normalizarError, type Entrada, type Miniatura } from "./biblioteca";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import type { Entrada, Miniatura } from "./biblioteca";
+import { llamar } from "./llamar";
 import { pedirMalla, type Malla } from "./visor";
 
 /**
@@ -45,13 +46,9 @@ export async function guardarMiniatura(
   texturas: string,
   png: Uint8Array,
 ): Promise<Entrada> {
-  try {
-    return await invoke<Entrada>("guardar_miniatura", png, {
-      headers: { "miniatura-id": id, "miniatura-texturas": texturas },
-    });
-  } catch (e) {
-    throw normalizarError(e);
-  }
+  return llamar<Entrada>("guardar_miniatura", png, {
+    headers: { "miniatura-id": id, "miniatura-texturas": texturas },
+  });
 }
 
 /**

@@ -7,6 +7,7 @@ import * as api from "../api/biblioteca";
 import { nombreFormato } from "../api/biblioteca";
 import type { Entrada, ErrorApp, ResultadoImportacion } from "../api/biblioteca";
 import { elegirArchivos } from "../api/dialogo";
+import { normalizarError } from "../api/llamar";
 
 /** Tiempo que dura un aviso en pantalla. */
 export const DURACION_AVISO_MS = 5000;
@@ -177,7 +178,7 @@ export const useBiblioteca = create<EstadoBiblioteca>()((set, get) => ({
       const entradas = await api.listar();
       set({ entradas, cargando: false, error: null });
     } catch (e) {
-      set({ cargando: false, error: api.normalizarError(e) });
+      set({ cargando: false, error: normalizarError(e) });
     }
   },
 
@@ -186,7 +187,7 @@ export const useBiblioteca = create<EstadoBiblioteca>()((set, get) => ({
     try {
       resultados = await api.importar(rutas);
     } catch (e) {
-      get().avisar(api.normalizarError(e).mensaje);
+      get().avisar(normalizarError(e).mensaje);
       return [];
     }
     // Las nuevas van delante; una repetida no se vuelve a añadir.
@@ -210,7 +211,7 @@ export const useBiblioteca = create<EstadoBiblioteca>()((set, get) => ({
     try {
       rutas = await elegirArchivos();
     } catch (e) {
-      get().avisar(`No se pudo abrir el selector de archivos: ${api.normalizarError(e).mensaje}`);
+      get().avisar(`No se pudo abrir el selector de archivos: ${normalizarError(e).mensaje}`);
       return [];
     }
     if (!rutas.length) return [];
@@ -230,7 +231,7 @@ export const useBiblioteca = create<EstadoBiblioteca>()((set, get) => ({
       set((s) => ({
         entradas: s.entradas.map((x) => (x.id === id ? { ...x, nombre: previa.nombre } : x)),
       }));
-      get().avisar(`No se pudo renombrar: ${api.normalizarError(e).mensaje}`);
+      get().avisar(`No se pudo renombrar: ${normalizarError(e).mensaje}`);
       return null;
     }
   },
@@ -334,7 +335,7 @@ async function ejecutarBorrado(id: string) {
     useBiblioteca
       .getState()
       .avisar(
-        `No se pudo eliminar «${pendiente.entrada.nombre}»: ${api.normalizarError(e).mensaje}`,
+        `No se pudo eliminar «${pendiente.entrada.nombre}»: ${normalizarError(e).mensaje}`,
       );
   }
 }

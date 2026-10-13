@@ -6,17 +6,8 @@
 // pertenece un bloque y preparar el cambio de una familia entera por otra.
 // Los planes se aplican con `aplicarCambios(id, [], plan)`.
 
-import { invoke } from "@tauri-apps/api/core";
-import { normalizarError } from "./biblioteca";
+import { llamar } from "./llamar";
 import type { Reemplazo } from "./edicion";
-
-async function llamar<T>(orden: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(orden, args);
-  } catch (e) {
-    throw normalizarError(e);
-  }
-}
 
 /** Forma de un bloque: solo se sugieren bloques de la misma forma. */
 export type FormaBloque =
