@@ -45,7 +45,7 @@ function useNombre(estado: string): string {
  * Icono de un block state: su textura del atlas (por `celdas_atlas`, aunque
  * no esté en el schematic) o, sin atlas, su color medio.
  */
-export function IconoBloque({
+function IconoBloque({
   estado,
   color,
   lado = 24,

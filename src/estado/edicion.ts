@@ -67,14 +67,14 @@ export interface ReemplazoPendiente extends Reemplazo {
 }
 
 /** Bloque pinchado en Modificar. */
-export interface Pinchado {
+interface Pinchado {
   /** Celda en coordenadas del modelo. */
   celda: Vec3;
   bloque: BloqueSeleccionado;
 }
 
 /** A qué se aplica lo que se elija en la lista de parecidos. */
-export type ObjetivoLista =
+type ObjetivoLista =
   /** El bloque pinchado: elegir crea un `CambioPendiente` en su posición. */
   | { tipo: "bloque"; pinchado: Pinchado }
   /** Una fila de la tabla origen → destino de una familia: elegir cambia su destino. */
@@ -134,7 +134,7 @@ export type MotivoDescarte = "salirModo" | "salirSchematic" | "cerrarVentana" | 
 export type PanelEdicion = "cambiar" | "historial";
 
 /** Operación larga en curso (desactiva los botones que chocarían). */
-export type Ocupado = "aplicar" | "restaurar" | "exportar" | null;
+type Ocupado = "aplicar" | "restaurar" | "exportar" | null;
 
 interface EstadoEdicion {
   /** Schematic abierto (`null` en la biblioteca). */
@@ -237,7 +237,7 @@ interface EstadoEdicion {
 }
 
 /** Bloques parecidos que se piden por bloque. */
-export const PARECIDOS_POR_BLOQUE = 16;
+const PARECIDOS_POR_BLOQUE = 16;
 /** Cuánto se ve el aviso con Deshacer tras aplicar o restaurar. */
 const DURACION_AVISO_EDICION_MS = 10000;
 
@@ -910,9 +910,6 @@ function nuevoReemplazo(
     ? { estadoOrigen, estadoDestino, cantidad: miembro.cantidad, familia: familia.familia }
     : { estadoOrigen, estadoDestino, cantidad: null, familia: null };
 }
-
-/** ¿Hay cambios o reemplazos sin aplicar? (selector atómico) */
-export const hayPendientes = (s: EstadoEdicion) => s.cambios.length > 0 || s.reemplazos.length > 0;
 
 /** Número de pendientes, cambios más reemplazos (selector atómico). */
 export const numPendientes = (s: EstadoEdicion) => s.cambios.length + s.reemplazos.length;

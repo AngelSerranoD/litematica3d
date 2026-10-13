@@ -9,10 +9,10 @@ import { formatoNumero } from "../formato";
 import { normalizarTexto } from "../../estado/biblioteca";
 
 /** ID con el que el núcleo agrupa los bloques antiguos sin traducción. */
-export const ID_DESCONOCIDO = "litematica3d:desconocido";
+const ID_DESCONOCIDO = "litematica3d:desconocido";
 
 /** «minecraft:oak_planks» → «Oak Planks» (cuando no hay nombres del juego). */
-export function humanizarId(id: string): string {
+function humanizarId(id: string): string {
   const sinEspacio = id.includes(":") ? id.slice(id.indexOf(":") + 1) : id;
   const texto = sinEspacio.replace(/[_/]+/g, " ").trim();
   // Title Case, como los nombres del juego.
@@ -92,7 +92,7 @@ function desglose(f: Material): string {
   return texto;
 }
 
-export interface Resumen {
+interface Resumen {
   titulo: string;
   /** «Región: todas · Capas Y 0–31». */
   filtro: string;

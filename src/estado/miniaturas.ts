@@ -39,7 +39,7 @@ let quitar: (() => void) | null = null;
 const dormir = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
 /** ¿Hay que (re)generar la miniatura de esta entrada con la clave `actual`? */
-export function necesitaMiniatura(e: Entrada, actual: string | null): boolean {
+function necesitaMiniatura(e: Entrada, actual: string | null): boolean {
   const m = e.miniatura;
   if (!m || m.texturas === null) return true;
   return actual !== null && m.texturas !== actual;

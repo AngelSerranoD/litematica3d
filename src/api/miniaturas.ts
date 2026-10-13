@@ -13,7 +13,7 @@ import { pedirMalla, type Malla } from "./visor";
  * Versión del render de las miniaturas. Subirla (otro encuadre, otra luz…)
  * deja todas las guardadas obsoletas: se regeneran solas.
  */
-export const VERSION_RENDER = 1;
+const VERSION_RENDER = 1;
 
 /** Lo que admite Rust en la clave: ASCII visible y como mucho 100 caracteres. */
 const MAX_CLAVE = 100;

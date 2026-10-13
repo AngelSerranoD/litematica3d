@@ -25,7 +25,7 @@ import { CARAS_ATLAS, type CeldaAtlas } from "../../api/atlas";
 import type { MaterialMalla } from "../../api/visor";
 
 /** Texels por fila de las tablas por material (color y celda del atlas). */
-export const ANCHO_TABLA = 256;
+const ANCHO_TABLA = 256;
 
 /** Alfa del color plano de los materiales translúcidos (cristal, agua…). */
 const ALFA_TRANSLUCIDO = 0.6;

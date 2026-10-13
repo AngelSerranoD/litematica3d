@@ -10,7 +10,7 @@ import { llamar } from "./llamar";
 import type { Reemplazo } from "./edicion";
 
 /** Forma de un bloque: solo se sugieren bloques de la misma forma. */
-export type FormaBloque =
+type FormaBloque =
   | "entero"
   | "losa"
   | "escalera"
@@ -42,7 +42,7 @@ export interface Parecido {
 }
 
 /** Familia de material y variante de un bloque. */
-export interface FamiliaBloque {
+interface FamiliaBloque {
   /** `deepslate`, `oak`, `quartz`… */
   familia: string;
   /** Componentes de la variante (`["pulido", "ladrillo"]`); vacío = la base. */
@@ -55,7 +55,7 @@ export interface FamiliaBloque {
 }
 
 /** Un bloque del catálogo dentro de su familia. */
-export interface Miembro {
+interface Miembro {
   id: string;
   forma: FormaBloque;
   variante: string[];

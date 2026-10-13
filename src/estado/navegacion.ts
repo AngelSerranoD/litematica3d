@@ -22,7 +22,7 @@ interface EstadoNavegacion {
  * para llamarlo más tarde (p. ej. tras preguntar si se descartan los cambios
  * pendientes de la edición).
  */
-export type GuardaSalida = (continuar: () => void) => boolean;
+type GuardaSalida = (continuar: () => void) => boolean;
 
 let guarda: GuardaSalida | null = null;
 

@@ -10,13 +10,13 @@ import { elegirArchivos } from "../api/dialogo";
 import { normalizarError } from "../api/llamar";
 
 /** Tiempo que dura un aviso en pantalla. */
-export const DURACION_AVISO_MS = 5000;
+const DURACION_AVISO_MS = 5000;
 
 /** Tiempo que se puede deshacer un borrado antes de mandarlo a la Papelera. */
 export const ESPERA_BORRADO_MS = 5000;
 
 /** Botón de un aviso (p. ej. «Deshacer»): al pulsarlo se ejecuta y el aviso se cierra. */
-export interface AccionAviso {
+interface AccionAviso {
   etiqueta: string;
   ejecutar: () => void;
 }
@@ -29,15 +29,15 @@ export interface Aviso {
   accion?: AccionAviso;
 }
 
-export interface OpcionesAviso {
+interface OpcionesAviso {
   accion?: AccionAviso;
   /** Cuánto dura en pantalla (por defecto `DURACION_AVISO_MS`). */
   duracionMs?: number;
 }
 
 export type CampoOrden = "fecha" | "nombre" | "tamano";
-export type DireccionOrden = "asc" | "desc";
-export type ModoVista = "rejilla" | "lista";
+type DireccionOrden = "asc" | "desc";
+type ModoVista = "rejilla" | "lista";
 
 export interface Orden {
   campo: CampoOrden;
@@ -79,7 +79,7 @@ export function normalizarTexto(texto: string): string {
 }
 
 /** Filtra por nombre, autor y formato, y ordena. No modifica `entradas`. */
-export function calcularVisibles(
+function calcularVisibles(
   entradas: Entrada[],
   busqueda: string,
   orden: Orden,
@@ -147,7 +147,7 @@ const temporizadores = new Map<string, ReturnType<typeof setTimeout>>();
 let siguienteAviso = 1;
 
 /** «3 importados · 1 duplicado · 1 con error: <mensaje>» */
-export function resumenImportacion(resultados: ResultadoImportacion[]): string {
+function resumenImportacion(resultados: ResultadoImportacion[]): string {
   const nuevos = resultados.filter((r) => r.estado === "importado").length;
   const duplicados = resultados.filter((r) => r.estado === "duplicado").length;
   const errores = resultados.flatMap((r) => (r.estado === "error" ? [r.error.mensaje] : []));
@@ -348,7 +348,3 @@ export function useEntradasVisibles(): Entrada[] {
   return useMemo(() => calcularVisibles(entradas, busqueda, orden), [entradas, busqueda, orden]);
 }
 
-/** Selector derivado para usar fuera de React: `entradasVisibles(useBiblioteca.getState())`. */
-export const entradasVisibles = (
-  s: Pick<EstadoBiblioteca, "entradas" | "busqueda" | "orden">,
-): Entrada[] => calcularVisibles(s.entradas, s.busqueda, s.orden);

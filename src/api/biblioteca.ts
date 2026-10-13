@@ -49,12 +49,12 @@ export interface Region {
   totalBloques: number;
 }
 
-export interface Detalle {
+interface Detalle {
   entrada: Entrada;
   regiones: Region[];
 }
 
-export type TipoError =
+type TipoError =
   | "archivoCorrupto"
   | "demasiadoGrande"
   | "formatoDesconocido"
@@ -79,7 +79,7 @@ export interface ErrorApp {
 }
 
 /** Qué contar en la lista de materiales. */
-export interface OpcionesMateriales {
+interface OpcionesMateriales {
   /** Contar agua y lava (solo fuentes) como cubos. */
   incluirFluidos: boolean;
   /** Solo esta región; `null`, todas. */

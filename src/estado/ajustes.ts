@@ -68,7 +68,7 @@ export function versionEfectiva(versiones: VersionMinecraft[], guardada: string 
 const CLAVE_TEMA = "litematica3d.tema";
 
 /** Pone `data-tema` en <html> (sin él, manda `prefers-color-scheme`). */
-export function aplicarTema(tema: Tema): void {
+function aplicarTema(tema: Tema): void {
   const raiz = document.documentElement;
   if (tema === "sistema") delete raiz.dataset.tema;
   else raiz.dataset.tema = tema;

@@ -7,7 +7,7 @@
 import { llamar } from "./llamar";
 
 /** Versión del formato binario que entiende este decodificador. */
-export const VERSION_MALLA = 1;
+const VERSION_MALLA = 1;
 
 const MAGIA = "L3DM";
 const CABECERA_CHUNK = 40;
@@ -18,7 +18,7 @@ export type Vec3 = [number, number, number];
 export type CaraMaterial = "arriba" | "abajo" | "norte" | "sur" | "oeste" | "este" | "cruz";
 
 /** Pasada de render: opaco, recorte (alphaTest) o translúcido (mezcla alfa). */
-export type TipoMaterial = "opaco" | "recorte" | "translucido";
+type TipoMaterial = "opaco" | "recorte" | "translucido";
 
 /** Fila de la tabla de materiales: el atributo `material` de cada vértice apunta aquí. */
 export interface MaterialMalla {
@@ -141,7 +141,7 @@ export const NORMALES: readonly Vec3[] = [
 const alinear4 = (n: number) => (n + 3) & ~3;
 
 /** Decodifica el binario de `malla`. Lanza Error si no es un binario válido. */
-export function decodificarMalla(buffer: ArrayBuffer): Malla {
+function decodificarMalla(buffer: ArrayBuffer): Malla {
   const dv = new DataView(buffer);
   const magia = String.fromCharCode(
     dv.getUint8(0),

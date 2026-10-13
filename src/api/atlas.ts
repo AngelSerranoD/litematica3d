@@ -125,7 +125,7 @@ export interface CeldaAtlas {
 /** Orden de las caras en cada fila de `CeldasAtlas.celdas` (el de `Cara` en Rust). */
 export const CARAS_ATLAS = ["arriba", "abajo", "norte", "sur", "oeste", "este", "cruz"] as const;
 
-export interface CeldasAtlas {
+interface CeldasAtlas {
   /** Atlas con el que se resolvieron: su `version` debe casar con el cargado. */
   atlas: DatosAtlas;
   /** Una fila por estado pedido (7 caras, `CARAS_ATLAS`); vacía si el estado no es válido. */

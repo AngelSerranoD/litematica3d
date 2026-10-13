@@ -106,7 +106,7 @@ export function aplicarCorte(g: GrupoVisor, desde: number, hasta: number): void 
   for (const c of g.chunks) c.mesh.visible = chunkEnCapas(c.chunk, desde, hasta);
 }
 
-export interface Impacto {
+interface Impacto {
   celda: Vec3;
   distancia: number;
 }

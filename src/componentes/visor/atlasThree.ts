@@ -15,7 +15,7 @@ import type { DatosAtlas } from "../../api/visor";
 import type { AtlasVisor } from "./sombreado";
 
 /** Rectángulo UV [u, v, ancho, alto] (v = 0 abajo) de una celda: solo la textura útil. */
-export function celdaDeAtlas(d: DatosAtlas): AtlasVisor["celda"] {
+function celdaDeAtlas(d: DatosAtlas): AtlasVisor["celda"] {
   const w = d.tamTextura / d.ancho;
   const h = d.tamTextura / d.alto;
   return (indice) => {

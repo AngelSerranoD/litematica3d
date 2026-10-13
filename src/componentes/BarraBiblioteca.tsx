@@ -14,7 +14,7 @@ const CAMPOS: { campo: CampoOrden; etiqueta: string }[] = [
 ];
 
 /** «Ordenado por fecha, recientes primero»: lo que se lee y lo que se ve. */
-export function describirOrden({ campo, direccion }: Orden): string {
+function describirOrden({ campo, direccion }: Orden): string {
   const asc = direccion === "asc";
   switch (campo) {
     case "nombre":

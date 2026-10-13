@@ -30,7 +30,7 @@ export interface Reemplazo {
 }
 
 /** Qué sustituyó a una versión del historial. */
-export type Motivo = "aplicar" | "restaurar";
+type Motivo = "aplicar" | "restaurar";
 
 /** Versión anterior de un schematic. */
 export interface Version {

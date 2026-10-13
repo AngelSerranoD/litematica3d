@@ -14,7 +14,7 @@ import type { Transition } from "motion/react";
  * Se leen en el momento de pintar (no al importar el módulo) porque en
  * desarrollo Vite inyecta el CSS al importar main.tsx; a esas alturas ya está.
  */
-export type NombreMuelle = "vista" | "compartido" | "pulsacion" | "caida";
+type NombreMuelle = "vista" | "compartido" | "pulsacion" | "caida";
 
 const cache = new Map<NombreMuelle, Transition>();
 

@@ -3,12 +3,12 @@
 // Lógica pura del modo Modificar (sin Tauri ni React), para poder probarla.
 
 /** Lo mínimo de un cambio suelto pendiente que hace falta para contar. */
-export interface CambioParaContar {
+interface CambioParaContar {
   estadoAnterior: string;
 }
 
 /** Lo mínimo de un reemplazo pendiente que hace falta para contar. */
-export interface ReemplazoParaContar {
+interface ReemplazoParaContar {
   estadoOrigen: string;
   estadoDestino: string;
   cantidad: number | null;
@@ -44,7 +44,7 @@ export function bloquesAfectados(
 }
 
 /** `minecraft:stone_stairs[facing=east]` → id y propiedades. */
-export function separarEstado(estado: string): { id: string; props: Map<string, string> } {
+function separarEstado(estado: string): { id: string; props: Map<string, string> } {
   const i = estado.indexOf("[");
   const props = new Map<string, string>();
   if (i < 0 || !estado.endsWith("]")) return { id: estado, props };
@@ -56,7 +56,7 @@ export function separarEstado(estado: string): { id: string; props: Map<string, 
 }
 
 /** Id del bloque sin propiedades de estado. */
-export const idDeEstado = (estado: string) => separarEstado(estado).id;
+const idDeEstado = (estado: string) => separarEstado(estado).id;
 
 /** Un bloque de la tabla de familia: todos sus estados presentes, sumados. */
 export interface GrupoFamilia {

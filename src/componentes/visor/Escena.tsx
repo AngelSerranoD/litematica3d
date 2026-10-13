@@ -40,7 +40,7 @@ const ESPERA_REMALLADO = 250;
 /** Más movimiento que esto entre pulsar y soltar es orbitar, no hacer clic. */
 const TOLERANCIA_CLIC = 4;
 /** Margen del gizmo de ejes desde la esquina inferior derecha (px). */
-export const MARGEN_GIZMO: [number, number] = [64, 64];
+const MARGEN_GIZMO: [number, number] = [64, 64];
 /** Medio lado del cuadrado que ocupa el gizmo en pantalla (px). */
 const RADIO_GIZMO = 60;
 

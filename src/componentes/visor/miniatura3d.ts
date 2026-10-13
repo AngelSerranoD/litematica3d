@@ -15,7 +15,7 @@ import { crearGrupo, type ChunkVisor } from "./mallaThree";
 import { crearUniformsVisor, type AtlasVisor } from "./sombreado";
 
 /** Lado del PNG en píxeles (Rust admite de 64 a 1024, cuadrado). */
-export const LADO_MINIATURA = 512;
+const LADO_MINIATURA = 512;
 
 /**
  * Vértices que se suben a la GPU y se dibujan de una vez antes de devolver

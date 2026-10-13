@@ -36,7 +36,7 @@ export interface AtlasIconos {
   datos: DatosAtlas;
 }
 
-export interface ModeloAbierto {
+interface ModeloAbierto {
   /** Schematic al que pertenece (para no mezclar con el anterior). */
   id: string;
   /** Y de la capa 0 del visor en coordenadas del schematic. */
