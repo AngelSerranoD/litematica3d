@@ -35,6 +35,17 @@ let actual: { imagen: ImageBitmap; atlas: AtlasVisor } | null = null;
 export function atlasVisor(a: AtlasCargado): AtlasVisor {
   if (actual?.imagen === a.imagen) return actual.atlas;
   actual?.atlas.textura.dispose();
+  const atlas = crearAtlasVisor(a);
+  actual = { imagen: a.imagen, atlas };
+  return atlas;
+}
+
+/**
+ * Textura nueva (sin caché) y tabla de celdas de un atlas. Quien la crea la
+ * libera: el renderizador de miniaturas usa la suya, aparte de la del visor,
+ * para poder soltarla sin dejar al visor sin texturas.
+ */
+export function crearAtlasVisor(a: AtlasCargado): AtlasVisor {
   const textura = new Texture(a.imagen);
   // La imagen ya viene volteada (imageOrientation: "flipY"); Three ignora flipY con ImageBitmap.
   textura.flipY = false;
@@ -45,13 +56,11 @@ export function atlasVisor(a: AtlasCargado): AtlasVisor {
   textura.generateMipmaps = true;
   textura.anisotropy = 4;
   textura.needsUpdate = true;
-  const atlas: AtlasVisor = {
+  return {
     textura,
     celda: celdaDeAtlas(a.info),
     tamano: [a.info.ancho, a.info.alto],
     nivelesMip: a.info.nivelesMip,
   };
-  actual = { imagen: a.imagen, atlas };
-  return atlas;
 }
 

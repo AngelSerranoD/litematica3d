@@ -350,8 +350,202 @@ fn migra_una_biblioteca_v1_con_datos() {
     let v: i32 = conn
         .pragma_query_value(None, "user_version", |f| f.get(0))
         .unwrap();
-    assert_eq!(v, 2);
+    assert_eq!(v, 3);
     // Abrirla otra vez no vuelve a migrar.
     let b = Biblioteca::abrir(tmp.path()).unwrap();
     assert_eq!(b.comprobacion("viejo").unwrap(), ["minecraft:stone"]);
+}
+
+// ------------------------------------------------- miniaturas (esquema v3)
+
+/// PNG RGBA de `ancho` × `alto` píxeles, transparente.
+fn png(ancho: u32, alto: u32) -> Vec<u8> {
+    let mut out = Vec::new();
+    {
+        let mut enc = png::Encoder::new(&mut out, ancho, alto);
+        enc.set_color(png::ColorType::Rgba);
+        enc.set_depth(png::BitDepth::Eight);
+        let mut w = enc.write_header().unwrap();
+        w.write_image_data(&vec![0; (ancho * alto * 4) as usize])
+            .unwrap();
+    }
+    out
+}
+
+#[test]
+fn guardar_regenerar_e_invalidar_miniatura() {
+    let tmp = tempfile::tempdir().unwrap();
+    let id;
+    {
+        let b = Biblioteca::abrir(tmp.path()).unwrap();
+        let e = importado(b.importar(&dato("litematic_simple.litematic")));
+        assert_eq!(e.miniatura, None);
+        id = e.id;
+
+        let e = b
+            .guardar_miniatura(&id, &png(512, 512), "r1|1.21.4")
+            .unwrap();
+        let m = e.miniatura.clone().unwrap();
+        assert_eq!(m.texturas.as_deref(), Some("r1|1.21.4"));
+        assert_eq!(Path::new(&m.ruta), b.ruta_miniatura(&id));
+        assert!(m.ruta.ends_with(&format!("{id}.miniatura.png")));
+        assert_eq!(fs::read(&m.ruta).unwrap(), png(512, 512));
+        assert_eq!(b.listar().unwrap()[0].miniatura, Some(m.clone()));
+        // Junto a la copia y sin temporales.
+        assert_eq!(
+            copias(&b),
+            [format!("{id}.litematic"), format!("{id}.miniatura.png")]
+        );
+
+        // Cambian las texturas: obsoleta, pero el PNG sigue ahí.
+        assert_eq!(b.invalidar_miniaturas().unwrap(), 1);
+        let m2 = b.listar().unwrap()[0].miniatura.clone().unwrap();
+        assert_eq!(m2.texturas, None);
+        assert_eq!(m2.fecha, m.fecha);
+        assert!(Path::new(&m2.ruta).exists());
+
+        // Regenerarla sustituye el archivo.
+        let e = b.guardar_miniatura(&id, &png(256, 256), "r1|-").unwrap();
+        assert_eq!(e.miniatura.unwrap().texturas.as_deref(), Some("r1|-"));
+        assert_eq!(fs::read(b.ruta_miniatura(&id)).unwrap(), png(256, 256));
+    }
+    // Persiste al reabrir.
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let m = b.listar().unwrap()[0].miniatura.clone().unwrap();
+    assert_eq!(m.texturas.as_deref(), Some("r1|-"));
+}
+
+#[test]
+fn miniatura_invalida_no_deja_rastro() {
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let id = importado(b.importar(&dato("litematic_simple.litematic"))).id;
+
+    let mut cortado = png(128, 128);
+    cortado.truncate(cortado.len() - 20);
+    let mut enorme = png(64, 64);
+    enorme.resize(4 * 1024 * 1024 + 1, 0);
+    for (que, bytes) in [
+        ("no es PNG", b"GIF89a....".to_vec()),
+        ("vacío", Vec::new()),
+        ("cortado", cortado),
+        ("no cuadrado", png(512, 256)),
+        ("demasiado pequeño", png(32, 32)),
+        ("demasiado grande", png(2048, 2048)),
+        ("más de 4 MiB", enorme),
+    ] {
+        let e = b.guardar_miniatura(&id, &bytes, "r1|-").unwrap_err();
+        assert_eq!(e.tipo(), "miniaturaInvalida", "{que}");
+    }
+    let larga = "x".repeat(101);
+    for clave in ["", "con espacio", "ñ", larga.as_str()] {
+        let e = b.guardar_miniatura(&id, &png(64, 64), clave).unwrap_err();
+        assert_eq!(e.tipo(), "miniaturaInvalida", "{clave:?}");
+    }
+    // Ids que no son de la biblioteca: ni rutas ni ids inventados.
+    for otro in ["no-existe", "../fuera", r"..\fuera", "C:/x", ""] {
+        let e = b.guardar_miniatura(otro, &png(64, 64), "r1|-").unwrap_err();
+        assert_eq!(e.tipo(), "noEncontrado", "{otro}");
+    }
+    assert_eq!(copias(&b), [format!("{id}.litematic")]);
+    assert_eq!(b.listar().unwrap()[0].miniatura, None);
+}
+
+#[test]
+fn eliminar_sin_archivos_quita_la_miniatura_del_indice() {
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let id = importado(b.importar(&dato("estructura_palettes.nbt"))).id;
+    b.guardar_miniatura(&id, &png(64, 64), "r1|-").unwrap();
+    // Copia y miniatura borradas a mano: solo queda la fila.
+    borrar_copia(b.carpeta_archivos(), &id);
+    b.eliminar(&id).unwrap();
+    assert!(b.listar().unwrap().is_empty());
+    assert!(copias(&b).is_empty());
+}
+
+/// Manda copia y miniatura a la Papelera de Windows: a mano con
+/// `cargo test -- --ignored`.
+#[test]
+#[ignore = "deja dos archivos en la Papelera del sistema"]
+fn eliminar_manda_tambien_la_miniatura_a_la_papelera() {
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let id = importado(b.importar(&dato("sin_comprimir.nbt"))).id;
+    b.guardar_miniatura(&id, &png(64, 64), "r1|-").unwrap();
+    b.eliminar(&id).unwrap();
+    assert!(copias(&b).is_empty());
+}
+
+#[test]
+fn migra_una_biblioteca_v2_con_comprobacion() {
+    let tmp = tempfile::tempdir().unwrap();
+    {
+        // Esquema v2 tal cual: el de v1 más la tabla `comprobacion`.
+        let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+        conn.execute_batch(
+            "CREATE TABLE schematics (
+                 id TEXT PRIMARY KEY NOT NULL,
+                 nombre TEXT NOT NULL,
+                 autor TEXT,
+                 descripcion TEXT,
+                 formato TEXT NOT NULL,
+                 ancho INTEGER NOT NULL,
+                 alto INTEGER NOT NULL,
+                 largo INTEGER NOT NULL,
+                 total_bloques INTEGER NOT NULL,
+                 regiones INTEGER NOT NULL,
+                 version_datos INTEGER,
+                 fecha_creacion INTEGER,
+                 fecha_importacion INTEGER NOT NULL,
+                 ruta TEXT NOT NULL,
+                 nombre_original TEXT,
+                 tamano_archivo INTEGER NOT NULL,
+                 hash TEXT NOT NULL UNIQUE
+             );
+             CREATE INDEX schematics_fecha ON schematics (fecha_importacion DESC);
+             CREATE TABLE comprobacion (
+                 schematic_id TEXT NOT NULL REFERENCES schematics (id) ON DELETE CASCADE,
+                 item TEXT NOT NULL,
+                 PRIMARY KEY (schematic_id, item)
+             ) WITHOUT ROWID;
+             INSERT INTO schematics VALUES ('viejo', 'Casa vieja', NULL, NULL,
+                 'litematic', 3, 4, 5, 60, 1, NULL, NULL, 1700000000000,
+                 'viejo.litematic', 'casa.litematic', 123, 'abc');
+             INSERT INTO comprobacion VALUES ('viejo', 'minecraft:stone');
+             PRAGMA user_version = 2;",
+        )
+        .unwrap();
+    }
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let lista = b.listar().unwrap();
+    assert_eq!(lista.len(), 1);
+    assert_eq!(lista[0].nombre, "Casa vieja");
+    assert_eq!(lista[0].miniatura, None);
+    assert_eq!(b.comprobacion("viejo").unwrap(), ["minecraft:stone"]);
+    let e = b.guardar_miniatura("viejo", &png(64, 64), "r1|-").unwrap();
+    assert!(e.miniatura.is_some());
+    drop(b);
+
+    let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+    let v: i32 = conn
+        .pragma_query_value(None, "user_version", |f| f.get(0))
+        .unwrap();
+    assert_eq!(v, 3);
+    drop(conn);
+    // Reabrir no vuelve a migrar (el ALTER TABLE fallaría por columna repetida).
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let m = b.listar().unwrap()[0].miniatura.clone().unwrap();
+    assert_eq!(m.texturas.as_deref(), Some("r1|-"));
+}
+
+#[test]
+fn una_biblioteca_mas_nueva_no_se_abre() {
+    let tmp = tempfile::tempdir().unwrap();
+    drop(Biblioteca::abrir(tmp.path()).unwrap());
+    let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+    conn.pragma_update(None, "user_version", 4).unwrap();
+    drop(conn);
+    let e = Biblioteca::abrir(tmp.path()).err().unwrap();
+    assert_eq!(e.tipo(), "versionBiblioteca");
 }

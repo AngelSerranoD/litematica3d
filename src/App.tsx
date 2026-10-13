@@ -8,6 +8,7 @@ import { BarraTitulo } from "./componentes/BarraTitulo";
 import { PanelAjustes } from "./componentes/PanelAjustes";
 import { useAjustes } from "./estado/ajustes";
 import { useBiblioteca } from "./estado/biblioteca";
+import { iniciarMiniaturas } from "./estado/miniaturas";
 import { useNavegacion } from "./estado/navegacion";
 import { usoCierreVentana } from "./estado/usoCierreVentana";
 import { usoSoltarArchivos } from "./estado/usoSoltarArchivos";
@@ -30,6 +31,10 @@ export default function App() {
   useEffect(() => {
     void useAjustes.getState().iniciar();
   }, []);
+
+  // Miniaturas isométricas en segundo plano: las que falten o estén
+  // obsoletas, y todas otra vez al cambiar las texturas.
+  useEffect(() => iniciarMiniaturas(), []);
 
   // Esc vuelve a la biblioteca desde cualquier punto del schematic (salvo con
   // los ajustes abiertos: ahí Esc solo cierra el diálogo). Ctrl+, abre los

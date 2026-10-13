@@ -188,9 +188,17 @@ export function decodificarMalla(buffer: ArrayBuffer): Malla {
  * cerrado; sin él, el modelo entero.
  */
 export async function cargarMalla(id: string, capas?: [number, number]): Promise<Malla> {
+  return pedirMalla("malla", { id, capas: capas ?? null });
+}
+
+/**
+ * Llama a un comando que devuelve el binario de una malla (`malla` o
+ * `malla_miniatura`) y lo decodifica.
+ */
+export async function pedirMalla(orden: string, args: Record<string, unknown>): Promise<Malla> {
   let respuesta: unknown;
   try {
-    respuesta = await invoke("malla", { id, capas: capas ?? null });
+    respuesta = await invoke(orden, args);
   } catch (e) {
     throw normalizarError(e);
   }

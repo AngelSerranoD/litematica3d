@@ -139,7 +139,14 @@ export function Schematic({ id }: { id: string }) {
             {dim && (
               <Visor3D
                 id={id}
-                marcador={<Miniatura id={id} dimensiones={dim} layoutId={idBloque(id)} />}
+                marcador={
+                  <Miniatura
+                    id={id}
+                    dimensiones={dim}
+                    miniatura={entrada?.miniatura}
+                    layoutId={idBloque(id)}
+                  />
+                }
               />
             )}
             {!entrada && !cargando && (

@@ -8,12 +8,15 @@
 //! - v1: tabla `schematics`.
 //! - v2: tabla `comprobacion` (ítems marcados como reunidos en la pantalla de
 //!   materiales), con borrado en cascada al quitar el schematic.
+//! - v3: columnas `miniatura_fecha` y `miniatura_texturas` de `schematics`
+//!   (miniatura isométrica en `<datos>/biblioteca/<uuid>.miniatura.png`, ver
+//!   `docs/miniaturas.md`).
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use rusqlite::{Connection, ErrorCode, OptionalExtension, Row, params};
 use serde::Serialize;
@@ -23,7 +26,7 @@ use crate::error::ErrorApp;
 use crate::schematic::{self, Dimensiones, Formato, Schematic};
 
 /// Versión del esquema de la base de datos (`PRAGMA user_version`).
-const VERSION_ESQUEMA: i32 = 2;
+const VERSION_ESQUEMA: i32 = 3;
 
 /// Longitud máxima de un nombre, en caracteres.
 pub const MAX_NOMBRE: usize = 200;
@@ -31,9 +34,18 @@ pub const MAX_NOMBRE: usize = 200;
 /// Longitud máxima del id de un ítem marcado como reunido, en caracteres.
 pub const MAX_ITEM: usize = 200;
 
+/// Tamaño máximo del PNG de una miniatura, en bytes.
+pub const MAX_BYTES_MINIATURA: usize = 4 * 1024 * 1024;
+
+/// Lado mínimo y máximo (en píxeles) de una miniatura; tiene que ser cuadrada.
+pub const LADO_MINIATURA: std::ops::RangeInclusive<u32> = 64..=1024;
+
+/// Longitud máxima de la clave de texturas de una miniatura.
+pub const MAX_CLAVE_TEXTURAS: usize = 100;
+
 const COLUMNAS: &str = "id, nombre, autor, descripcion, formato, ancho, alto, largo, \
      total_bloques, regiones, version_datos, fecha_creacion, fecha_importacion, \
-     nombre_original, tamano_archivo";
+     nombre_original, tamano_archivo, miniatura_fecha, miniatura_texturas";
 
 /// Fila de la biblioteca tal y como la ve el frontend.
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -54,6 +66,22 @@ pub struct Entrada {
     pub fecha_importacion: i64,
     pub nombre_original: Option<String>,
     pub tamano_archivo: u64,
+    /// Miniatura isométrica, si ya se ha generado alguna.
+    pub miniatura: Option<Miniatura>,
+}
+
+/// Miniatura isométrica guardada junto al schematic.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Miniatura {
+    /// Ruta absoluta del PNG (el frontend la pasa por el protocolo `asset`).
+    pub ruta: String,
+    /// Milisegundos desde 1970: cuándo se escribió (sirve para saltarse la
+    /// caché del webview al regenerarla).
+    pub fecha: i64,
+    /// Clave de las texturas con las que se generó. `None`: obsoleta (las
+    /// texturas cambiaron después).
+    pub texturas: Option<String>,
 }
 
 /// Resumen de una región para el frontend (sin la lista de bloques).
@@ -224,7 +252,7 @@ impl Biblioteca {
         let sql = format!("SELECT {COLUMNAS} FROM schematics WHERE hash = ?1");
         Ok(self
             .conexion()
-            .query_row(&sql, [hash], fila_a_entrada)
+            .query_row(&sql, [hash], |f| fila_a_entrada(&self.dir, f))
             .optional()?)
     }
 
@@ -235,7 +263,7 @@ impl Biblioteca {
             "SELECT {COLUMNAS} FROM schematics ORDER BY fecha_importacion DESC, rowid DESC"
         );
         let mut consulta = conn.prepare(&sql)?;
-        let filas = consulta.query_map([], fila_a_entrada)?;
+        let filas = consulta.query_map([], |f| fila_a_entrada(&self.dir, f))?;
         Ok(filas.collect::<rusqlite::Result<Vec<_>>>()?)
     }
 
@@ -244,7 +272,7 @@ impl Biblioteca {
         let sql = format!("SELECT {COLUMNAS}, ruta FROM schematics WHERE id = ?1");
         self.conexion()
             .query_row(&sql, [id], |f| {
-                Ok((fila_a_entrada(f)?, f.get::<_, String>(15)?))
+                Ok((fila_a_entrada(&self.dir, f)?, f.get::<_, String>(17)?))
             })
             .optional()?
             .ok_or(ErrorApp::NoEncontrado)
@@ -307,16 +335,22 @@ impl Biblioteca {
         Ok(self.entrada_y_ruta(id)?.0)
     }
 
-    /// Mueve la copia a la Papelera y quita la fila. Si la copia ya no existe,
-    /// solo quita la fila.
+    /// Mueve la copia y su miniatura a la Papelera y quita la fila. Lo que ya
+    /// no exista se salta: si no queda ningún archivo, solo quita la fila.
     pub fn eliminar(&self, id: &str) -> Result<(), ErrorApp> {
         let (entrada, ruta) = self.entrada_y_ruta(id)?;
-        let archivo = self.dir.join(&ruta);
-        let existe = archivo.try_exists().map_err(|e| {
-            ErrorApp::io(format!("comprobar el archivo de «{}»", entrada.nombre), e)
-        })?;
-        if existe {
-            trash::delete(&archivo).map_err(|e| ErrorApp::Papelera {
+        let mut archivos = Vec::with_capacity(2);
+        for archivo in [self.dir.join(&ruta), ruta_miniatura(&self.dir, id)] {
+            let existe = archivo.try_exists().map_err(|e| {
+                ErrorApp::io(format!("comprobar los archivos de «{}»", entrada.nombre), e)
+            })?;
+            if existe {
+                archivos.push(archivo);
+            }
+        }
+        if !archivos.is_empty() {
+            // Los dos en la misma operación de la Papelera.
+            trash::delete_all(&archivos).map_err(|e| ErrorApp::Papelera {
                 nombre: entrada.nombre.clone(),
                 detalle: e.to_string(),
             })?;
@@ -327,6 +361,61 @@ impl Biblioteca {
         tx.execute("DELETE FROM schematics WHERE id = ?1", [id])?;
         tx.commit()?;
         Ok(())
+    }
+
+    /// Ruta del PNG de la miniatura de un id (exista o no).
+    pub fn ruta_miniatura(&self, id: &str) -> PathBuf {
+        ruta_miniatura(&self.dir, id)
+    }
+
+    /// Guarda la miniatura de un schematic: valida el PNG y la clave de
+    /// texturas, lo escribe como `<id>.miniatura.png` (el nombre sale del id,
+    /// nunca de una ruta del frontend) y apunta fecha y clave en el índice.
+    /// Sustituye la anterior si la había. Devuelve la entrada actualizada.
+    pub fn guardar_miniatura(
+        &self,
+        id: &str,
+        png: &[u8],
+        texturas: &str,
+    ) -> Result<Entrada, ErrorApp> {
+        validar_clave_texturas(texturas)?;
+        validar_png(png)?;
+        if !id_valido(id) {
+            return Err(ErrorApp::NoEncontrado);
+        }
+        existe(&self.conexion(), id)?;
+
+        let destino = ruta_miniatura(&self.dir, id);
+        let tmp = self.dir.join(format!("{id}.miniatura.png.tmp"));
+        if let Err(e) = fs::write(&tmp, png) {
+            let _ = fs::remove_file(&tmp);
+            return Err(ErrorApp::io("guardar la miniatura", e));
+        }
+        if let Err(e) = reemplazar(&tmp, &destino) {
+            let _ = fs::remove_file(&tmp);
+            return Err(ErrorApp::io("guardar la miniatura", e));
+        }
+        let cambiadas = self.conexion().execute(
+            "UPDATE schematics SET miniatura_fecha = ?1, miniatura_texturas = ?2 WHERE id = ?3",
+            params![ahora_ms(), texturas, id],
+        )?;
+        if cambiadas == 0 {
+            // Se eliminó mientras se escribía: el PNG recién creado sobra (es
+            // un derivado que acaba de generarse, no un archivo del usuario).
+            let _ = fs::remove_file(&destino);
+            return Err(ErrorApp::NoEncontrado);
+        }
+        Ok(self.entrada_y_ruta(id)?.0)
+    }
+
+    /// Marca todas las miniaturas como obsoletas (las texturas han cambiado).
+    /// Los PNG se quedan: se siguen enseñando hasta que se regeneran.
+    /// Devuelve cuántas había.
+    pub fn invalidar_miniaturas(&self) -> Result<usize, ErrorApp> {
+        Ok(self.conexion().execute(
+            "UPDATE schematics SET miniatura_texturas = NULL WHERE miniatura_texturas IS NOT NULL",
+            [],
+        )?)
     }
 
     /// ¿Están activas las claves ajenas en la conexión? (Para las pruebas.)
@@ -417,7 +506,90 @@ fn migrar(conn: &mut Connection) -> Result<(), ErrorApp> {
         )?;
         tx.commit()?;
     }
+    if version < 3 {
+        // Columnas nuevas a NULL: ninguna fila tiene miniatura todavía.
+        let tx = conn.transaction()?;
+        tx.execute_batch(
+            "ALTER TABLE schematics ADD COLUMN miniatura_fecha INTEGER;
+             ALTER TABLE schematics ADD COLUMN miniatura_texturas TEXT;
+             PRAGMA user_version = 3;",
+        )?;
+        tx.commit()?;
+    }
     Ok(())
+}
+
+/// `<dir>/<id>.miniatura.png`. La extensión de las copias nunca lleva puntos,
+/// así que no puede chocar con el archivo del schematic.
+fn ruta_miniatura(dir: &Path, id: &str) -> PathBuf {
+    dir.join(format!("{id}.miniatura.png"))
+}
+
+/// Ids que genera la biblioteca (UUID): solo letras, cifras y guiones.
+fn id_valido(id: &str) -> bool {
+    !id.is_empty() && id.len() <= 64 && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+}
+
+/// Clave de texturas: de 1 a 100 caracteres ASCII visibles.
+fn validar_clave_texturas(clave: &str) -> Result<(), ErrorApp> {
+    if clave.is_empty()
+        || clave.len() > MAX_CLAVE_TEXTURAS
+        || !clave.chars().all(|c| c.is_ascii_graphic())
+    {
+        return Err(ErrorApp::MiniaturaInvalida(
+            "la clave de texturas no es válida".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// Comprueba que `bytes` sea un PNG entero, cuadrado y de un tamaño razonable.
+pub fn validar_png(bytes: &[u8]) -> Result<(), ErrorApp> {
+    const FIRMA: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
+    let invalida = |m: &str| ErrorApp::MiniaturaInvalida(m.into());
+    if bytes.len() > MAX_BYTES_MINIATURA {
+        return Err(invalida("pasa de 4 MiB"));
+    }
+    if !bytes.starts_with(&FIRMA) {
+        return Err(invalida("no es un PNG"));
+    }
+    let mut lector = png::Decoder::new(io::Cursor::new(bytes))
+        .read_info()
+        .map_err(|_| invalida("el PNG está dañado"))?;
+    let (ancho, alto) = {
+        let info = lector.info();
+        (info.width, info.height)
+    };
+    if ancho != alto || !LADO_MINIATURA.contains(&ancho) {
+        return Err(invalida(
+            "tiene que ser cuadrada, de 64 a 1024 píxeles de lado",
+        ));
+    }
+    // Se decodifica entera: así no pasa un PNG cortado o con datos basura.
+    let tamano = lector
+        .output_buffer_size()
+        .ok_or_else(|| invalida("el PNG está dañado"))?;
+    let mut buf = vec![0; tamano];
+    lector
+        .next_frame(&mut buf)
+        .map_err(|_| invalida("el PNG está dañado"))?;
+    Ok(())
+}
+
+/// `rename` que sustituye el destino. En Windows puede fallar un momento si
+/// el webview está leyendo la miniatura anterior: se reintenta unas veces.
+fn reemplazar(origen: &Path, destino: &Path) -> io::Result<()> {
+    let mut intento = 0u64;
+    loop {
+        match fs::rename(origen, destino) {
+            Ok(()) => return Ok(()),
+            Err(e) if intento >= 4 => return Err(e),
+            Err(_) => {
+                intento += 1;
+                std::thread::sleep(Duration::from_millis(40 * intento));
+            }
+        }
+    }
 }
 
 /// `NoEncontrado` si no hay ningún schematic con ese id.
@@ -428,7 +600,7 @@ fn existe(conn: &Connection, id: &str) -> Result<(), ErrorApp> {
     hay.ok_or(ErrorApp::NoEncontrado)
 }
 
-fn fila_a_entrada(f: &Row<'_>) -> rusqlite::Result<Entrada> {
+fn fila_a_entrada(dir: &Path, f: &Row<'_>) -> rusqlite::Result<Entrada> {
     let formato_txt: String = f.get(4)?;
     let formato = Formato::desde_texto(&formato_txt).ok_or_else(|| {
         rusqlite::Error::FromSqlConversionFailure(
@@ -437,8 +609,17 @@ fn fila_a_entrada(f: &Row<'_>) -> rusqlite::Result<Entrada> {
             format!("formato desconocido: {formato_txt}").into(),
         )
     })?;
+    let id: String = f.get(0)?;
+    let miniatura = match f.get::<_, Option<i64>>(15)? {
+        Some(fecha) => Some(Miniatura {
+            ruta: ruta_miniatura(dir, &id).to_string_lossy().into_owned(),
+            fecha,
+            texturas: f.get(16)?,
+        }),
+        None => None,
+    };
     Ok(Entrada {
-        id: f.get(0)?,
+        id,
         nombre: f.get(1)?,
         autor: f.get(2)?,
         descripcion: f.get(3)?,
@@ -455,6 +636,7 @@ fn fila_a_entrada(f: &Row<'_>) -> rusqlite::Result<Entrada> {
         fecha_importacion: f.get(12)?,
         nombre_original: f.get(13)?,
         tamano_archivo: f.get::<_, i64>(14)?.max(0) as u64,
+        miniatura,
     })
 }
 
@@ -479,6 +661,7 @@ fn entrada_de(
         fecha_importacion: ahora_ms(),
         nombre_original: Some(nombre_original),
         tamano_archivo,
+        miniatura: None,
     }
 }
 

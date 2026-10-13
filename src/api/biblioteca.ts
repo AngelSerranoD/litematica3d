@@ -27,6 +27,18 @@ export interface Entrada {
   fechaImportacion: number;
   nombreOriginal: string | null;
   tamanoArchivo: number;
+  /** Miniatura isométrica, o `null` si aún no se ha generado (docs/miniaturas.md). */
+  miniatura: Miniatura | null;
+}
+
+/** PNG de la miniatura guardado junto al schematic en la biblioteca. */
+export interface Miniatura {
+  /** Ruta absoluta del PNG (se enseña con el protocolo `asset`). */
+  ruta: string;
+  /** Milisegundos desde la época Unix: cuándo se escribió. */
+  fecha: number;
+  /** Clave de las texturas con que se generó; `null` = obsoleta. */
+  texturas: string | null;
 }
 
 export interface Region {
@@ -55,6 +67,7 @@ export type TipoError =
   | "papelera"
   | "versionBiblioteca"
   | "carpetaMinecraft"
+  | "miniaturaInvalida"
   | "interno";
 
 /** Error de los comandos de Rust; `mensaje` viene en español, listo para enseñar. */

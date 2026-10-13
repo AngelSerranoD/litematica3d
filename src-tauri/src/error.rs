@@ -63,6 +63,10 @@ pub enum ErrorApp {
     #[error("{0}")]
     CarpetaMinecraft(String),
 
+    /// La imagen que manda el frontend como miniatura no vale.
+    #[error("La miniatura no es válida: {0}.")]
+    MiniaturaInvalida(String),
+
     #[error("Error interno de la aplicación.")]
     Interno(String),
 }
@@ -103,6 +107,7 @@ impl ErrorApp {
             ErrorApp::Papelera { .. } => "papelera",
             ErrorApp::VersionBiblioteca => "versionBiblioteca",
             ErrorApp::CarpetaMinecraft(_) => "carpetaMinecraft",
+            ErrorApp::MiniaturaInvalida(_) => "miniaturaInvalida",
             ErrorApp::Interno(_) => "interno",
         }
     }

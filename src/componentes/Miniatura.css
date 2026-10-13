@@ -12,3 +12,17 @@
   --bloque-lateral: color-mix(in oklab, var(--bloque-base) 74%, #000);
   --bloque-arista: color-mix(in oklab, var(--bloque-base) 40%, var(--paleta-tierra));
 }
+
+/* Render isométrico guardado: PNG de fondo transparente que se encaja entero
+   en el hueco del marcador, sin marco ni sombra. */
+.miniatura-imagen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* En el visor el hueco es una celda de grid: sin esto, su tamaño mínimo
+     automático sería el de la imagen y se saldría del marco. */
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  user-select: none;
+}

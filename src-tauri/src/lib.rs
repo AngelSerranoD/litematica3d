@@ -48,6 +48,8 @@ pub fn run() {
             comandos::nombres_items,
             comandos::guardar_texto,
             comandos::malla,
+            comandos::malla_miniatura,
+            comandos::guardar_miniatura,
             comandos::bloque_en,
             comandos::versiones_minecraft,
             comandos::ajustes,

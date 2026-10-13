@@ -91,11 +91,11 @@ export const Lamina = memo(function Lamina({
             layoutId={idVisor(id)}
             transition={{ layout: muelle("compartido") }}
           >
-            <Miniatura id={id} dimensiones={dimensiones} layoutId={idBloque(id)} />
+            <Miniatura id={id} dimensiones={dimensiones} miniatura={entrada.miniatura} layoutId={idBloque(id)} />
           </motion.span>
         ) : (
           <span className="lamina__visor">
-            <Miniatura id={id} dimensiones={dimensiones} />
+            <Miniatura id={id} dimensiones={dimensiones} miniatura={entrada.miniatura} />
           </span>
         )}
       </button>

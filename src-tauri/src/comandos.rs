@@ -3,6 +3,7 @@
 
 //! Comandos Tauri que usa el frontend. El trabajo pesado (leer, descomprimir,
 //! calcular el hash, SQLite) va a un hilo bloqueante para no frenar la interfaz.
+//! Las miniaturas: `docs/miniaturas.md`.
 
 use std::collections::HashMap;
 use std::fs;
@@ -10,7 +11,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use serde::Serialize;
-use tauri::ipc::Response;
+use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::{AppHandle, Manager, State};
 
 use crate::biblioteca::{Biblioteca, Detalle, Entrada, Importacion};
@@ -203,18 +204,21 @@ pub async fn guardar_texto(ruta: String, contenido: String) -> Result<(), ErrorA
     en_segundo_plano(move || escribir_texto(Path::new(&ruta), &contenido)).await
 }
 
+/// Schematic combinado del id, leído y parseado del archivo (sin caché).
+fn cargar_mundo(b: &Biblioteca, id: &str) -> Result<Mundo, ErrorApp> {
+    let (entrada, schem) = b.cargar(id)?;
+    Mundo::desde_schematic(&schem).map_err(|detalle| ErrorApp::DemasiadoGrande {
+        archivo: entrada.nombre,
+        detalle,
+    })
+}
+
 /// Schematic combinado del id: de la caché o leído y parseado (y cacheado).
 fn mundo_de(b: &Biblioteca, cache: &CacheVisor, id: &str) -> Result<Arc<Mundo>, ErrorApp> {
     if let Some(m) = cache.obtener(id) {
         return Ok(m);
     }
-    let (entrada, schem) = b.cargar(id)?;
-    let mundo = Mundo::desde_schematic(&schem).map_err(|detalle| ErrorApp::DemasiadoGrande {
-        archivo: entrada.nombre,
-        detalle,
-    })?;
-    drop(schem);
-    let mundo = Arc::new(mundo);
+    let mundo = Arc::new(cargar_mundo(b, id)?);
     cache.guardar(id, Arc::clone(&mundo));
     Ok(mundo)
 }
@@ -252,6 +256,67 @@ pub async fn malla(
     .await
 }
 
+/// Malla del schematic entero para su miniatura (docs/miniaturas.md). A
+/// diferencia de `malla`, espera a que el atlas esté preparado (si falla o no
+/// hay jar, sale con colores) y no toca la caché del visor: generar miniaturas
+/// en segundo plano no echa de ella el schematic que se está viendo.
+#[tauri::command]
+pub async fn malla_miniatura(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    cache: State<'_, Arc<CacheVisor>>,
+    texturas: State<'_, Arc<GestorTexturas>>,
+    id: String,
+) -> Result<Response, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    let c = cache.inner().clone();
+    let g = texturas.inner().clone();
+    en_segundo_plano(move || {
+        let activo = g.preparar().ok().flatten();
+        let mundo = match c.obtener(&id) {
+            Some(m) => m,
+            None => Arc::new(cargar_mundo(&b, &id)?),
+        };
+        let fuente = activo.as_deref().map(|a| a as &dyn FuenteTexturas);
+        let m = malla::mallar_con_texturas(&mundo, &malla::Opciones::default(), fuente)
+            .map_err(ErrorApp::Interno)?;
+        Ok(Response::new(malla::binario::serializar(&m)))
+    })
+    .await
+}
+
+/// Cabeceras de `guardar_miniatura` (el cuerpo de la petición es el PNG).
+pub const CABECERA_ID: &str = "miniatura-id";
+pub const CABECERA_TEXTURAS: &str = "miniatura-texturas";
+
+/// Guarda la miniatura de un schematic. El PNG llega como cuerpo binario de
+/// la petición (sin pasar por JSON); el id y la clave de texturas, en las
+/// cabeceras `miniatura-id` y `miniatura-texturas`. El archivo se llama como
+/// el id: el frontend no elige ninguna ruta. Devuelve la entrada actualizada.
+#[tauri::command]
+pub async fn guardar_miniatura(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    peticion: Request<'_>,
+) -> Result<Entrada, ErrorApp> {
+    let InvokeBody::Raw(png) = peticion.body() else {
+        return Err(ErrorApp::MiniaturaInvalida(
+            "no ha llegado la imagen".into(),
+        ));
+    };
+    let cabecera = |nombre: &str| {
+        peticion
+            .headers()
+            .get(nombre)
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_owned)
+    };
+    let id = cabecera(CABECERA_ID).ok_or(ErrorApp::NoEncontrado)?;
+    let texturas = cabecera(CABECERA_TEXTURAS)
+        .ok_or_else(|| ErrorApp::MiniaturaInvalida("falta la clave de texturas".into()))?;
+    let png = png.clone();
+    let b = biblioteca.inner().clone();
+    en_segundo_plano(move || b.guardar_miniatura(&id, &png, &texturas)).await
+}
+
 /// Prepara el atlas de la versión elegida sin esperar el resultado (si
 /// falla, `malla` sigue con colores y `atlas` devolverá el error).
 pub fn preparar_en_fondo(gestor: Arc<GestorTexturas>) {
@@ -280,13 +345,21 @@ pub fn ajustes(texturas: State<'_, Arc<GestorTexturas>>) -> Ajustes {
 #[tauri::command]
 pub async fn guardar_ajustes(
     texturas: State<'_, Arc<GestorTexturas>>,
+    biblioteca: State<'_, Arc<Biblioteca>>,
     ajustes: Ajustes,
 ) -> Result<bool, ErrorApp> {
     let g = texturas.inner().clone();
+    let b = biblioteca.inner().clone();
     en_segundo_plano(move || {
         let cambian = g.guardar_ajustes(ajustes)?;
         if cambian {
             preparar_en_fondo(g);
+            // Las miniaturas quedan obsoletas aquí mismo (no espera al
+            // frontend): si se cierra la app antes de regenerarlas, al volver
+            // a abrirla se sabe cuáles faltan. Un fallo aquí no deshace los
+            // ajustes ya guardados: en esta sesión el frontend las regenera
+            // igualmente.
+            let _ = b.invalidar_miniaturas();
         }
         Ok(cambian)
     })

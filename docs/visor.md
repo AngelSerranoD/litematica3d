@@ -27,6 +27,7 @@ lector espejo (`malla::binario::leer`) que usan las pruebas.
 | Comando     | Argumentos                                   | Devuelve                              |
 |-------------|----------------------------------------------|---------------------------------------|
 | `malla`     | `{ id: string, capas: [number, number] \| null }` | `ArrayBuffer` con el binario (sección 3) |
+| `malla_miniatura` | `{ id: string }` | El mismo binario, del modelo entero; espera al atlas y no usa la caché (docs/miniaturas.md) |
 | `bloque_en` | `{ id: string, x: number, y: number, z: number }` | `BloqueSeleccionado \| null`          |
 | `versiones_minecraft` | — | `VersionMinecraft[]` (sección 11.1) |
 | `ajustes`   | — | `Ajustes` |
@@ -493,7 +494,8 @@ Quien dependa de las texturas escucha esa generación:
   atlas nuevo está listo, con texturas);
 - la pantalla de materiales vuelve a pedir los nombres;
 - fuera de React: `alCambiarTexturas((generacion) => …)` devuelve la función
-  para dejar de escuchar (pensado para regenerar las miniaturas).
+  para dejar de escuchar; la usa la cola de miniaturas para regenerarlas
+  todas (docs/miniaturas.md).
 
 ## 12. Mejoras futuras
 
