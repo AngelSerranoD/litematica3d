@@ -38,6 +38,9 @@ export function gruposDeMiles(n: number): string[] {
  */
 export const formatoNumero = (n: number): string => gruposDeMiles(n).join(" ");
 
+/** Distancia OKLab con coma decimal y tres cifras: «0,012». */
+export const formatoDistancia = (d: number) => d.toFixed(3).replace(".", ",");
+
 const NOMBRES_FORMATO: Record<Formato, { corto: string; largo: string }> = {
   litematic: { corto: "Litematica", largo: "Litematica (.litematic)" },
   sponge: { corto: "Sponge", largo: "Sponge (.schem)" },

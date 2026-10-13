@@ -283,8 +283,10 @@ pueden tener el archivo abierto un instante), como con las miniaturas.
     meshing las fusionó) y las texturas del destino, más un marco de alambre.
   - **Resaltados**: la familia seleccionada lleva una trama (canal verde de la
     tabla de giros) y el bloque pinchado un tinte (un uniform con su celda).
-- Estado de la interfaz: `src/estado/edicion.ts` (modo Visualizar/Modificar,
-  bloque pinchado, lista de parecidos, pendientes, historial y confirmaciones).
+- Estado de la interfaz: `src/estado/edicion/` (un almacén armado con trozos:
+  modo Visualizar/Modificar y confirmaciones, bloque pinchado y lista de
+  parecidos, pendientes, familia, historial y celdas de los iconos). Su panel
+  está en `src/componentes/edicion/` (un archivo por sección).
 
 ## 8. Parecidos
 
