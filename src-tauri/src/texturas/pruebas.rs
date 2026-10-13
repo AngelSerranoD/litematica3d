@@ -825,115 +825,69 @@ fn generar_colores_bloques() {
 
 // ---------------------------------------------------------------- nombres
 
-const LANG_ES: &str = r#"{
-    "block.minecraft.stone": "Piedra",
-    "block.minecraft.redstone_wire": "Polvo de redstone (cable)",
-    "item.minecraft.redstone": "Polvo de redstone",
-    "block.minecraft.oak_sign": "Cartel de roble (bloque)",
-    "item.minecraft.oak_sign": "Cartel de roble",
-    "block.minecraft.banner.base.black": "Campo negro",
-    "item.minecraft.potion.effect.water": "Botella de agua",
-    "itemGroup.buildingBlocks": "Bloques de construcción"
+const LANG_EN: &str = r#"{
+    "block.minecraft.stone": "Stone",
+    "block.minecraft.redstone_wire": "Redstone Dust (wire)",
+    "item.minecraft.redstone": "Redstone Dust",
+    "block.minecraft.oak_sign": "Oak Sign (block)",
+    "item.minecraft.oak_sign": "Oak Sign",
+    "block.minecraft.banner.base.black": "Fully Black Field",
+    "item.minecraft.potion.effect.water": "Water Bottle",
+    "itemGroup.buildingBlocks": "Building Blocks"
 }"#;
 
-/// Hash (de mentira, no se comprueba) con el que va el idioma en los assets.
-const HASH_LANG: &str = "ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12";
-
-/// `.minecraft` con 1.21.8 (índice «26» con `es_es.json`), una OptiFine que
-/// hereda de ella y 1.20.1 apuntando a un índice que no existe.
-fn mc_con_idioma(hash: &str) -> tempfile::TempDir {
-    let t = tempfile::tempdir().unwrap();
-    let mc = t.path();
-    version_falsa(
-        mc,
-        "1.21.8",
-        r#"{ "type": "release", "assetIndex": { "id": "26" } }"#,
-        Some(true),
-    );
-    version_falsa(
-        mc,
-        "1.21.8-OptiFine",
-        r#"{ "type": "release", "inheritsFrom": "1.21.8" }"#,
-        Some(true),
-    );
-    version_falsa(
-        mc,
-        "1.20.1",
-        r#"{ "type": "release", "assetIndex": { "id": "5" } }"#,
-        Some(true),
-    );
-    let indices = mc.join("assets").join("indexes");
-    std::fs::create_dir_all(&indices).unwrap();
-    std::fs::write(
-        indices.join("26.json"),
-        format!(
-            r#"{{ "objects": {{
-                "minecraft/lang/en_us.json": {{ "hash": "{HASH_LANG}", "size": 1 }},
-                "minecraft/lang/es_es.json": {{ "hash": "{hash}", "size": {} }}
-            }} }}"#,
-            LANG_ES.len()
-        ),
-    )
-    .unwrap();
-    let objetos = mc.join("assets").join("objects").join(&HASH_LANG[..2]);
-    std::fs::create_dir_all(&objetos).unwrap();
-    std::fs::write(objetos.join(HASH_LANG), LANG_ES).unwrap();
-    t
-}
-
-fn jar_en(mc: &Path, id: &str) -> PathBuf {
-    mc.join("versions").join(id).join(format!("{id}.jar"))
+/// Escribe un jar con `en_us.json` (o sin él si `lang` es `None`) en
+/// `<mc>/versions/<id>/<id>.jar`.
+fn jar_con_idioma(mc: &Path, id: &str, lang: Option<&str>) -> PathBuf {
+    let d = mc.join("versions").join(id);
+    std::fs::create_dir_all(&d).unwrap();
+    let jar = d.join(format!("{id}.jar"));
+    let mut z = zip::ZipWriter::new(std::fs::File::create(&jar).unwrap());
+    let o = zip::write::SimpleFileOptions::default();
+    // Con el blockstate de prueba para que la versión cuente como válida.
+    z.start_file(ENTRADA_PRUEBA, o).unwrap();
+    z.write_all(b"{}").unwrap();
+    if let Some(lang) = lang {
+        z.start_file("assets/minecraft/lang/en_us.json", o).unwrap();
+        z.write_all(lang.as_bytes()).unwrap();
+    }
+    z.finish().unwrap();
+    jar
 }
 
 #[test]
-fn nombres_desde_el_indice_de_assets() {
-    let t = mc_con_idioma(HASH_LANG);
-    let n = nombres::leer(&jar_en(t.path(), "1.21.8"));
-    assert_eq!(n.get("minecraft:stone").map(String::as_str), Some("Piedra"));
+fn nombres_dentro_del_jar() {
+    let t = tempfile::tempdir().unwrap();
+    let jar = jar_con_idioma(t.path(), "1.21.8", Some(LANG_EN));
+    let n = nombres::leer(&jar);
+    assert_eq!(n.get("minecraft:stone").map(String::as_str), Some("Stone"));
     // Si están las dos claves gana la de ítem.
     assert_eq!(
         n.get("minecraft:oak_sign").map(String::as_str),
-        Some("Cartel de roble")
+        Some("Oak Sign")
     );
     assert_eq!(
         n.get("minecraft:redstone").map(String::as_str),
-        Some("Polvo de redstone")
+        Some("Redstone Dust")
     );
     assert!(n.contains_key("minecraft:redstone_wire"));
     // Las claves con más puntos no son ítems.
     assert!(!n.keys().any(|k| k.contains('.')));
     assert_eq!(n.len(), 4);
 
-    // La OptiFine no trae `assetIndex`: se sigue `inheritsFrom`.
-    assert_eq!(nombres::leer(&jar_en(t.path(), "1.21.8-OptiFine")), n);
-    // Índice que no existe: vacío, sin error.
-    assert!(nombres::leer(&jar_en(t.path(), "1.20.1")).is_empty());
+    // Jar sin idioma, jar que no existe: vacío, sin error.
+    let sin = jar_con_idioma(t.path(), "1.20.1", None);
+    assert!(nombres::leer(&sin).is_empty());
     assert!(nombres::leer(&t.path().join("no/existe.jar")).is_empty());
 }
 
 #[test]
-fn nombres_con_un_hash_raro_no_salen_de_objects() {
-    let t = mc_con_idioma("../../../../versions/1.21.8/1.21.8");
-    assert!(nombres::leer(&jar_en(t.path(), "1.21.8")).is_empty());
-}
-
-#[test]
-fn nombres_dentro_del_jar() {
-    let t = tempfile::tempdir().unwrap();
-    let d = t.path().join("versions").join("1.12.2");
-    std::fs::create_dir_all(&d).unwrap();
-    let jar = d.join("1.12.2.jar");
-    let mut z = zip::ZipWriter::new(std::fs::File::create(&jar).unwrap());
-    let o = zip::write::SimpleFileOptions::default();
-    z.start_file("assets/minecraft/lang/es_es.json", o).unwrap();
-    z.write_all(LANG_ES.as_bytes()).unwrap();
-    z.finish().unwrap();
-    assert_eq!(nombres::leer(&jar).len(), 4);
-}
-
-#[test]
 fn nombres_se_cachean_en_disco_por_version() {
-    let t = mc_con_idioma(HASH_LANG);
+    let t = tempfile::tempdir().unwrap();
+    version_falsa(t.path(), "1.21.8", r#"{ "type": "release" }"#, Some(true));
+    version_falsa(t.path(), "1.20.1", r#"{ "type": "release" }"#, Some(true));
+    let jar = jar_con_idioma(t.path(), "1.21.8", Some(LANG_EN));
+    jar_con_idioma(t.path(), "1.20.1", None);
     let cache = tempfile::tempdir().unwrap();
     let v = versiones::listar(&[t.path().to_path_buf()])
         .into_iter()
@@ -943,15 +897,8 @@ fn nombres_se_cachean_en_disco_por_version() {
     assert_eq!(primera.len(), 4);
     let ruta = cache.path().join("1.21.8").join(nombres::ARCHIVO_CACHE);
     assert!(ruta.is_file());
-    // Aunque desaparezca el idioma de los assets, sale de la caché.
-    std::fs::write(
-        t.path()
-            .join("assets/objects")
-            .join(&HASH_LANG[..2])
-            .join(HASH_LANG),
-        "{}",
-    )
-    .unwrap();
+    // Aunque desaparezca el jar, sale de la caché.
+    std::fs::remove_file(&jar).unwrap();
     assert_eq!(nombres_con_cache(cache.path(), &v), primera);
 
     // Sin idioma no se guarda nada (se vuelve a mirar la próxima vez).
@@ -964,7 +911,7 @@ fn nombres_se_cachean_en_disco_por_version() {
 }
 
 #[test]
-#[ignore = "necesita Minecraft instalado con los assets descargados"]
+#[ignore = "necesita Minecraft instalado"]
 fn nombres_con_minecraft_real() {
     let v = jar_real();
     let n = nombres::leer(Path::new(&v.ruta));

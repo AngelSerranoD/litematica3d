@@ -9,7 +9,7 @@ import type { CaraMaterial, Malla } from "../api/visor";
 /**
  * Lo que la pantalla de materiales necesita y no calcula ella:
  *
- * - los nombres de los ítems en español (una vez por sesión; si llegan
+ * - los nombres de los ítems en inglés (una vez por sesión; si llegan
  *   vacíos, sin Minecraft, se vuelven a pedir al abrir otra vez el panel);
  * - del modelo que tiene abierto el visor, la Y de su origen (para pasar las
  *   capas del deslizador a coordenadas del schematic) y un icono por bloque

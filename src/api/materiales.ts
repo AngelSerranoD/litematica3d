@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 // Comandos de la pantalla de materiales: lista de comprobación, nombres de
-// los ítems en español y guardado del CSV. El cálculo en sí es `materiales`
+// los ítems (en inglés) y guardado del CSV. El cálculo en sí es `materiales`
 // (src/api/biblioteca.ts).
 
 import { invoke } from "@tauri-apps/api/core";
@@ -24,7 +24,7 @@ export const marcar = (id: string, item: string, reunido: boolean) =>
   llamar<null>("marcar", { id, item, reunido });
 
 /**
- * Nombres en español de los ítems (`minecraft:stone` → «Piedra»), sacados
+ * Nombres en inglés de los ítems (`minecraft:stone` → «Stone»), sacados
  * del jar de Minecraft. Vacío si no hay Minecraft instalado.
  */
 export const nombresItems = () => llamar<Record<string, string>>("nombres_items");

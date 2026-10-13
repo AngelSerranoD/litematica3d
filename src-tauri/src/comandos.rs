@@ -160,8 +160,8 @@ pub async fn marcar(
     en_segundo_plano(move || b.marcar(&id, &item, reunido)).await
 }
 
-/// Id de ítem (`minecraft:stone`) → nombre en español (`Piedra`), del
-/// `es_es.json` de la versión de Minecraft elegida. Vacío si no lo hay;
+/// Id de ítem (`minecraft:stone`) → nombre en inglés (`Stone`), del
+/// `en_us.json` del jar de la versión de Minecraft elegida. Vacío si no lo hay;
 /// nunca es un error.
 #[tauri::command]
 pub async fn nombres_items(app: AppHandle) -> HashMap<String, String> {

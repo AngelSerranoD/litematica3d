@@ -10,14 +10,15 @@ import { normalizarTexto } from "../../estado/biblioteca";
 /** ID con el que el núcleo agrupa los bloques antiguos sin traducción. */
 export const ID_DESCONOCIDO = "litematica3d:desconocido";
 
-/** «minecraft:oak_planks» → «Oak planks» (cuando no hay nombres del juego). */
+/** «minecraft:oak_planks» → «Oak Planks» (cuando no hay nombres del juego). */
 export function humanizarId(id: string): string {
   const sinEspacio = id.includes(":") ? id.slice(id.indexOf(":") + 1) : id;
   const texto = sinEspacio.replace(/[_/]+/g, " ").trim();
-  return texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : id;
+  // Title Case, como los nombres del juego.
+  return texto ? texto.replace(/(^|\s)(\S)/g, (_m, sp: string, c: string) => sp + c.toUpperCase()) : id;
 }
 
-/** Nombre en español si el juego lo trae; si no, el ID humanizado. */
+/** Nombre en inglés si el juego lo trae; si no, el ID humanizado. */
 export function nombreItem(id: string, nombres: Record<string, string> | null): string {
   if (id === ID_DESCONOCIDO) return "Bloques desconocidos";
   return nombres?.[id] ?? humanizarId(id);

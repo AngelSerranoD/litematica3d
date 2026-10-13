@@ -8,7 +8,7 @@
 //! - [`versiones`]: qué versiones hay instaladas.
 //! - [`modelos`]: de block state y cara a textura (blockstates + modelos).
 //! - [`atlas`]: lectura del jar y montaje del PNG.
-//! - [`nombres`]: nombres de los ítems en español (`nombres_es.json`).
+//! - [`nombres`]: nombres de los ítems en inglés (`nombres_en.json`).
 //! - [`GestorTexturas`]: ajustes, caché en disco y atlas activo.
 
 pub mod atlas;
@@ -47,7 +47,7 @@ pub struct Ajustes {
     pub ruta_minecraft: Option<String>,
 }
 
-/// Id de ítem → nombre en español.
+/// Id de ítem → nombre en inglés.
 pub type MapaNombres = HashMap<String, String>;
 
 /// Atlas cargado y listo para resolver texturas.
@@ -112,7 +112,7 @@ pub struct GestorTexturas {
     activo: Mutex<Option<Arc<Activo>>>,
     /// Solo una preparación a la vez.
     preparando: Mutex<()>,
-    /// Nombres en español de la última versión pedida: (versión, mapa).
+    /// Nombres en inglés de la última versión pedida: (versión, mapa).
     nombres: Mutex<Option<(String, Arc<MapaNombres>)>>,
 }
 
@@ -216,9 +216,9 @@ impl GestorTexturas {
 }
 
 impl GestorTexturas {
-    /// Nombres en español de los ítems de la versión elegida: de memoria, de
+    /// Nombres en inglés de los ítems de la versión elegida: de memoria, de
     /// la caché en disco o leídos de la instalación. Vacío si no hay
-    /// Minecraft o no trae `es_es.json`. Nunca falla. Bloquea la primera vez.
+    /// Minecraft o no trae `en_us.json`. Nunca falla. Bloquea la primera vez.
     pub fn nombres_items(&self) -> Arc<MapaNombres> {
         let Some(v) = self.version_elegida() else {
             return Arc::default();
@@ -235,7 +235,7 @@ impl GestorTexturas {
     }
 }
 
-/// Nombres de una versión: de `<dir_cache>/<versión>/nombres_es.json` si vale;
+/// Nombres de una versión: de `<dir_cache>/<versión>/nombres_en.json` si vale;
 /// si no, leídos de la instalación y guardados ahí (solo si no salen vacíos,
 /// para volver a mirar cuando el launcher descargue los assets).
 pub fn nombres_con_cache(dir_cache: &Path, v: &VersionMinecraft) -> MapaNombres {

@@ -1,17 +1,13 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-//! Nombres en español de los ítems, sacados del `es_es.json` de la instalación
-//! de Minecraft del usuario (no se redistribuye nada).
+//! Nombres en inglés de los ítems, sacados del `en_us.json` del jar del
+//! cliente de Minecraft del usuario (no se redistribuye nada).
 //!
-//! Dónde está ese archivo:
-//! 1. Dentro del jar (`assets/minecraft/lang/es_es.json`): solo en versiones
-//!    antiguas; las modernas solo traen `en_us.json`.
-//! 2. En los assets descargados por el launcher: `versions/<v>/<v>.json` dice
-//!    el índice (`assetIndex.id`, o el de la versión de la que hereda con
-//!    `inheritsFrom`); `assets/indexes/<índice>.json` da el hash de
-//!    `minecraft/lang/es_es.json`, y el archivo está en
-//!    `assets/objects/<2 primeros>/<hash>`.
+//! En las versiones modernas (1.13+) el idioma está siempre dentro del jar
+//! (`assets/minecraft/lang/en_us.json`). El formato antiguo `.lang` (≤1.12) no
+//! se lee: sus claves (`tile.stonebrick.name`) no coinciden con los ids
+//! modernos, así que daría nombres equivocados.
 //!
 //! Si no se encuentra, el mapa sale vacío (el frontend humaniza el id).
 
@@ -23,20 +19,16 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-/// Versión del formato de `nombres_es.json` en la caché.
+/// Versión del formato de `nombres_en.json` en la caché.
 pub const ESQUEMA_NOMBRES: u32 = 1;
 
 /// Archivo de la caché, junto al atlas de la versión.
-pub const ARCHIVO_CACHE: &str = "nombres_es.json";
+pub const ARCHIVO_CACHE: &str = "nombres_en.json";
 
-/// Entrada del idioma dentro del jar y del índice de assets.
-const LANG_JAR: &str = "assets/minecraft/lang/es_es.json";
-const LANG_INDICE: &str = "minecraft/lang/es_es.json";
+/// Entrada del idioma dentro del jar.
+const LANG_JAR: &str = "assets/minecraft/lang/en_us.json";
 
-/// Saltos de `inheritsFrom` que se siguen como mucho (evita ciclos).
-const MAX_HERENCIA: usize = 4;
-
-/// Contenido de `nombres_es.json`.
+/// Contenido de `nombres_en.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheNombres {
     pub esquema: u32,
@@ -45,10 +37,9 @@ pub struct CacheNombres {
 }
 
 /// Nombres de una versión a partir de la ruta de su jar
-/// (`<.minecraft>/versions/<v>/<v>.jar`). Vacío si no hay `es_es.json`.
+/// (`<.minecraft>/versions/<v>/<v>.jar`). Vacío si no hay `en_us.json`.
 pub fn leer(jar: &Path) -> HashMap<String, String> {
-    let bytes = desde_jar(jar).or_else(|| desde_assets(jar));
-    bytes
+    desde_jar(jar)
         .and_then(|b| serde_json::from_slice::<Map<String, Value>>(&b).ok())
         .map(|lang| mapa(&lang))
         .unwrap_or_default()
@@ -81,67 +72,4 @@ fn desde_jar(jar: &Path) -> Option<Vec<u8>> {
     let mut bytes = Vec::with_capacity(e.size() as usize);
     e.read_to_end(&mut bytes).ok()?;
     Some(bytes)
-}
-
-fn desde_assets(jar: &Path) -> Option<Vec<u8>> {
-    let dir_version = jar.parent()?;
-    let dir_versiones = dir_version.parent()?;
-    let raiz = dir_versiones.parent()?;
-    let id = dir_version.file_name()?.to_str()?;
-    let indice = id_indice(dir_versiones, id)?;
-    if !nombre_seguro(&indice) {
-        return None;
-    }
-    let ruta_indice = raiz
-        .join("assets")
-        .join("indexes")
-        .join(format!("{indice}.json"));
-    let json: Value = serde_json::from_slice(&fs::read(ruta_indice).ok()?).ok()?;
-    let hash = json
-        .get("objects")?
-        .get(LANG_INDICE)?
-        .get("hash")?
-        .as_str()?
-        .to_ascii_lowercase();
-    // Un SHA-1 en hexadecimal: así no se sale nunca de `assets/objects`.
-    if hash.len() != 40 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
-        return None;
-    }
-    fs::read(
-        raiz.join("assets")
-            .join("objects")
-            .join(&hash[..2])
-            .join(&hash),
-    )
-    .ok()
-}
-
-/// `assetIndex.id` de la versión, o el de la versión de la que hereda.
-fn id_indice(dir_versiones: &Path, id: &str) -> Option<String> {
-    let mut actual = id.to_string();
-    for _ in 0..=MAX_HERENCIA {
-        if !nombre_seguro(&actual) {
-            return None;
-        }
-        let ruta = dir_versiones.join(&actual).join(format!("{actual}.json"));
-        let json: Value = serde_json::from_slice(&fs::read(ruta).ok()?).ok()?;
-        if let Some(indice) = json
-            .get("assetIndex")
-            .and_then(|a| a.get("id"))
-            .and_then(Value::as_str)
-        {
-            return Some(indice.to_string());
-        }
-        // Las versiones antiguas solo traen `assets` con el id del índice.
-        if let Some(indice) = json.get("assets").and_then(Value::as_str) {
-            return Some(indice.to_string());
-        }
-        actual = json.get("inheritsFrom")?.as_str()?.to_string();
-    }
-    None
-}
-
-/// Un nombre de archivo sin separadores ni `..` (viene de JSON ajeno).
-fn nombre_seguro(n: &str) -> bool {
-    !n.is_empty() && n != "." && n != ".." && !n.contains(['/', '\\', ':'])
 }

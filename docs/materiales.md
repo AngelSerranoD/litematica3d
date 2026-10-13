@@ -4,7 +4,7 @@
 
 Este documento fija los comandos Tauri que usa la pantalla de materiales: la
 lista de ítems de un schematic, la comprobación de lo ya reunido, los nombres en
-español y la exportación a CSV. El código está en `src-tauri/src/comandos.rs`,
+inglés y la exportación a CSV. El código está en `src-tauri/src/comandos.rs`,
 `src-tauri/src/materiales/`, `src-tauri/src/biblioteca.rs` y
 `src-tauri/src/texturas/nombres.rs`. Todo funciona sin red.
 
@@ -95,27 +95,23 @@ misma transacción.
 
 ## 4. `nombres_items() -> Record<string, string>`
 
-Id de ítem → nombre en español: `{ "minecraft:stone": "Piedra", ... }`. Nunca
-da error: sin Minecraft o sin el idioma descargado devuelve `{}` y el frontend
-humaniza el id.
+Id de ítem → nombre en inglés: `{ "minecraft:stone": "Stone", ... }`. La
+interfaz sigue en español; solo los nombres de ítems van en inglés (así se
+llaman en el juego de Ángel). Nunca da error: sin Minecraft o sin idioma en el
+jar devuelve `{}` y el frontend humaniza el id en Title Case («Oak Planks»).
 
-De dónde salen (versión de Minecraft elegida en los ajustes, la misma de las
-texturas):
-
-1. `es_es.json` dentro del jar (`assets/minecraft/lang/es_es.json`), que solo
-   está en versiones antiguas.
-2. Los assets del launcher: `versions/<v>/<v>.json` → `assetIndex.id` (o el de la
-   versión de `inheritsFrom`, para OptiFine, Fabric…) →
-   `assets/indexes/<índice>.json` → hash de `minecraft/lang/es_es.json` →
-   `assets/objects/<2 primeros>/<hash>`.
+De dónde salen: `assets/minecraft/lang/en_us.json` dentro del jar de la versión
+de Minecraft elegida en los ajustes (la misma de las texturas); en las versiones
+modernas está siempre ahí, sin tocar los assets del launcher.
 
 Del archivo de idioma se toman las claves `block.minecraft.<x>` e
 `item.minecraft.<x>` (sin más puntos) como `minecraft:<x>`; si están las dos,
 gana la de ítem (`item.minecraft.oak_sign` antes que `block.minecraft.oak_sign`).
-Las versiones 1.12 y anteriores usan `.lang` con otras claves y no se leen.
+Las versiones 1.12 y anteriores usan `.lang` con otras claves (`tile.<x>.name`)
+que no coinciden con los ids modernos: no se leen y sale `{}`.
 
 Caché: en memoria por versión y en disco en
-`<app_cache_dir>/texturas/<versión>/nombres_es.json` (junto al atlas). Si sale
+`<app_cache_dir>/texturas/<versión>/nombres_en.json` (junto al atlas). Si sale
 vacío no se guarda en disco, para volver a mirarlo en el próximo arranque.
 
 ## 5. `guardar_texto(ruta, contenido) -> null`
