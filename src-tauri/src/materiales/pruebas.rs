@@ -611,3 +611,39 @@ fn forma_json_del_resultado() {
     assert_eq!(o.y_min, Some(-3));
     assert_eq!(o.y_max, None);
 }
+
+#[test]
+fn capas_en_coordenadas_del_modelo_como_el_visor() {
+    // Tres capas sueltas a Y = -5, -2 y 0 del schematic: la capa 0 del
+    // modelo es Y = -5.
+    let s = schem(vec![
+        fila("Baja", [0, -5, 0], &[("minecraft:stone", 1)]),
+        fila("Media", [0, -2, 0], &[("minecraft:dirt", 2)]),
+        fila("Alta", [0, 0, 0], &[("minecraft:oak_planks", 4)]),
+    ]);
+    assert_eq!(origen_modelo_y(&s), -5);
+    let mundo = crate::malla::Mundo::desde_schematic(&s).unwrap();
+    assert_eq!(mundo.origen[1], origen_modelo_y(&s));
+
+    let con = |capas, y_min| {
+        calcular(
+            &s,
+            &Opciones {
+                capas: Some(capas),
+                y_min,
+                ..Opciones::default()
+            },
+        )
+        .unwrap()
+        .total_items
+    };
+    assert_eq!(con([0, 0], None), 1);
+    assert_eq!(con([3, 3], None), 2);
+    assert_eq!(con([0, 5], None), 7);
+    assert_eq!(con([1, 2], None), 0);
+    // Con los dos filtros cuenta la intersección: capas 0..=5 e Y >= -2.
+    assert_eq!(con([0, 5], Some(-2)), 6);
+
+    let o: Opciones = serde_json::from_str(r#"{"capas":[0,3]}"#).unwrap();
+    assert_eq!(o.capas, Some([0, 3]));
+}

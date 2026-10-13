@@ -8,10 +8,12 @@
 //! - [`versiones`]: qué versiones hay instaladas.
 //! - [`modelos`]: de block state y cara a textura (blockstates + modelos).
 //! - [`atlas`]: lectura del jar y montaje del PNG.
+//! - [`nombres`]: nombres de los ítems en español (`nombres_es.json`).
 //! - [`GestorTexturas`]: ajustes, caché en disco y atlas activo.
 
 pub mod atlas;
 pub mod modelos;
+pub mod nombres;
 pub mod versiones;
 
 #[cfg(test)]
@@ -44,6 +46,9 @@ pub struct Ajustes {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ruta_minecraft: Option<String>,
 }
+
+/// Id de ítem → nombre en español.
+pub type MapaNombres = HashMap<String, String>;
 
 /// Atlas cargado y listo para resolver texturas.
 pub struct Activo {
@@ -107,6 +112,8 @@ pub struct GestorTexturas {
     activo: Mutex<Option<Arc<Activo>>>,
     /// Solo una preparación a la vez.
     preparando: Mutex<()>,
+    /// Nombres en español de la última versión pedida: (versión, mapa).
+    nombres: Mutex<Option<(String, Arc<MapaNombres>)>>,
 }
 
 impl GestorTexturas {
@@ -123,6 +130,7 @@ impl GestorTexturas {
             ajustes: Mutex::new(ajustes),
             activo: Mutex::new(None),
             preparando: Mutex::new(()),
+            nombres: Mutex::new(None),
         }
     }
 
@@ -205,6 +213,57 @@ impl GestorTexturas {
         }
         Ok(self.listo())
     }
+}
+
+impl GestorTexturas {
+    /// Nombres en español de los ítems de la versión elegida: de memoria, de
+    /// la caché en disco o leídos de la instalación. Vacío si no hay
+    /// Minecraft o no trae `es_es.json`. Nunca falla. Bloquea la primera vez.
+    pub fn nombres_items(&self) -> Arc<MapaNombres> {
+        let Some(v) = self.version_elegida() else {
+            return Arc::default();
+        };
+        let mut memo = self.nombres.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some((version, mapa)) = memo.as_ref()
+            && *version == v.id
+        {
+            return Arc::clone(mapa);
+        }
+        let mapa = Arc::new(nombres_con_cache(&self.dir_cache, &v));
+        *memo = Some((v.id.clone(), Arc::clone(&mapa)));
+        mapa
+    }
+}
+
+/// Nombres de una versión: de `<dir_cache>/<versión>/nombres_es.json` si vale;
+/// si no, leídos de la instalación y guardados ahí (solo si no salen vacíos,
+/// para volver a mirar cuando el launcher descargue los assets).
+pub fn nombres_con_cache(dir_cache: &Path, v: &VersionMinecraft) -> MapaNombres {
+    let dir = dir_cache.join(carpeta_version(&v.id));
+    let ruta = dir.join(nombres::ARCHIVO_CACHE);
+    let guardado = fs::read(&ruta)
+        .ok()
+        .and_then(|b| serde_json::from_slice::<nombres::CacheNombres>(&b).ok())
+        .filter(|c| c.esquema == nombres::ESQUEMA_NOMBRES && c.version == v.id);
+    if let Some(c) = guardado {
+        return c.nombres;
+    }
+    let mapa = nombres::leer(Path::new(&v.ruta));
+    if !mapa.is_empty() {
+        let cache = nombres::CacheNombres {
+            esquema: nombres::ESQUEMA_NOMBRES,
+            version: v.id.clone(),
+            nombres: mapa,
+        };
+        // Si no se puede guardar, se vuelve a leer la próxima vez.
+        if let Ok(json) = serde_json::to_vec(&cache)
+            && fs::create_dir_all(&dir).is_ok()
+        {
+            let _ = escribir(&ruta, &json);
+        }
+        return cache.nombres;
+    }
+    mapa
 }
 
 /// Nombre de carpeta seguro para una versión.

@@ -23,6 +23,13 @@
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
+  transition: grid-template-columns var(--dur-media) var(--curva-salida);
+}
+
+/* La lista de materiales es una tabla con cinco columnas de cifras: la
+   ficha se ensancha mientras está abierta. */
+.schematic__cuerpo--materiales {
+  grid-template-columns: minmax(0, 1fr) 460px;
 }
 
 .schematic__marco {
@@ -51,7 +58,10 @@
 }
 
 .schematic__ficha {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   border-left: var(--grosor-filete) solid var(--filete-fuerte);
   background-color: var(--superficie);
 }
@@ -104,4 +114,54 @@
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* ── Pestañas de la ficha ── */
+.schematic__pestanas {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  height: var(--rejilla-paso-mayor);
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.schematic__pestana {
+  flex: 1;
+  border-right: var(--grosor-filete) solid var(--filete);
+  font-size: calc(var(--t-rotulo-s) / 2);
+  color: var(--tinta-2);
+  text-transform: uppercase;
+  transition:
+    background-color var(--dur-instante) linear,
+    color var(--dur-instante) linear;
+}
+
+.schematic__pestana:last-child {
+  border-right: 0;
+}
+
+.schematic__pestana:hover {
+  background-color: color-mix(in srgb, var(--superficie-2) 55%, var(--superficie));
+  color: var(--tinta);
+}
+
+/* La pestaña activa se funde con el panel: filete inferior del color de la
+   superficie y una regla de acento arriba (sin cambio de peso ni de ancho). */
+.schematic__pestana[aria-selected="true"] {
+  margin-bottom: calc(var(--grosor-filete) * -1);
+  border-top: var(--grosor-foco) solid var(--acento);
+  background-color: var(--superficie);
+  color: var(--tinta);
+}
+
+.schematic__panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.schematic__panel--materiales {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }

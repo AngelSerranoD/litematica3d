@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from
 import { motion } from "motion/react";
 import { obtenerAtlas, type AtlasCargado } from "../../api/atlas";
 import { cargarMalla, type Malla } from "../../api/visor";
+import { useMateriales } from "../../estado/materiales";
 import { useVisor } from "../../estado/visor";
 import { muelle } from "../../estilos/movimiento";
 import { DeslizadorCapas } from "./DeslizadorCapas";
@@ -125,6 +126,11 @@ export function Visor3D({ id, marcador }: Props) {
     window.addEventListener("keydown", alPulsar, true);
     return () => window.removeEventListener("keydown", alPulsar, true);
   }, [hayMalla]);
+
+  // La pantalla de materiales saca de la malla los iconos y la Y del origen.
+  useEffect(() => {
+    if (carga.tipo === "lista") useMateriales.getState().publicarModelo(id, carga.malla, carga.atlas);
+  }, [carga, id]);
 
   const alListo = useCallback(() => setLista(true), []);
   const vacia = carga.tipo === "lista" && carga.malla.chunks.length === 0;

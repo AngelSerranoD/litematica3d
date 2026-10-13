@@ -1,7 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 
 /** Extensiones que admite el núcleo (sin punto). `.mcstructure` no está soportado. */
 export const EXTENSIONES_ADMITIDAS = ["litematic", "schem", "schematic", "nbt"];
@@ -16,4 +16,19 @@ export async function elegirArchivos(): Promise<string[]> {
   });
   if (!elegidos) return [];
   return Array.isArray(elegidos) ? elegidos : [elegidos];
+}
+
+/**
+ * Pide dónde guardar la lista de materiales en CSV. Devuelve `null` si se
+ * cancela. Se asegura de que la ruta acabe en `.csv` (`guardar_texto` solo
+ * acepta `.csv` y `.txt`).
+ */
+export async function elegirDestinoCsv(nombrePropuesto: string): Promise<string | null> {
+  const ruta = await save({
+    title: "Guardar lista de materiales",
+    defaultPath: nombrePropuesto,
+    filters: [{ name: "CSV (Excel, separado por punto y coma)", extensions: ["csv"] }],
+  });
+  if (!ruta) return null;
+  return /\.csv$/i.test(ruta) ? ruta : `${ruta}.csv`;
 }

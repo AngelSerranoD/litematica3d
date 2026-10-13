@@ -219,3 +219,139 @@ fn eliminar_mueve_a_la_papelera() {
     assert!(copias(&b).is_empty());
     assert!(b.listar().unwrap().is_empty());
 }
+
+// ------------------------------------------------- comprobación (esquema v2)
+
+#[test]
+fn marcar_desmarcar_y_persistencia() {
+    let tmp = tempfile::tempdir().unwrap();
+    let id;
+    {
+        let b = Biblioteca::abrir(tmp.path()).unwrap();
+        assert!(b.claves_ajenas_activas().unwrap());
+        id = importado(b.importar(&dato("litematic_simple.litematic"))).id;
+        assert!(b.comprobacion(&id).unwrap().is_empty());
+        b.marcar(&id, "minecraft:stone", true).unwrap();
+        b.marcar(&id, "minecraft:oak_planks", true).unwrap();
+        // Marcar dos veces o desmarcar lo no marcado no es un error.
+        b.marcar(&id, "minecraft:stone", true).unwrap();
+        b.marcar(&id, "minecraft:dirt", false).unwrap();
+        assert_eq!(
+            b.comprobacion(&id).unwrap(),
+            ["minecraft:oak_planks", "minecraft:stone"]
+        );
+        b.marcar(&id, "minecraft:oak_planks", false).unwrap();
+    }
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    assert_eq!(b.comprobacion(&id).unwrap(), ["minecraft:stone"]);
+
+    assert_eq!(
+        b.comprobacion("no-existe").unwrap_err().tipo(),
+        "noEncontrado"
+    );
+    assert_eq!(
+        b.marcar("no-existe", "minecraft:stone", true)
+            .unwrap_err()
+            .tipo(),
+        "noEncontrado"
+    );
+    assert_eq!(
+        b.marcar(&id, "  ", true).unwrap_err().tipo(),
+        "nombreInvalido"
+    );
+}
+
+#[test]
+fn eliminar_borra_su_comprobacion() {
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let uno = importado(b.importar(&dato("litematic_simple.litematic"))).id;
+    let otro = importado(b.importar(&dato("sponge_v2.schem"))).id;
+    b.marcar(&uno, "minecraft:stone", true).unwrap();
+    b.marcar(&otro, "minecraft:stone", true).unwrap();
+    borrar_copia(b.carpeta_archivos(), &uno);
+    b.eliminar(&uno).unwrap();
+    drop(b);
+
+    let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+    let filas: Vec<String> = conn
+        .prepare("SELECT schematic_id FROM comprobacion")
+        .unwrap()
+        .query_map([], |f| f.get(0))
+        .unwrap()
+        .collect::<rusqlite::Result<_>>()
+        .unwrap();
+    assert_eq!(filas, [otro]);
+}
+
+#[test]
+fn borrado_en_cascada_por_clave_ajena() {
+    // Aunque se borre la fila del schematic por fuera de `eliminar`, la
+    // clave ajena se lleva su comprobación.
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let id = importado(b.importar(&dato("litematic_simple.litematic"))).id;
+    b.marcar(&id, "minecraft:stone", true).unwrap();
+    drop(b);
+    let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+    conn.pragma_update(None, "foreign_keys", true).unwrap();
+    conn.execute("DELETE FROM schematics WHERE id = ?1", [&id])
+        .unwrap();
+    let n: i64 = conn
+        .query_row("SELECT COUNT(*) FROM comprobacion", [], |f| f.get(0))
+        .unwrap();
+    assert_eq!(n, 0);
+}
+
+#[test]
+fn migra_una_biblioteca_v1_con_datos() {
+    let tmp = tempfile::tempdir().unwrap();
+    {
+        // Esquema v1 tal cual lo creaba la versión anterior, con una fila.
+        let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+        conn.execute_batch(
+            "CREATE TABLE schematics (
+                 id TEXT PRIMARY KEY NOT NULL,
+                 nombre TEXT NOT NULL,
+                 autor TEXT,
+                 descripcion TEXT,
+                 formato TEXT NOT NULL,
+                 ancho INTEGER NOT NULL,
+                 alto INTEGER NOT NULL,
+                 largo INTEGER NOT NULL,
+                 total_bloques INTEGER NOT NULL,
+                 regiones INTEGER NOT NULL,
+                 version_datos INTEGER,
+                 fecha_creacion INTEGER,
+                 fecha_importacion INTEGER NOT NULL,
+                 ruta TEXT NOT NULL,
+                 nombre_original TEXT,
+                 tamano_archivo INTEGER NOT NULL,
+                 hash TEXT NOT NULL UNIQUE
+             );
+             CREATE INDEX schematics_fecha ON schematics (fecha_importacion DESC);
+             INSERT INTO schematics VALUES ('viejo', 'Casa vieja', NULL, NULL,
+                 'litematic', 3, 4, 5, 60, 1, NULL, NULL, 1700000000000,
+                 'viejo.litematic', 'casa.litematic', 123, 'abc');
+             PRAGMA user_version = 1;",
+        )
+        .unwrap();
+    }
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let lista = b.listar().unwrap();
+    assert_eq!(lista.len(), 1);
+    assert_eq!(lista[0].nombre, "Casa vieja");
+    assert!(b.comprobacion("viejo").unwrap().is_empty());
+    b.marcar("viejo", "minecraft:stone", true).unwrap();
+    assert_eq!(b.comprobacion("viejo").unwrap(), ["minecraft:stone"]);
+    drop(b);
+
+    let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+    let v: i32 = conn
+        .pragma_query_value(None, "user_version", |f| f.get(0))
+        .unwrap();
+    assert_eq!(v, 2);
+    // Abrirla otra vez no vuelve a migrar.
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    assert_eq!(b.comprobacion("viejo").unwrap(), ["minecraft:stone"]);
+}

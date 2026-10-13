@@ -1,0 +1,418 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/*
+ * Pantalla de materiales: una tabla densa dentro de la ficha. Franjas planas
+ * separadas por filetes, cifras en JetBrains Mono alineadas a la derecha.
+ */
+
+.materiales {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* Columnas de la tabla: casilla · icono · nombre · cantidad · stacks · shulkers. */
+  --materiales-columnas: 16px 16px minmax(0, 1fr) 72px 84px 52px;
+}
+
+/* Silkscreen solo en múltiplos de 8 px: la mitad del rótulo pequeño. */
+.materiales__etiqueta {
+  font-size: calc(var(--t-rotulo-s) / 2);
+  color: var(--tinta-2);
+  text-transform: uppercase;
+}
+
+/* ── Filtros ── */
+.materiales__filtros {
+  flex: none;
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.materiales__buscar {
+  display: flex;
+  align-items: center;
+  height: var(--rejilla-paso-mayor);
+  padding: 0 var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  cursor: text;
+}
+
+.materiales__buscar:focus-within {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: calc(var(--grosor-foco) * -1);
+}
+
+.materiales__buscar input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: var(--t-3);
+}
+
+.materiales__buscar input:focus-visible {
+  outline: none;
+}
+
+.materiales__buscar input::placeholder {
+  color: var(--tinta-2);
+  opacity: 1;
+}
+
+.materiales__buscar input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.materiales__fila-filtros {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  min-height: 32px;
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.materiales__fila-filtros:last-child {
+  border-bottom: 0;
+}
+
+.materiales__grupo {
+  display: flex;
+  align-items: stretch;
+  border-right: var(--grosor-filete) solid var(--filete);
+}
+
+.materiales__grupo > .materiales__etiqueta {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--esp-2) 0 var(--esp-4);
+}
+
+.materiales__casilla {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-1);
+  padding: 0 var(--esp-2) 0 var(--esp-3);
+  border-left: var(--grosor-filete) solid var(--filete);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-instante) linear,
+    color var(--dur-instante) linear;
+}
+
+.materiales__casilla:hover {
+  background-color: color-mix(in srgb, var(--superficie-2) 55%, var(--superficie));
+  color: var(--tinta);
+}
+
+.materiales__casilla[aria-pressed="true"] {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+/* Hueco fijo para la flecha: la casilla no cambia de ancho. */
+.materiales__sentido {
+  display: inline-block;
+  width: 1ch;
+  font-family: var(--fuente-cifras);
+}
+
+.materiales__interruptor {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 0 var(--esp-4);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+  cursor: pointer;
+}
+
+.materiales__interruptor:hover {
+  color: var(--tinta);
+}
+
+.materiales__capas {
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+.materiales__region {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding-left: var(--esp-4);
+  border-right: var(--grosor-filete) solid var(--filete);
+}
+
+.materiales__region select {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  margin-right: var(--esp-2);
+  padding: 0 var(--esp-1);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-1);
+  background-color: var(--superficie);
+  color: var(--tinta);
+  font: inherit;
+  font-size: var(--t-2);
+}
+
+/* ── Casilla de verificación plana ── */
+.casilla-verificacion {
+  appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-1);
+  background-color: var(--superficie);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-instante) linear,
+    border-color var(--dur-instante) linear;
+}
+
+/* Marca: dos filetes en ángulo, sin imagen. */
+.casilla-verificacion::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  margin-top: -2px;
+  border-left: 2px solid var(--sobre-acento);
+  border-bottom: 2px solid var(--sobre-acento);
+  transform: rotate(-45deg);
+  visibility: hidden;
+}
+
+.casilla-verificacion:checked {
+  border-color: var(--acento-2);
+  background-color: var(--acento);
+}
+
+.casilla-verificacion:checked::after {
+  visibility: visible;
+}
+
+.casilla-verificacion:focus-visible {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: 1px;
+}
+
+/* ── Totales ── */
+.materiales__totales {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.materiales__total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--esp-1);
+  padding: var(--esp-2) var(--esp-4);
+}
+
+.materiales__total + .materiales__total {
+  border-left: var(--grosor-filete) solid var(--filete);
+}
+
+.materiales__total-cifra,
+.materiales__total-vacio {
+  font-size: var(--t-5);
+  line-height: var(--interlineado-justo);
+}
+
+.materiales__total-vacio {
+  color: var(--tinta-2);
+}
+
+.materiales__estado {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-4);
+  padding: var(--esp-2) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.materiales__desconocidos {
+  color: var(--tinta);
+}
+
+.materiales__aviso {
+  margin-left: auto;
+}
+
+.materiales__error {
+  color: var(--aviso);
+}
+
+/* ── Tabla ── */
+.materiales__tabla {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.materiales__cabecera,
+.materiales__fila {
+  display: grid;
+  grid-template-columns: var(--materiales-columnas);
+  align-items: center;
+  column-gap: var(--esp-2);
+  padding: 0 var(--esp-4);
+}
+
+.materiales__cabecera {
+  flex: none;
+  height: 24px;
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  font-size: calc(var(--t-rotulo-s) / 2);
+  color: var(--tinta-2);
+  text-transform: uppercase;
+}
+
+.materiales__col-check {
+  font-family: var(--fuente-texto);
+  font-size: var(--t-1);
+  text-align: center;
+}
+
+.materiales__num {
+  justify-self: end;
+  text-align: right;
+}
+
+.materiales__lista {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  contain: strict;
+}
+
+.materiales__alto {
+  position: relative;
+  width: 100%;
+}
+
+.materiales__fila {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 32px;
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  cursor: pointer;
+  transition: background-color var(--dur-instante) linear;
+}
+
+.materiales__fila:hover {
+  background-color: color-mix(in srgb, var(--superficie-2) 55%, var(--superficie));
+}
+
+.materiales__fila:focus-within {
+  background-color: var(--superficie-2);
+}
+
+.materiales__fila .materiales__num {
+  font-size: var(--t-2);
+}
+
+.materiales__nombre {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--t-2);
+}
+
+/* Lo reunido queda tachado y en tinta secundaria. */
+.materiales__fila--reunido .materiales__nombre {
+  color: var(--tinta-2);
+  text-decoration: line-through;
+}
+
+.materiales__fila--reunido .materiales__num {
+  color: var(--tinta-2);
+}
+
+.materiales__sueltos {
+  margin-left: var(--esp-1);
+  color: var(--tinta-2);
+}
+
+/* Hueco fijo para el «+» del resto: las cifras no bailan. */
+.materiales__resto {
+  display: inline-block;
+  width: 1ch;
+  color: var(--tinta-2);
+}
+
+/* ── Iconos ── */
+.materiales__icono {
+  width: 16px;
+  height: 16px;
+  border: var(--grosor-filete) solid var(--filete);
+  border-radius: var(--radio-0);
+}
+
+/* Una sola imagen (el PNG del atlas) para todas las filas: cada icono solo
+   cambia su background-position. Píxel nítido, como el juego. */
+.materiales__icono--textura {
+  border: 0;
+  background-image: var(--atlas-imagen);
+  background-size: var(--atlas-tamano);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.materiales__icono--neutro {
+  background-color: var(--superficie-2);
+}
+
+.materiales__vacia {
+  position: absolute;
+  inset: 0 0 auto;
+  padding: var(--esp-6) var(--esp-4);
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+  text-align: center;
+}
+
+/* ── Exportar ── */
+.materiales__acciones {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+  padding: var(--esp-2) var(--esp-4);
+  border-top: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.materiales__acciones .boton-plano:disabled {
+  color: var(--tinta-2);
+  cursor: default;
+  background-color: var(--superficie);
+}
+
+.materiales__menos {
+  color: var(--tinta-2);
+}

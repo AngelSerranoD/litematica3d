@@ -10,6 +10,11 @@
 //! mismas en las que está `Region::origen` (origen de la región + y local),
 //! y el rango es inclusivo. Así el filtro significa lo mismo con varias
 //! regiones a distinta altura.
+//!
+//! `capas` es el mismo rango pero en coordenadas del modelo (las del visor y
+//! del parámetro `capas` del comando `malla`): Y del modelo 0 = la capa más
+//! baja de la caja que engloba todas las regiones. Se convierte sumando
+//! [`origen_modelo_y`]. Si llegan los dos filtros, cuenta la intersección.
 
 pub mod reglas;
 
@@ -42,6 +47,34 @@ pub struct Opciones {
     pub y_min: Option<i32>,
     /// Altura máxima (inclusiva), en coordenadas del schematic.
     pub y_max: Option<i32>,
+    /// `[desde, hasta]` inclusivo en coordenadas del modelo (las del visor).
+    pub capas: Option<[i32; 2]>,
+}
+
+/// Y del schematic que corresponde a la capa 0 del modelo: la mínima de las
+/// regiones con volumen (0 si no hay ninguna). Es la misma cuenta que hace
+/// `malla::Mundo::desde_schematic` para su `origen`.
+pub fn origen_modelo_y(schem: &Schematic) -> i32 {
+    schem
+        .regiones
+        .iter()
+        .filter(|r| r.tamano.volumen() > 0)
+        .map(|r| r.origen[1])
+        .min()
+        .unwrap_or(0)
+}
+
+/// Rango Y efectivo en coordenadas del schematic (`None` = sin límite).
+fn rango_y(schem: &Schematic, opciones: &Opciones) -> (Option<i64>, Option<i64>) {
+    let mut desde = opciones.y_min.map(i64::from);
+    let mut hasta = opciones.y_max.map(i64::from);
+    if let Some([a, b]) = opciones.capas {
+        let base = i64::from(origen_modelo_y(schem));
+        let (a, b) = (i64::from(a) + base, i64::from(b) + base);
+        desde = Some(desde.map_or(a, |d| d.max(a)));
+        hasta = Some(hasta.map_or(b, |h| h.min(b)));
+    }
+    (desde, hasta)
 }
 
 /// Un ítem de la lista con su desglose.
@@ -126,8 +159,9 @@ pub fn calcular_con(
     let mut cache: HashMap<&str, Resolucion> = HashMap::new();
     let mut cuentas: HashMap<String, u64> = HashMap::new();
     let mut desconocidos: u64 = 0;
+    let (y_min, y_max) = rango_y(schem, opciones);
     for region in regiones {
-        let por_paleta = contar_paleta(region, opciones.y_min, opciones.y_max);
+        let por_paleta = contar_paleta(region, y_min, y_max);
         for (estado, &veces) in region.paleta.iter().zip(&por_paleta) {
             if veces == 0 {
                 continue;
@@ -180,14 +214,14 @@ pub fn calcular_con(
 
 /// Cuántas posiciones de la región usan cada entrada de la paleta, dentro del
 /// rango de alturas. Las capas Y son tramos contiguos de `bloques`.
-fn contar_paleta(region: &Region, y_min: Option<i32>, y_max: Option<i32>) -> Vec<u64> {
+fn contar_paleta(region: &Region, y_min: Option<i64>, y_max: Option<i64>) -> Vec<u64> {
     let mut cuentas = vec![0u64; region.paleta.len()];
     let t = &region.tamano;
     let capa = u64::from(t.ancho) * u64::from(t.largo);
     let base = i64::from(region.origen[1]);
     let alto = i64::from(t.alto);
-    let desde = y_min.map_or(0, |y| (i64::from(y) - base).max(0));
-    let hasta = y_max.map_or(alto - 1, |y| (i64::from(y) - base).min(alto - 1));
+    let desde = y_min.map_or(0, |y| (y - base).max(0));
+    let hasta = y_max.map_or(alto - 1, |y| (y - base).min(alto - 1));
     if capa == 0 || desde > hasta {
         return cuentas;
     }

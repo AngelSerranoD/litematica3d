@@ -71,6 +71,11 @@ export interface OpcionesMateriales {
   /** Rango de alturas inclusivo, en coordenadas Y del schematic (las de `Region.origen`). */
   yMin: number | null;
   yMax: number | null;
+  /**
+   * Rango de capas `[desde, hasta]` inclusivo en coordenadas del MODELO (las
+   * del visor y de `malla`); el núcleo suma el origen Y. `null`, sin límite.
+   */
+  capas?: [number, number] | null;
 }
 
 /** Un ítem de la lista de materiales con su desglose. */

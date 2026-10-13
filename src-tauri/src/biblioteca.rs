@@ -3,6 +3,11 @@
 
 //! Biblioteca local: copia de cada schematic en `<datos>/biblioteca/<uuid>.<ext>`
 //! e índice SQLite en `<datos>/biblioteca.sqlite3`. Borrar = mover a la Papelera.
+//!
+//! Esquema (`PRAGMA user_version`):
+//! - v1: tabla `schematics`.
+//! - v2: tabla `comprobacion` (ítems marcados como reunidos en la pantalla de
+//!   materiales), con borrado en cascada al quitar el schematic.
 
 use std::fs;
 use std::io;
@@ -18,10 +23,13 @@ use crate::error::ErrorApp;
 use crate::schematic::{self, Dimensiones, Formato, Schematic};
 
 /// Versión del esquema de la base de datos (`PRAGMA user_version`).
-const VERSION_ESQUEMA: i32 = 1;
+const VERSION_ESQUEMA: i32 = 2;
 
 /// Longitud máxima de un nombre, en caracteres.
 pub const MAX_NOMBRE: usize = 200;
+
+/// Longitud máxima del id de un ítem marcado como reunido, en caracteres.
+pub const MAX_ITEM: usize = 200;
 
 const COLUMNAS: &str = "id, nombre, autor, descripcion, formato, ancho, alto, largo, \
      total_bloques, regiones, version_datos, fecha_creacion, fecha_importacion, \
@@ -89,6 +97,11 @@ impl Biblioteca {
             .map_err(|e| ErrorApp::io("crear la carpeta de la biblioteca", e))?;
         let mut conn = Connection::open(dir_datos.join("biblioteca.sqlite3"))?;
         conn.pragma_update(None, "journal_mode", "WAL")?;
+        // Las claves ajenas van por conexión y SQLite las trae apagadas. Se
+        // encienden para el `ON DELETE CASCADE` de `comprobacion`; aun así,
+        // `eliminar` borra esas filas a mano por si esta compilación de SQLite
+        // no las soportara (el PRAGMA se ignoraría sin error).
+        conn.pragma_update(None, "foreign_keys", true)?;
         migrar(&mut conn)?;
         Ok(Biblioteca {
             dir,
@@ -308,8 +321,53 @@ impl Biblioteca {
                 detalle: e.to_string(),
             })?;
         }
-        self.conexion()
-            .execute("DELETE FROM schematics WHERE id = ?1", [id])?;
+        let mut conn = self.conexion();
+        let tx = conn.transaction()?;
+        tx.execute("DELETE FROM comprobacion WHERE schematic_id = ?1", [id])?;
+        tx.execute("DELETE FROM schematics WHERE id = ?1", [id])?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    /// ¿Están activas las claves ajenas en la conexión? (Para las pruebas.)
+    pub fn claves_ajenas_activas(&self) -> Result<bool, ErrorApp> {
+        Ok(self
+            .conexion()
+            .pragma_query_value(None, "foreign_keys", |f| f.get::<_, bool>(0))?)
+    }
+
+    /// Ítems marcados como reunidos en un schematic, ordenados por id.
+    pub fn comprobacion(&self, id: &str) -> Result<Vec<String>, ErrorApp> {
+        let conn = self.conexion();
+        existe(&conn, id)?;
+        let mut consulta =
+            conn.prepare("SELECT item FROM comprobacion WHERE schematic_id = ?1 ORDER BY item")?;
+        let filas = consulta.query_map([id], |f| f.get::<_, String>(0))?;
+        Ok(filas.collect::<rusqlite::Result<Vec<_>>>()?)
+    }
+
+    /// Marca (`reunido = true`) o desmarca un ítem. Es idempotente: marcar
+    /// dos veces o desmarcar uno sin marcar no es un error.
+    pub fn marcar(&self, id: &str, item: &str, reunido: bool) -> Result<(), ErrorApp> {
+        let item = item.trim();
+        if item.is_empty() || item.chars().count() > MAX_ITEM {
+            return Err(ErrorApp::NombreInvalido(format!(
+                "El ítem tiene que tener entre 1 y {MAX_ITEM} caracteres."
+            )));
+        }
+        let conn = self.conexion();
+        existe(&conn, id)?;
+        if reunido {
+            conn.execute(
+                "INSERT OR IGNORE INTO comprobacion (schematic_id, item) VALUES (?1, ?2)",
+                [id, item],
+            )?;
+        } else {
+            conn.execute(
+                "DELETE FROM comprobacion WHERE schematic_id = ?1 AND item = ?2",
+                [id, item],
+            )?;
+        }
         Ok(())
     }
 }
@@ -347,7 +405,27 @@ fn migrar(conn: &mut Connection) -> Result<(), ErrorApp> {
         )?;
         tx.commit()?;
     }
+    if version < 2 {
+        let tx = conn.transaction()?;
+        tx.execute_batch(
+            "CREATE TABLE comprobacion (
+                 schematic_id TEXT NOT NULL REFERENCES schematics (id) ON DELETE CASCADE,
+                 item TEXT NOT NULL,
+                 PRIMARY KEY (schematic_id, item)
+             ) WITHOUT ROWID;
+             PRAGMA user_version = 2;",
+        )?;
+        tx.commit()?;
+    }
     Ok(())
+}
+
+/// `NoEncontrado` si no hay ningún schematic con ese id.
+fn existe(conn: &Connection, id: &str) -> Result<(), ErrorApp> {
+    let hay = conn
+        .query_row("SELECT 1 FROM schematics WHERE id = ?1", [id], |_| Ok(()))
+        .optional()?;
+    hay.ok_or(ErrorApp::NoEncontrado)
 }
 
 fn fila_a_entrada(f: &Row<'_>) -> rusqlite::Result<Entrada> {

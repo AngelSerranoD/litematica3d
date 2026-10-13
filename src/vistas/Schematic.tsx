@@ -1,9 +1,10 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { motion, useIsPresent } from "motion/react";
 import { Miniatura } from "../componentes/Miniatura";
+import { PanelMateriales } from "../componentes/materiales/PanelMateriales";
 import { Visor3D } from "../componentes/visor/Visor3D";
 import {
   formatoDimensiones,
@@ -19,6 +20,24 @@ import { idBloque, idVisor, variantePieza, varianteVista } from "./transicion";
 import "./vistas.css";
 import "./Schematic.css";
 
+type Pestana = "ficha" | "materiales";
+
+const PESTANAS: { valor: Pestana; etiqueta: string }[] = [
+  { valor: "ficha", etiqueta: "Ficha" },
+  { valor: "materiales", etiqueta: "Materiales" },
+];
+
+const CLAVE_PESTANA = "litematica3d.pestanaSchematic";
+
+/** Pestaña recordada entre schematics (comodidad: si falla, la ficha). */
+function pestanaGuardada(): Pestana {
+  try {
+    return localStorage.getItem(CLAVE_PESTANA) === "materiales" ? "materiales" : "ficha";
+  } catch {
+    return "ficha";
+  }
+}
+
 export function Schematic({ id }: { id: string }) {
   const volver = useNavegacion((s) => s.volver);
   const direccion = useNavegacion((s) => s.direccion);
@@ -28,6 +47,35 @@ export function Schematic({ id }: { id: string }) {
   const cargando = useBiblioteca((s) => s.cargando);
   const [regiones, setRegiones] = useState<Region[]>([]);
   const botonVolver = useRef<HTMLButtonElement>(null);
+  const [pestana, setPestana] = useState<Pestana>(pestanaGuardada);
+  const refPestanas = useRef<Record<Pestana, HTMLButtonElement | null>>({
+    ficha: null,
+    materiales: null,
+  });
+
+  const elegirPestana = (p: Pestana) => {
+    setPestana(p);
+    try {
+      localStorage.setItem(CLAVE_PESTANA, p);
+    } catch {
+      // No es grave: solo se pierde la preferencia.
+    }
+  };
+
+  // Patrón de pestañas: las flechas cambian de pestaña y llevan el foco.
+  const alPulsarPestanas = (e: KeyboardEvent<HTMLDivElement>) => {
+    const i = PESTANAS.findIndex((p) => p.valor === pestana);
+    let j: number;
+    if (e.key === "ArrowRight") j = (i + 1) % PESTANAS.length;
+    else if (e.key === "ArrowLeft") j = (i - 1 + PESTANAS.length) % PESTANAS.length;
+    else if (e.key === "Home") j = 0;
+    else if (e.key === "End") j = PESTANAS.length - 1;
+    else return;
+    e.preventDefault();
+    const destino = PESTANAS[j].valor;
+    elegirPestana(destino);
+    refPestanas.current[destino]?.focus();
+  };
 
   useEffect(() => {
     botonVolver.current?.focus({ preventScroll: true });
@@ -75,7 +123,13 @@ export function Schematic({ id }: { id: string }) {
         {entrada && <p className="vista__dato cifras">{nombreFormato(entrada.formato)}</p>}
       </motion.header>
 
-      <div className="schematic__cuerpo">
+      <div
+        className={
+          pestana === "materiales"
+            ? "schematic__cuerpo schematic__cuerpo--materiales"
+            : "schematic__cuerpo"
+        }
+      >
         <div className="schematic__marco">
           <motion.div
             className="schematic__visor"
@@ -98,66 +152,114 @@ export function Schematic({ id }: { id: string }) {
 
         <motion.aside
           className="schematic__ficha"
-          aria-label="Ficha del schematic"
+          aria-label="Datos del schematic"
           variants={variantePieza}
           custom={direccion}
         >
-          <dl>
-            {entrada && (
-              <>
-                <div className="ficha__fila">
-                  <dt>Formato</dt>
-                  <dd>{nombreFormato(entrada.formato)}</dd>
-                </div>
-                <div className="ficha__fila">
-                  <dt>Bloques</dt>
-                  <dd className="cifras">{formatoNumero(entrada.totalBloques)}</dd>
-                </div>
-                <div className="ficha__fila">
-                  <dt>Regiones</dt>
-                  <dd className="cifras">{formatoNumero(entrada.regiones)}</dd>
-                </div>
-              </>
-            )}
-            {dim && (
-              <>
-                <div className="ficha__fila">
-                  <dt>Medidas</dt>
-                  <dd className="cifras">{formatoDimensiones(dim)}</dd>
-                </div>
-                <div className="ficha__fila ficha__fila--sub">
-                  <dt>Ancho</dt>
-                  <dd className="cifras">{dim.ancho}</dd>
-                </div>
-                <div className="ficha__fila ficha__fila--sub">
-                  <dt>Alto</dt>
-                  <dd className="cifras">{dim.alto}</dd>
-                </div>
-                <div className="ficha__fila ficha__fila--sub">
-                  <dt>Largo</dt>
-                  <dd className="cifras">{dim.largo}</dd>
-                </div>
-                <div className="ficha__fila">
-                  <dt>Volumen</dt>
-                  <dd className="cifras">
-                    {formatoNumero(dim.ancho * dim.alto * dim.largo)} bloques
-                  </dd>
-                </div>
-              </>
-            )}
-          </dl>
-          {regiones.length > 1 && (
-            <>
-              <h2 className="ficha__subtitulo rotulo">Regiones</h2>
-              <ul className="ficha__regiones">
-                {regiones.map((g) => (
-                  <li key={g.nombre} className="ficha__fila">
-                    <span>{g.nombre}</span>
-                    <span className="cifras">{formatoNumero(g.totalBloques)}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
+          <div
+            className="schematic__pestanas"
+            role="tablist"
+            aria-label="Datos del schematic"
+            onKeyDown={alPulsarPestanas}
+          >
+            {PESTANAS.map(({ valor, etiqueta }) => (
+              <button
+                key={valor}
+                ref={(el) => {
+                  refPestanas.current[valor] = el;
+                }}
+                type="button"
+                role="tab"
+                id={`pestana-${valor}`}
+                className="schematic__pestana rotulo"
+                aria-selected={pestana === valor}
+                aria-controls={`panel-${valor}`}
+                tabIndex={pestana === valor ? 0 : -1}
+                onClick={() => elegirPestana(valor)}
+              >
+                {etiqueta}
+              </button>
+            ))}
+          </div>
+
+          {pestana === "materiales" ? (
+            <div
+              className="schematic__panel schematic__panel--materiales"
+              role="tabpanel"
+              id="panel-materiales"
+              aria-labelledby="pestana-materiales"
+            >
+              <PanelMateriales
+                id={id}
+                titulo={entrada?.nombre ?? "schematic"}
+                regiones={regiones}
+              />
+            </div>
+          ) : (
+            <div
+              className="schematic__panel"
+              role="tabpanel"
+              id="panel-ficha"
+              aria-labelledby="pestana-ficha"
+            >
+              <dl>
+                {entrada && (
+                  <>
+                    <div className="ficha__fila">
+                      <dt>Formato</dt>
+                      <dd>{nombreFormato(entrada.formato)}</dd>
+                    </div>
+                    <div className="ficha__fila">
+                      <dt>Bloques</dt>
+                      <dd className="cifras">{formatoNumero(entrada.totalBloques)}</dd>
+                    </div>
+                    <div className="ficha__fila">
+                      <dt>Regiones</dt>
+                      <dd className="cifras">{formatoNumero(entrada.regiones)}</dd>
+                    </div>
+                  </>
+                )}
+                {dim && (
+                  <>
+                    <div className="ficha__fila">
+                      <dt>Medidas</dt>
+                      <dd className="cifras">{formatoDimensiones(dim)}</dd>
+                    </div>
+                    <div className="ficha__fila ficha__fila--sub">
+                      <dt>Ancho</dt>
+                      <dd className="cifras">{dim.ancho}</dd>
+                    </div>
+                    <div className="ficha__fila ficha__fila--sub">
+                      <dt>Alto</dt>
+                      <dd className="cifras">{dim.alto}</dd>
+                    </div>
+                    <div className="ficha__fila ficha__fila--sub">
+                      <dt>Largo</dt>
+                      <dd className="cifras">{dim.largo}</dd>
+                    </div>
+                    <div className="ficha__fila">
+                      <dt>Volumen</dt>
+                      <dd className="cifras">
+                        {formatoNumero(dim.ancho * dim.alto * dim.largo)} bloques
+                      </dd>
+                    </div>
+                  </>
+                )}
+              </dl>
+              {regiones.length > 1 && (
+                <>
+                  <h2 className="ficha__subtitulo rotulo">Regiones</h2>
+                  <ul className="ficha__regiones">
+                    {regiones.map((g) => (
+                      <li key={g.nombre} className="ficha__fila">
+                        <span>{g.nombre}</span>
+                        <span className="cifras">{formatoNumero(g.totalBloques)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
           )}
         </motion.aside>
       </div>
