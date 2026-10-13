@@ -19,7 +19,6 @@ import {
   type Region,
 } from "../../api/biblioteca";
 import { normalizarError } from "../../api/llamar";
-import { comprobacion, guardarCsv, marcar } from "../../api/materiales";
 import { useBiblioteca } from "../../estado/biblioteca";
 import { useAjustes } from "../../estado/ajustes";
 import { useEdicion } from "../../estado/edicion";
@@ -33,9 +32,7 @@ import {
   aFilas,
   capasAMateriales,
   yDeCapa,
-  csvLista,
   filtrarYOrdenar,
-  nombreArchivo,
   textoLista,
   type CampoOrdenMateriales,
   type Fila,
@@ -56,6 +53,9 @@ const ORDENES: { campo: CampoOrdenMateriales; etiqueta: string }[] = [
   { campo: "cantidad", etiqueta: "Cantidad" },
   { campo: "nombre", etiqueta: "Nombre" },
 ];
+
+/** Lista de comprobación vacía (mientras no es la de este schematic). */
+const NADA_REUNIDO: ReadonlySet<string> = new Set();
 
 type Calculo =
   | { estado: "cargando" }
@@ -84,6 +84,12 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   const modelo = useMateriales((s) => (s.modelo?.id === id ? s.modelo : null));
   const extras = useMateriales((s) => s.extras);
   const completarIconos = useMateriales((s) => s.completarIconos);
+  const cargarComprobacion = useMateriales((s) => s.cargarComprobacion);
+  const alternarReunidoDe = useMateriales((s) => s.alternarReunido);
+  const exportarCsv = useMateriales((s) => s.exportarCsv);
+  const reunidos = useMateriales((s) =>
+    s.comprobacion?.id === id ? s.comprobacion.reunidos : NADA_REUNIDO,
+  );
 
   const [region, setRegion] = useState<string | null>(null);
   const [soloVisibles, setSoloVisibles] = useState(true);
@@ -92,7 +98,6 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   const [ocultarReunidos, setOcultarReunidos] = useState(false);
   const [calculo, setCalculo] = useState<Calculo>({ estado: "cargando" });
   const [calculando, setCalculando] = useState(false);
-  const [reunidos, setReunidos] = useState<ReadonlySet<string>>(new Set());
 
   // ── Capas del visor ──
   const desde = useVisor(capaMin);
@@ -152,40 +157,14 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   // Al desmontar, cualquier respuesta en vuelo se descarta.
   useEffect(() => () => void ++ultima.current, []);
 
-  // ── Lista de comprobación ──
-  useEffect(() => {
-    let activo = true;
-    setReunidos(new Set());
-    comprobacion(id)
-      .then((items) => activo && setReunidos(new Set(items)))
-      .catch(
-        (e) =>
-          activo &&
-          avisar(`No se pudo leer la lista de comprobación: ${normalizarError(e).mensaje}`),
-      );
-    return () => {
-      activo = false;
-    };
-  }, [id, avisar]);
+  // ── Lista de comprobación (en el almacén de materiales) ──
+  useEffect(() => cargarComprobacion(id), [id, cargarComprobacion]);
 
-  /** Marca o desmarca al momento; si el guardado falla, deshace ese ítem. */
+  // Estable mientras no cambie el schematic: no rompe el memo de las filas.
   const alternarReunido = useCallback(
-    (item: string, nombre: string, reunido: boolean) => {
-      const fijar = (valor: boolean) =>
-        setReunidos((previos) => {
-          if (previos.has(item) === valor) return previos;
-          const nuevos = new Set(previos);
-          if (valor) nuevos.add(item);
-          else nuevos.delete(item);
-          return nuevos;
-        });
-      fijar(reunido);
-      marcar(id, item, reunido).catch((e) => {
-        fijar(!reunido);
-        avisar(`No se pudo guardar «${nombre}»: ${normalizarError(e).mensaje}`);
-      });
-    },
-    [id, avisar],
+    (item: string, nombre: string, reunido: boolean) =>
+      alternarReunidoDe(id, item, nombre, reunido),
+    [id, alternarReunidoDe],
   );
 
   // ── Filas ──
@@ -240,16 +219,6 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
       avisar(`Lista copiada al portapapeles (${formatoNumero(filas.length)} materiales).`);
     } catch (e) {
       avisar(`No se pudo copiar: ${normalizarError(e).mensaje}`);
-    }
-  };
-
-  const alGuardarCsv = async () => {
-    try {
-      const guardado = await guardarCsv(nombreArchivo(titulo), csvLista(filas, reunidos));
-      if (!guardado) return;
-      avisar("Lista de materiales guardada en CSV.");
-    } catch (e) {
-      avisar(`No se pudo guardar el CSV: ${normalizarError(e).mensaje}`);
     }
   };
 
@@ -407,7 +376,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
           type="button"
           className="boton-plano"
           disabled={!hayLista}
-          onClick={() => void alGuardarCsv()}
+          onClick={() => void exportarCsv(titulo, filas, reunidos)}
         >
           Guardar CSV
         </button>

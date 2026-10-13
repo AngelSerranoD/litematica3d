@@ -3,8 +3,11 @@
 
 import { create } from "zustand";
 import { celdasAtlas, coloresBloques, MAX_CELDAS_ATLAS, type AtlasCargado, type CeldaAtlas } from "../api/atlas";
-import { nombresItems } from "../api/materiales";
+import { normalizarError } from "../api/llamar";
+import { comprobacion, guardarCsv, marcar, nombresItems } from "../api/materiales";
 import type { CaraMaterial, DatosAtlas, Malla } from "../api/visor";
+import { csvLista, nombreArchivo, type Fila } from "../componentes/materiales/logica";
+import { useBiblioteca } from "./biblioteca";
 
 /**
  * Lo que la pantalla de materiales necesita y no calcula ella:
@@ -13,7 +16,9 @@ import type { CaraMaterial, DatosAtlas, Malla } from "../api/visor";
  *   vacíos, sin Minecraft, se vuelven a pedir al abrir otra vez el panel);
  * - del modelo que tiene abierto el visor, la Y de su origen (para pasar las
  *   capas del deslizador a coordenadas del schematic) y un icono por bloque
- *   sacado del atlas de texturas. El visor lo publica al cargar la malla.
+ *   sacado del atlas de texturas. El visor lo publica al cargar la malla;
+ * - la lista de comprobación (lo reunido) del schematic cuyo panel está
+ *   abierto, con el marcado al momento, y la exportación a CSV.
  */
 
 /**
@@ -63,6 +68,17 @@ interface EstadoMateriales {
   extras: { modelo: ModeloAbierto; iconos: Map<string, IconoItem> } | null;
   /** Resuelve por id de ítem el icono de los que falten en el modelo abierto. */
   completarIconos: (items: string[]) => void;
+  /** Ítems reunidos del schematic `id` (`null` sin panel abierto o al cambiar de schematic). */
+  comprobacion: { id: string; reunidos: ReadonlySet<string> } | null;
+  /**
+   * Empieza vacía y pide la lista de comprobación de `id`. Devuelve la
+   * limpieza: la respuesta en vuelo se descarta y la lista se olvida.
+   */
+  cargarComprobacion: (id: string) => () => void;
+  /** Marca o desmarca al momento; si el guardado falla, deshace ese ítem. */
+  alternarReunido: (id: string, item: string, nombre: string, reunido: boolean) => void;
+  /** Diálogo de guardado y CSV de las filas (con lo reunido), con su aviso. */
+  exportarCsv: (titulo: string, filas: Fila[], reunidos: ReadonlySet<string>) => Promise<void>;
 }
 
 /** Orden de preferencia de caras en `CARAS_ATLAS`: sur, norte, este, oeste, cruz, arriba, abajo. */
@@ -151,11 +167,16 @@ function urlDeAtlas(imagen: ImageBitmap): Promise<string | null> {
 let pidiendoNombres = false;
 /** Sube al olvidar los nombres: la petición en vuelo deja de valer. */
 let generacionNombres = 0;
+/** Sube con cada lista de comprobación pedida u olvidada. */
+let peticionComprobacion = 0;
+
+const avisar = (mensaje: string) => useBiblioteca.getState().avisar(mensaje);
 
 export const useMateriales = create<EstadoMateriales>()((set, get) => ({
   nombres: null,
   modelo: null,
   extras: null,
+  comprobacion: null,
 
   cargarNombres: () => {
     // Vacío (sin Minecraft todavía) se vuelve a pedir la próxima vez.
@@ -261,5 +282,50 @@ export const useMateriales = create<EstadoMateriales>()((set, get) => ({
         set({ extras: { modelo, iconos: new Map([...previos, ...nuevos]) } });
       })
       .catch((e) => console.warn("No se pudieron resolver los iconos de los ítems:", e));
+  },
+
+  cargarComprobacion: (id) => {
+    const mia = ++peticionComprobacion;
+    set({ comprobacion: { id, reunidos: new Set() } });
+    comprobacion(id)
+      .then((items) => {
+        if (mia === peticionComprobacion) set({ comprobacion: { id, reunidos: new Set(items) } });
+      })
+      .catch((e) => {
+        if (mia === peticionComprobacion)
+          avisar(`No se pudo leer la lista de comprobación: ${normalizarError(e).mensaje}`);
+      });
+    return () => {
+      if (mia !== peticionComprobacion) return;
+      peticionComprobacion++;
+      set({ comprobacion: null });
+    };
+  },
+
+  alternarReunido: (id, item, nombre, reunido) => {
+    const fijar = (valor: boolean) =>
+      set((s) => {
+        const c = s.comprobacion;
+        if (c?.id !== id || c.reunidos.has(item) === valor) return {};
+        const nuevos = new Set(c.reunidos);
+        if (valor) nuevos.add(item);
+        else nuevos.delete(item);
+        return { comprobacion: { id, reunidos: nuevos } };
+      });
+    fijar(reunido);
+    marcar(id, item, reunido).catch((e) => {
+      fijar(!reunido);
+      avisar(`No se pudo guardar «${nombre}»: ${normalizarError(e).mensaje}`);
+    });
+  },
+
+  exportarCsv: async (titulo, filas, reunidos) => {
+    try {
+      const guardado = await guardarCsv(nombreArchivo(titulo), csvLista(filas, reunidos));
+      if (!guardado) return;
+      avisar("Lista de materiales guardada en CSV.");
+    } catch (e) {
+      avisar(`No se pudo guardar el CSV: ${normalizarError(e).mensaje}`);
+    }
   },
 }));
