@@ -37,7 +37,7 @@ fn constantes_del_frontend_iguales_que_en_el_nucleo() {
         (
             "src/api/atlas.ts",
             "MAX_CELDAS_ATLAS",
-            comandos::MAX_CELDAS_ATLAS,
+            comandos::texturas::MAX_CELDAS_ATLAS,
         ),
         (
             "src/api/miniaturas.ts",
