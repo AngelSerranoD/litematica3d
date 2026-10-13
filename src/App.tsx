@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect } from "react";
-import { AnimatePresence, LayoutGroup, LazyMotion, MotionConfig } from "motion/react";
+import { AnimatePresence, LayoutGroup, LazyMotion, MotionConfig, type FeatureBundle } from "motion/react";
 import { Avisos, ZonaSoltar } from "./componentes/Avisos";
 import { SaltarAlContenido } from "./componentes/SaltarAlContenido";
 import { BarraTitulo } from "./componentes/BarraTitulo";
@@ -19,10 +19,12 @@ import { Biblioteca } from "./vistas/Biblioteca";
 import { Schematic } from "./vistas/Schematic";
 import "./App.css";
 
-// Carga diferida de las funciones de Motion: fuera del chunk de entrada.
-const cargarFunciones = () => import("./estilos/funcionesMotion").then((r) => r.default);
+interface Props {
+  /** Funciones de Motion ya cargadas (ver main.tsx y funcionesMotion.ts). */
+  funciones: FeatureBundle;
+}
 
-export default function App() {
+export default function App({ funciones }: Props) {
   const ruta = useNavegacion((s) => s.ruta);
   const direccion = useNavegacion((s) => s.direccion);
   const volver = useNavegacion((s) => s.volver);
@@ -63,7 +65,7 @@ export default function App() {
   return (
     // reducedMotion="user": con «reducir movimiento» del sistema, Motion
     // anula transformaciones y vuelos de layout y deja solo la opacidad.
-    <LazyMotion features={cargarFunciones} strict>
+    <LazyMotion features={funciones} strict>
       <MotionConfig reducedMotion="user" transition={muelle("vista")}>
         <div className="app">
           <SaltarAlContenido />

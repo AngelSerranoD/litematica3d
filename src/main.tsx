@@ -11,8 +11,13 @@ import "./index.css";
 // verdad llegan de Rust un momento después).
 aplicarTemaRecordado();
 
+// Las funciones de Motion (layout incluido) viven en su propio chunk, fuera del
+// de entrada, y se esperan antes del primer render: con LazyMotion asíncrono las
+// láminas de la biblioteca se quedaban en su estado «oculta» al arrancar.
+const { default: funciones } = await import("./estilos/funcionesMotion");
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <App funciones={funciones} />
   </React.StrictMode>,
 );
