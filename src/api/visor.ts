@@ -140,8 +140,8 @@ export const NORMALES: readonly Vec3[] = [
 
 const alinear4 = (n: number) => (n + 3) & ~3;
 
-/** Decodifica el binario de `malla`. Lanza Error si no es un binario válido. */
-function decodificarMalla(buffer: ArrayBuffer): Malla {
+/** Decodifica el binario de `malla`. Lanza Error si no es un binario válido. Se exporta para los tests. */
+export function decodificarMalla(buffer: ArrayBuffer): Malla {
   const dv = new DataView(buffer);
   const magia = String.fromCharCode(
     dv.getUint8(0),
