@@ -91,6 +91,8 @@ pub fn run() {
             comandos::carpeta_minecraft_por_defecto,
             comandos::atlas,
             comandos::atlas_info,
+            comandos::celdas_atlas,
+            comandos::colores_bloques,
         ])
         .run(tauri::generate_context!())
         .expect("error al ejecutar la aplicación Tauri");

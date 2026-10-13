@@ -6,10 +6,12 @@ import { motion } from "motion/react";
 import { obtenerAtlas, type AtlasCargado } from "../../api/atlas";
 import { cargarMalla, type Malla } from "../../api/visor";
 import { useAjustes } from "../../estado/ajustes";
+import { useEdicion } from "../../estado/edicion";
 import { useMateriales } from "../../estado/materiales";
 import { useTexturas } from "../../estado/texturas";
 import { useVisor } from "../../estado/visor";
 import { muelle } from "../../estilos/movimiento";
+import { BotonExportar, ConmutadorModo } from "../edicion/BarraEdicion";
 import { DeslizadorCapas } from "./DeslizadorCapas";
 import { PanelBloque } from "./PanelBloque";
 import "./Visor3D.css";
@@ -35,10 +37,15 @@ const mensajeDe = (e: unknown) =>
       ? e.message
       : String(e);
 
+/** Entradas que no son de texto: con el foco en ellas los atajos siguen valiendo. */
+const ENTRADAS_SIN_TEXTO = new Set(["radio", "checkbox", "button", "range"]);
+
 /** ¿El evento de teclado viene de un campo de texto? Entonces no es un atajo. */
 const escribiendo = (e: KeyboardEvent) =>
   e.target instanceof HTMLElement &&
-  (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
+  (e.target.isContentEditable ||
+    /^(TEXTAREA|SELECT)$/.test(e.target.tagName) ||
+    (e.target instanceof HTMLInputElement && !ENTRADAS_SIN_TEXTO.has(e.target.type)));
 
 interface Props {
   id: string;
@@ -58,6 +65,9 @@ export function Visor3D({ id, marcador }: Props) {
   // Al cambiar de texturas (Ajustes) se vuelven a pedir la malla y el atlas
   // del mismo schematic, sin pasar por «cargando» ni reiniciar las capas.
   const generacionTexturas = useTexturas((s) => s.generacion);
+  // Tras aplicar o restaurar una edición, lo mismo: la copia cambió en disco.
+  const revision = useEdicion((s) => s.revision);
+  const modo = useEdicion((s) => s.modo);
   const idCargado = useRef<string | null>(null);
 
   useEffect(() => {
@@ -84,7 +94,10 @@ export function Visor3D({ id, marcador }: Props) {
       const malla = await cargarMalla(id);
       const atlas = await atlasDe(malla);
       if (!activo) return;
-      if (!recarga) useVisor.getState().reiniciar(malla.tamano[1]);
+      // Una edición no debería cambiar el alto, pero si cambia, las capas
+      // de antes no valen.
+      if (!recarga || malla.tamano[1] !== useVisor.getState().alto)
+        useVisor.getState().reiniciar(malla.tamano[1]);
       idCargado.current = id;
       setCarga({ tipo: "lista", malla, atlas });
       if (malla.atlas && atlas) return;
@@ -112,9 +125,10 @@ export function Visor3D({ id, marcador }: Props) {
     return () => {
       activo = false;
     };
-  }, [id, generacionTexturas]);
+  }, [id, generacionTexturas, revision]);
 
-  // Atajos: F encuadra, Esc cierra la selección (antes de que App vuelva a la
+  // Atajos: F encuadra, M cambia entre Visualizar y Modificar, Esc cierra la
+  // lista de parecidos o la selección (antes de que App vuelva a la
   // biblioteca: por eso en captura y con preventDefault), P el panel de
   // rendimiento en desarrollo.
   const hayMalla = carga.tipo === "lista";
@@ -123,10 +137,26 @@ export function Visor3D({ id, marcador }: Props) {
     const alPulsar = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || escribiendo(e)) return;
       if (useAjustes.getState().abierto) return; // el diálogo de ajustes tiene el teclado
+      const edicion = useEdicion.getState();
+      if (edicion.confirmacion) return; // y el de confirmar la edición también
       const s = useVisor.getState();
-      if (e.key === "Escape" && s.seleccion) {
+      // Esc cierra de dentro afuera: la lista de un destino de la familia, la
+      // familia, la lista del bloque y, por último, la selección.
+      if (e.key === "Escape" && edicion.lista?.objetivo.tipo === "reemplazo") {
+        e.preventDefault();
+        edicion.cerrarLista();
+      } else if (e.key === "Escape" && edicion.familia) {
+        e.preventDefault();
+        edicion.cerrarFamilia();
+      } else if (e.key === "Escape" && edicion.lista) {
+        e.preventDefault();
+        edicion.cerrarLista();
+      } else if (e.key === "Escape" && s.seleccion) {
         e.preventDefault();
         s.limpiarSeleccion();
+      } else if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        edicion.alternarModo();
       } else if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         s.pedirEncuadre();
@@ -159,7 +189,10 @@ export function Visor3D({ id, marcador }: Props) {
   else
     nota = (
       <p className="visor3d__nota">
-        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar · Clic: inspeccionar
+        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar ·{" "}
+        {modo === "modificar"
+          ? "Clic: elegir bloque · Mayús+clic: su familia"
+          : "Clic: inspeccionar"}
       </p>
     );
 
@@ -176,7 +209,7 @@ export function Visor3D({ id, marcador }: Props) {
 
       {carga.tipo === "lista" && !vacia && (
         <motion.div
-          className="visor3d"
+          className={modo === "modificar" ? "visor3d visor3d--modificar" : "visor3d"}
           initial={{ opacity: 0 }}
           animate={{ opacity: lista ? 1 : 0 }}
           transition={transicion}
@@ -191,6 +224,8 @@ export function Visor3D({ id, marcador }: Props) {
           <PanelBloque />
 
           <div className="visor3d__herramientas">
+            <ConmutadorModo />
+            {modo === "modificar" && <BotonExportar id={id} />}
             <button
               type="button"
               className="boton-plano"

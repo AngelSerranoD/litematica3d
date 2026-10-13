@@ -121,3 +121,41 @@ export function obtenerAtlas(version?: string): Promise<AtlasCargado | null> {
   peticion.then(limpiar, limpiar);
   return peticion;
 }
+
+/** Textura de una cara de un block state en el atlas activo. */
+export interface CeldaAtlas {
+  celda: number;
+  /** Giro en grados (0, 90, 180 o 270), como `MaterialMalla.rotacion`. */
+  rotacion: number;
+  /** Color medio de la textura (con el tinte aplicado). */
+  color: [number, number, number];
+}
+
+/** Orden de las caras en cada fila de `CeldasAtlas.celdas` (el de `Cara` en Rust). */
+export const CARAS_ATLAS = ["arriba", "abajo", "norte", "sur", "oeste", "este", "cruz"] as const;
+
+export interface CeldasAtlas {
+  /** Atlas con el que se resolvieron: su `version` debe casar con el cargado. */
+  atlas: DatosAtlas;
+  /** Una fila por estado pedido (7 caras, `CARAS_ATLAS`); vacía si el estado no es válido. */
+  celdas: (CeldaAtlas | null)[][];
+}
+
+/** Como mucho tantos estados por llamada a `celdasAtlas`. */
+export const MAX_CELDAS_ATLAS = 256;
+
+/**
+ * Celdas del atlas activo para block states cualesquiera (estén o no en el
+ * schematic): iconos de los parecidos y previsualización de los pendientes.
+ * `null` si el atlas aún no está listo o no hay jar (no genera nada).
+ */
+export const celdasAtlas = (estados: string[]) =>
+  llamar<CeldasAtlas | null>("celdas_atlas", { estados });
+
+/**
+ * Color plano de block states cualesquiera, el de la malla sin atlas
+ * (previsualización de los pendientes sin jar). `null` donde el estado no es
+ * válido. Como mucho `MAX_CELDAS_ATLAS` estados por llamada.
+ */
+export const coloresBloques = (estados: string[]) =>
+  llamar<([number, number, number] | null)[]>("colores_bloques", { estados });

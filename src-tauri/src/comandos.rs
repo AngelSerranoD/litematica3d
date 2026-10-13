@@ -18,7 +18,7 @@ use tauri::{AppHandle, Manager, State};
 use crate::biblioteca::{Biblioteca, Detalle, Edicion, Entrada, Importacion, Version};
 use crate::edicion::{Cambio, Reemplazo, validar_estado};
 use crate::error::ErrorApp;
-use crate::malla::{self, BloqueSeleccionado, CacheVisor, DatosAtlas, FuenteTexturas, Mundo};
+use crate::malla::{self, BloqueSeleccionado, CacheVisor, Cara, DatosAtlas, FuenteTexturas, Mundo};
 use crate::materiales::{self, ListaMateriales, Opciones};
 use crate::parecidos::{
     CacheCatalogo, Catalogo, EstadoPresente, FamiliaBloque, FamiliaParecida, Parecido,
@@ -601,6 +601,105 @@ pub async fn atlas(texturas: State<'_, Arc<GestorTexturas>>) -> Result<Response,
 #[tauri::command]
 pub fn atlas_info(texturas: State<'_, Arc<GestorTexturas>>) -> Option<DatosAtlas> {
     texturas.listo().map(|a| a.datos_atlas())
+}
+
+/// Como mucho tantos block states por llamada a `celdas_atlas`.
+pub const MAX_CELDAS_ATLAS: usize = 256;
+
+/// Textura de una cara de un block state en el atlas activo.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CeldaAtlas {
+    pub celda: u32,
+    /// Giro en grados (0, 90, 180 o 270), como `Material::rotacion`.
+    pub rotacion: u16,
+    /// Color medio de la textura (con el tinte aplicado).
+    pub color: [u8; 3],
+}
+
+/// Celdas del atlas de varios block states, cara a cara.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CeldasAtlas {
+    /// El atlas con el que se resolvieron (su `version` debe casar con el
+    /// que tenga el frontend).
+    pub atlas: DatosAtlas,
+    /// Una fila por estado pedido, en el mismo orden; cada fila trae las 7
+    /// caras en el orden de `Cara` (arriba, abajo, norte, sur, oeste, este,
+    /// cruz), `None` donde no hay textura. Fila vacía si el estado no es válido.
+    pub celdas: Vec<Vec<Option<CeldaAtlas>>>,
+}
+
+/// Celdas del atlas activo para block states que no tienen por qué estar en
+/// el schematic abierto (iconos de los bloques parecidos y previsualización
+/// de los cambios pendientes). `None` si el atlas aún no está listo o no hay
+/// jar: no genera nada.
+#[tauri::command]
+pub async fn celdas_atlas(
+    texturas: State<'_, Arc<GestorTexturas>>,
+    estados: Vec<String>,
+) -> Result<Option<CeldasAtlas>, ErrorApp> {
+    if estados.len() > MAX_CELDAS_ATLAS {
+        return Err(ErrorApp::EdicionInvalida(format!(
+            "Como mucho {MAX_CELDAS_ATLAS} bloques por llamada."
+        )));
+    }
+    let Some(activo) = texturas.listo() else {
+        return Ok(None);
+    };
+    en_segundo_plano(move || {
+        const CARAS: [Cara; 7] = [
+            Cara::Arriba,
+            Cara::Abajo,
+            Cara::Norte,
+            Cara::Sur,
+            Cara::Oeste,
+            Cara::Este,
+            Cara::Cruz,
+        ];
+        let celdas = estados
+            .iter()
+            .map(|e| match validar_estado(e) {
+                Ok(estado) => CARAS
+                    .iter()
+                    .map(|&cara| {
+                        activo.textura(&estado, cara).map(|t| CeldaAtlas {
+                            celda: t.celda,
+                            rotacion: t.rotacion,
+                            color: t.color,
+                        })
+                    })
+                    .collect(),
+                Err(_) => Vec::new(),
+            })
+            .collect();
+        Ok(Some(CeldasAtlas {
+            atlas: activo.datos_atlas(),
+            celdas,
+        }))
+    })
+    .await
+}
+
+/// Color plano de varios block states, el que usa la malla cuando no hay
+/// atlas (`color_de` por su nombre sin propiedades): previsualización de los
+/// cambios pendientes sin jar. `None` donde el estado no es válido. Como
+/// mucho [`MAX_CELDAS_ATLAS`] estados por llamada.
+#[tauri::command]
+pub fn colores_bloques(estados: Vec<String>) -> Result<Vec<Option<[u8; 3]>>, ErrorApp> {
+    if estados.len() > MAX_CELDAS_ATLAS {
+        return Err(ErrorApp::EdicionInvalida(format!(
+            "Como mucho {MAX_CELDAS_ATLAS} bloques por llamada."
+        )));
+    }
+    Ok(estados
+        .iter()
+        .map(|e| {
+            validar_estado(e)
+                .ok()
+                .map(|estado| malla::color_de(malla::apariencia::nombre_de(&estado)))
+        })
+        .collect())
 }
 
 /// Bloque en una posición del modelo (las coordenadas de los vértices de la

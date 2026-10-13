@@ -55,6 +55,18 @@ export function Avisos() {
               transition={muelle("pulsacion")}
             >
               <p className="aviso__texto">{a.mensaje}</p>
+              {a.accion && (
+                <button
+                  type="button"
+                  className="boton-plano"
+                  onClick={() => {
+                    descartar(a.id);
+                    a.accion?.ejecutar();
+                  }}
+                >
+                  {a.accion.etiqueta}
+                </button>
+              )}
               <button type="button" className="boton-plano" onClick={() => descartar(a.id)}>
                 Cerrar
               </button>

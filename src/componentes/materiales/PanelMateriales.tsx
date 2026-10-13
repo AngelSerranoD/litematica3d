@@ -24,6 +24,7 @@ import { elegirDestinoCsv } from "../../api/dialogo";
 import { comprobacion, guardarTexto, marcar } from "../../api/materiales";
 import { useBiblioteca } from "../../estado/biblioteca";
 import { useAjustes } from "../../estado/ajustes";
+import { useEdicion } from "../../estado/edicion";
 import { useMateriales, type AtlasIconos, type IconoItem } from "../../estado/materiales";
 import { useTexturas } from "../../estado/texturas";
 import { capaMax, capaMin, useVisor } from "../../estado/visor";
@@ -117,6 +118,8 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
   // ── Cálculo: con espera, sin lanzar nada mientras se arrastra el deslizador
   // y descartando las respuestas que ya no corresponden al último filtro. ──
   const ultima = useRef(0);
+  // Tras aplicar o restaurar una edición la copia cambió: se vuelve a calcular.
+  const revision = useEdicion((s) => s.revision);
   useEffect(() => {
     if (arrastrando) return;
     const temporizador = window.setTimeout(() => {
@@ -143,7 +146,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
         });
     }, ESPERA_CALCULO_MS);
     return () => window.clearTimeout(temporizador);
-  }, [id, region, capaDesde, capaHasta, arrastrando, incluirFluidos]);
+  }, [id, region, capaDesde, capaHasta, arrastrando, incluirFluidos, revision]);
 
   // Al desmontar, cualquier respuesta en vuelo se descarta.
   useEffect(() => () => void ++ultima.current, []);

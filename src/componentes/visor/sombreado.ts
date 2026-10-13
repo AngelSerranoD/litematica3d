@@ -7,6 +7,7 @@
 // de texturas (formato y convenios en docs/visor.md, secciones 4 y 5).
 
 import {
+  Color,
   DataTexture,
   FloatType,
   FrontSide,
@@ -16,9 +17,11 @@ import {
   ShaderMaterial,
   UnsignedByteType,
   Vector2,
+  Vector3,
   type IUniform,
   type Texture,
 } from "three";
+import { CARAS_ATLAS, type CeldaAtlas } from "../../api/atlas";
 import type { MaterialMalla } from "../../api/visor";
 
 /** Texels por fila de las tablas por material (color y celda del atlas). */
@@ -27,18 +30,55 @@ export const ANCHO_TABLA = 256;
 /** Alfa del color plano de los materiales translúcidos (cristal, agua…). */
 const ALFA_TRANSLUCIDO = 0.6;
 
-/** Uniforms del corte por capas: los comparten todos los materiales del visor. */
-export interface UniformsCorte {
+/**
+ * Uniforms comunes a todos los materiales de una escena: el corte por capas y
+ * las marcas de la edición. Se comparten (no se copian): al cambiar sus
+ * valores cambian todos los materiales a la vez.
+ */
+export interface UniformsVisor {
   /** Primera capa visible (coordenadas del modelo). */
   uDesde: IUniform<number>;
   /** Última capa visible, inclusiva. */
   uHasta: IUniform<number>;
+  /** 1 = tintar la celda `uCeldaMarcada` (el bloque pinchado en Modificar). */
+  uMarcar: IUniform<number>;
+  /** Celda marcada, coordenadas del modelo. */
+  uCeldaMarcada: IUniform<Vector3>;
+  /** Tinte de la celda marcada (token `--seleccion`). */
+  uColorMarca: IUniform<Color>;
+  /** Color de la trama de los materiales resaltados (familia seleccionada). */
+  uColorResalte: IUniform<Color>;
 }
 
-export const crearUniformsCorte = (): UniformsCorte => ({
+export const crearUniformsVisor = (): UniformsVisor => ({
   uDesde: { value: -1e9 },
   uHasta: { value: 1e9 },
+  uMarcar: { value: 0 },
+  uCeldaMarcada: { value: new Vector3() },
+  uColorMarca: { value: new Color(0xaabc6d) },
+  uColorResalte: { value: new Color(0xaabc6d) },
 });
+
+/** Aspecto que toma un material en la previsualización de un reemplazo. */
+export interface DestinoPrevia {
+  /** Caras del estado destino en el atlas (orden `CARAS_ATLAS`), o `null` sin atlas. */
+  caras: (CeldaAtlas | null)[] | null;
+  /** Color plano del destino (sin atlas, o caras sin textura), o `null` si no se sabe. */
+  color: [number, number, number] | null;
+}
+
+/**
+ * Previsualización de la edición sobre la tabla de materiales: sin tocar la
+ * geometría, cada material cuyo estado visual es el origen de un reemplazo
+ * pendiente toma la celda, el giro y el color del destino (misma forma →
+ * mismos quads), y los de la familia seleccionada llevan una trama.
+ */
+export interface PreviaMateriales {
+  /** Por estado visual de origen (`claveVisual`). */
+  reemplazos: ReadonlyMap<string, DestinoPrevia>;
+  /** Estados visuales resaltados. */
+  resaltados: ReadonlySet<string>;
+}
 
 /**
  * Atlas de texturas. `celda(textura)` devuelve el rectángulo de la textura útil
@@ -64,32 +104,41 @@ uniform highp sampler2D uCeldas;
 uniform highp sampler2D uRotaciones;
 
 varying vec2 vUv;
-varying float vY;
+varying vec3 vMundo;
 flat varying vec4 vColor;
 flat varying vec4 vCelda;
 flat varying float vRot;
+flat varying float vResalte;
 flat varying float vLuz;
-flat varying float vNormalY;
+flat varying vec3 vNormal;
 
 // Luz fija por índice de normal (docs/visor.md 3.3): arriba 1, abajo 0,5,
 // norte y sur 0,8, oeste y este 0,6, planos cruzados 0,8.
 const float LUZ[10] = float[10](1.0, 0.5, 0.8, 0.8, 0.6, 0.6, 0.8, 0.8, 0.8, 0.8);
-const float NORMAL_Y[10] = float[10](1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+// Normal de cada índice (NORMALES en src/api/visor.ts).
+const float R = 0.70710678;
+const vec3 NORMALES[10] = vec3[10](
+  vec3(0.0, 1.0, 0.0), vec3(0.0, -1.0, 0.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 0.0, 1.0),
+  vec3(-1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0),
+  vec3(R, 0.0, R), vec3(-R, 0.0, -R), vec3(R, 0.0, -R), vec3(-R, 0.0, R)
+);
 
 void main() {
   int n = clamp(int(normalIdx + 0.5), 0, 9);
   int m = int(materialIdx + 0.5);
   ivec2 t = ivec2(m % ${ANCHO_TABLA}, m / ${ANCHO_TABLA});
   vLuz = LUZ[n];
-  vNormalY = NORMAL_Y[n];
+  vNormal = NORMALES[n];
   vec4 c = texelFetch(uColores, t, 0);
   vColor = vec4(c.rgb * vLuz, c.a);
   vCelda = texelFetch(uCeldas, t, 0);
-  vRot = texelFetch(uRotaciones, t, 0).r;
+  vec4 extra = texelFetch(uRotaciones, t, 0);
+  vRot = extra.r;
+  vResalte = extra.g;
   // UV en bloques: la textura se repite una vez por bloque con fract().
   vUv = uvBloque / 16.0;
   vec4 mundo = modelMatrix * vec4(position, 1.0);
-  vY = mundo.y;
+  vMundo = mundo.xyz;
   gl_Position = projectionMatrix * viewMatrix * mundo;
 }
 `;
@@ -102,14 +151,19 @@ uniform float uTieneAtlas;
 uniform float uBordes;
 uniform vec2 uTamAtlas;
 uniform float uMaxLod;
+uniform float uMarcar;
+uniform vec3 uCeldaMarcada;
+uniform vec3 uColorMarca;
+uniform vec3 uColorResalte;
 
 varying vec2 vUv;
-varying float vY;
+varying vec3 vMundo;
 flat varying vec4 vColor;
 flat varying vec4 vCelda;
 flat varying float vRot;
+flat varying float vResalte;
 flat varying float vLuz;
-flat varying float vNormalY;
+flat varying vec3 vNormal;
 
 // Giro de la textura (horario mirando desde fuera), docs/visor.md 11.2.
 // rot: 0, 1, 2 o 3 cuartos de vuelta. La parte lineal (sin el +1 de los
@@ -138,7 +192,8 @@ vec3 aSRGB(vec3 c) {
 void main() {
   // Corte por capas: la capa del fragmento es la del bloque al que pertenece
   // la cara (se retrocede contra la normal, como en el picking).
-  float capa = floor(vY - vNormalY * 0.001);
+  vec3 celdaFragmento = floor(vMundo - vNormal * 0.001);
+  float capa = celdaFragmento.y;
   if (capa < uDesde || capa > uHasta) discard;
 
   vec4 color = vColor;
@@ -179,6 +234,20 @@ void main() {
     color.rgb *= 1.0 - 0.16 * linea * cerca * uBordes;
   }
 
+  // Familia seleccionada: trama diagonal de plano técnico (tres rayas por
+  // bloque). A lo lejos, donde las rayas serían ruido, se funde en un tinte.
+  if (vResalte > 0.5) {
+    float t = (vUv.x + vUv.y) * 3.0;
+    float w = max(fwidth(t), 1e-4);
+    float raya = 1.0 - smoothstep(0.25 - w, 0.25 + w, abs(fract(t) - 0.5));
+    raya = mix(raya, 0.5, clamp(w * 2.0 - 0.5, 0.0, 1.0));
+    color.rgb = mix(color.rgb * 0.75, uColorResalte, 0.7 * raya);
+  }
+  // Bloque pinchado en Modificar: tinte de selección (sin geometría extra).
+  if (uMarcar > 0.5 && all(equal(celdaFragmento, uCeldaMarcada))) {
+    color.rgb = mix(color.rgb, uColorMarca, 0.3);
+  }
+
 #ifdef TRANSLUCIDO
   if (color.a < 0.01) discard;
   gl_FragColor = color;
@@ -200,7 +269,10 @@ export interface MaterialesVisor {
   colores: DataTexture;
   /** RGBA32F por material: celda del atlas [u, v, ancho, alto]; ancho 0 = sin textura. */
   celdas: DataTexture;
-  /** RGBA32F por material: cuartos de vuelta de la textura (0..3) en el canal rojo. */
+  /**
+   * RGBA32F por material: cuartos de vuelta de la textura (0..3) en el canal
+   * rojo y, en el verde, 1 si el material va resaltado (familia seleccionada).
+   */
   rotaciones: DataTexture;
   dispose: () => void;
 }
@@ -232,25 +304,41 @@ function tablaDatos(datos: Uint8Array | Float32Array, filas: number): DataTextur
 }
 
 /**
- * Rellena la tabla de celdas con el atlas (o la vacía si `atlas` es null) y
- * conecta la textura. Se puede llamar otra vez cuando llegue o cambie el atlas.
+ * Rellena las tablas por material (color, celda del atlas, giro y resaltado)
+ * con el atlas (o sin él si `atlas` es null) y la previsualización de la
+ * edición, y conecta la textura. Se puede llamar otra vez cuando llegue o
+ * cambie el atlas o cambien los pendientes: solo recorre la tabla de
+ * materiales (unos cientos o miles de filas), nunca la geometría.
  */
 export function aplicarAtlas(
   m: MaterialesVisor,
   materiales: MaterialMalla[],
   atlas: AtlasVisor | null,
+  previa: PreviaMateriales | null = null,
 ): void {
+  const rgba = m.colores.image.data as Uint8Array;
   const datos = m.celdas.image.data as Float32Array;
   const giros = m.rotaciones.image.data as Float32Array;
   datos.fill(0);
   giros.fill(0);
-  if (atlas) {
-    materiales.forEach((mat, i) => {
-      if (mat.textura === null) return;
+  const cuartos = (grados: number) => ((Math.round(grados / 90) % 4) + 4) % 4;
+  materiales.forEach((mat, i) => {
+    const destino = previa?.reemplazos.get(mat.estado);
+    // La cara del destino que corresponde a la de este material.
+    const cara = destino?.caras?.[CARAS_ATLAS.indexOf(mat.cara)] ?? null;
+    rgba.set(destino ? (cara?.color ?? destino.color ?? mat.color) : mat.color, i * 4);
+    if (previa?.resaltados.has(mat.estado)) giros[i * 4 + 1] = 1;
+    if (!atlas) return;
+    if (destino?.caras) {
+      if (!cara) return; // el destino no tiene textura en esa cara: color plano
+      datos.set(atlas.celda(cara.celda), i * 4);
+      giros[i * 4] = cuartos(cara.rotacion);
+    } else if (mat.textura !== null) {
       datos.set(atlas.celda(mat.textura), i * 4);
-      giros[i * 4] = (Math.round(mat.rotacion / 90) % 4 + 4) % 4;
-    });
-  }
+      giros[i * 4] = cuartos(mat.rotacion);
+    }
+  });
+  m.colores.needsUpdate = true;
   m.celdas.needsUpdate = true;
   m.rotaciones.needsUpdate = true;
   for (const material of [m.opaco, m.translucido]) {
@@ -266,18 +354,19 @@ export function aplicarAtlas(
 }
 
 /**
- * Crea los materiales de una malla. `corte` se comparte (no se copia): al
+ * Crea los materiales de una malla. `comunes` se comparte (no se copia): al
  * cambiar sus valores cambian todos los materiales a la vez.
  */
 export function crearMateriales(
   materiales: MaterialMalla[],
-  corte: UniformsCorte,
+  comunes: UniformsVisor,
   atlas: AtlasVisor | null = null,
 ): MaterialesVisor {
   const filas = Math.max(1, Math.ceil(materiales.length / ANCHO_TABLA));
+  // El alfa se fija aquí (la pasada del material no cambia); el color lo
+  // escribe aplicarAtlas (puede cambiarlo la previsualización).
   const rgba = new Uint8Array(ANCHO_TABLA * filas * 4);
   materiales.forEach((mat, i) => {
-    rgba.set(mat.color, i * 4);
     rgba[i * 4 + 3] = mat.tipo === "translucido" ? Math.round(ALFA_TRANSLUCIDO * 255) : 255;
   });
   const colores = tablaDatos(rgba, filas);
@@ -290,8 +379,12 @@ export function crearMateriales(
       fragmentShader,
       defines: translucido ? { TRANSLUCIDO: "" } : {},
       uniforms: {
-        uDesde: corte.uDesde,
-        uHasta: corte.uHasta,
+        uDesde: comunes.uDesde,
+        uHasta: comunes.uHasta,
+        uMarcar: comunes.uMarcar,
+        uCeldaMarcada: comunes.uCeldaMarcada,
+        uColorMarca: comunes.uColorMarca,
+        uColorResalte: comunes.uColorResalte,
         uColores: { value: colores },
         uCeldas: { value: celdas },
         uRotaciones: { value: rotaciones },

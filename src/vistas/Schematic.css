@@ -32,6 +32,11 @@
   grid-template-columns: minmax(0, 1fr) 460px;
 }
 
+/* En Modificar la ficha es el panel de edición (parecidos y pendientes). */
+.schematic__cuerpo--edicion {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
 .schematic__marco {
   position: relative;
   display: grid;

@@ -4,7 +4,7 @@
 import { create } from "zustand";
 import type { AtlasCargado } from "../api/atlas";
 import { nombresItems } from "../api/materiales";
-import type { CaraMaterial, Malla } from "../api/visor";
+import type { CaraMaterial, DatosAtlas, Malla } from "../api/visor";
 
 /**
  * Lo que la pantalla de materiales necesita y no calcula ella:
@@ -32,6 +32,8 @@ export interface AtlasIconos {
   alto: number;
   /** Lado de la textura útil (16): el icono se escala a partir de él. */
   tamTextura: number;
+  /** Datos completos del atlas (versión y rejilla de celdas), para iconos de otros bloques. */
+  datos: DatosAtlas;
 }
 
 export interface ModeloAbierto {
@@ -174,7 +176,13 @@ export const useMateriales = create<EstadoMateriales>()((set, get) => ({
       set({
         modelo: {
           ...modelo,
-          atlas: { url, ancho: datos.ancho, alto: datos.alto, tamTextura: datos.tamTextura },
+          atlas: {
+            url,
+            ancho: datos.ancho,
+            alto: datos.alto,
+            tamTextura: datos.tamTextura,
+            datos,
+          },
         },
       });
     });

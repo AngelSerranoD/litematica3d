@@ -4,6 +4,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { motion, useIsPresent } from "motion/react";
 import { Miniatura } from "../componentes/Miniatura";
+import { ConfirmacionEdicion } from "../componentes/edicion/ConfirmacionEdicion";
+import { PanelEdicion } from "../componentes/edicion/PanelEdicion";
 import { PanelMateriales } from "../componentes/materiales/PanelMateriales";
 import { Visor3D } from "../componentes/visor/Visor3D";
 import {
@@ -14,7 +16,8 @@ import {
   type Region,
 } from "../api/biblioteca";
 import { useBiblioteca } from "../estado/biblioteca";
-import { useNavegacion } from "../estado/navegacion";
+import { useEdicion } from "../estado/edicion";
+import { fijarGuardaSalida, useNavegacion } from "../estado/navegacion";
 import { muelle } from "../estilos/movimiento";
 import { idBloque, idVisor, variantePieza, varianteVista } from "./transicion";
 import "./vistas.css";
@@ -48,6 +51,7 @@ export function Schematic({ id }: { id: string }) {
   const [regiones, setRegiones] = useState<Region[]>([]);
   const botonVolver = useRef<HTMLButtonElement>(null);
   const [pestana, setPestana] = useState<Pestana>(pestanaGuardada);
+  const modo = useEdicion((s) => s.modo);
   const refPestanas = useRef<Record<Pestana, HTMLButtonElement | null>>({
     ficha: null,
     materiales: null,
@@ -80,6 +84,22 @@ export function Schematic({ id }: { id: string }) {
   useEffect(() => {
     botonVolver.current?.focus({ preventScroll: true });
   }, []);
+
+  // Edición: el estado es de este schematic, y salir con cambios pendientes
+  // (Volver, Esc, abrir otro) pregunta antes si se descartan.
+  useEffect(() => {
+    const edicion = useEdicion.getState();
+    edicion.iniciar(id);
+    const quitarGuarda = fijarGuardaSalida((continuar) =>
+      useEdicion.getState().pedirDescartar("salirSchematic", continuar),
+    );
+    return () => {
+      quitarGuarda();
+      // Con AnimatePresence el siguiente schematic puede montarse antes de que
+      // este se desmonte: solo se limpia si el estado sigue siendo de este.
+      if (useEdicion.getState().id === id) useEdicion.getState().iniciar(null);
+    };
+  }, [id]);
 
   // Las regiones no van en la lista: se piden al abrir la ficha.
   useEffect(() => {
@@ -125,9 +145,11 @@ export function Schematic({ id }: { id: string }) {
 
       <div
         className={
-          pestana === "materiales"
-            ? "schematic__cuerpo schematic__cuerpo--materiales"
-            : "schematic__cuerpo"
+          modo === "modificar"
+            ? "schematic__cuerpo schematic__cuerpo--edicion"
+            : pestana === "materiales"
+              ? "schematic__cuerpo schematic__cuerpo--materiales"
+              : "schematic__cuerpo"
         }
       >
         <div className="schematic__marco">
@@ -159,117 +181,125 @@ export function Schematic({ id }: { id: string }) {
 
         <motion.aside
           className="schematic__ficha"
-          aria-label="Datos del schematic"
+          aria-label={modo === "modificar" ? "Edición del schematic" : "Datos del schematic"}
           variants={variantePieza}
           custom={direccion}
         >
-          <div
-            className="schematic__pestanas"
-            role="tablist"
-            aria-label="Datos del schematic"
-            onKeyDown={alPulsarPestanas}
-          >
-            {PESTANAS.map(({ valor, etiqueta }) => (
-              <button
-                key={valor}
-                ref={(el) => {
-                  refPestanas.current[valor] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`pestana-${valor}`}
-                className="schematic__pestana rotulo"
-                aria-selected={pestana === valor}
-                aria-controls={pestana === valor ? `panel-${valor}` : undefined}
-                tabIndex={pestana === valor ? 0 : -1}
-                onClick={() => elegirPestana(valor)}
-              >
-                {etiqueta}
-              </button>
-            ))}
-          </div>
-
-          {pestana === "materiales" ? (
-            <div
-              className="schematic__panel schematic__panel--materiales"
-              role="tabpanel"
-              id="panel-materiales"
-              aria-labelledby="pestana-materiales"
-            >
-              <PanelMateriales
-                id={id}
-                titulo={entrada?.nombre ?? "schematic"}
-                regiones={regiones}
-              />
-            </div>
+          {modo === "modificar" ? (
+            <PanelEdicion />
           ) : (
-            <div
-              className="schematic__panel"
-              role="tabpanel"
-              id="panel-ficha"
-              aria-labelledby="pestana-ficha"
-            >
-              <dl>
-                {entrada && (
-                  <>
-                    <div className="ficha__fila">
-                      <dt>Formato</dt>
-                      <dd>{nombreFormato(entrada.formato)}</dd>
-                    </div>
-                    <div className="ficha__fila">
-                      <dt>Bloques</dt>
-                      <dd className="cifras">{formatoNumero(entrada.totalBloques)}</dd>
-                    </div>
-                    <div className="ficha__fila">
-                      <dt>Regiones</dt>
-                      <dd className="cifras">{formatoNumero(entrada.regiones)}</dd>
-                    </div>
-                  </>
-                )}
-                {dim && (
-                  <>
-                    <div className="ficha__fila">
-                      <dt>Medidas</dt>
-                      <dd className="cifras">{formatoDimensiones(dim)}</dd>
-                    </div>
-                    <div className="ficha__fila ficha__fila--sub">
-                      <dt>Ancho</dt>
-                      <dd className="cifras">{dim.ancho}</dd>
-                    </div>
-                    <div className="ficha__fila ficha__fila--sub">
-                      <dt>Alto</dt>
-                      <dd className="cifras">{dim.alto}</dd>
-                    </div>
-                    <div className="ficha__fila ficha__fila--sub">
-                      <dt>Largo</dt>
-                      <dd className="cifras">{dim.largo}</dd>
-                    </div>
-                    <div className="ficha__fila">
-                      <dt>Volumen</dt>
-                      <dd className="cifras">
-                        {formatoNumero(dim.ancho * dim.alto * dim.largo)} bloques
-                      </dd>
-                    </div>
-                  </>
-                )}
-              </dl>
-              {regiones.length > 1 && (
-                <>
-                  <h2 className="ficha__subtitulo rotulo">Regiones</h2>
-                  <ul className="ficha__regiones">
-                    {regiones.map((g) => (
-                      <li key={g.nombre} className="ficha__fila">
-                        <span>{g.nombre}</span>
-                        <span className="cifras">{formatoNumero(g.totalBloques)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
+            <>
+              <div
+                className="schematic__pestanas"
+                role="tablist"
+                aria-label="Datos del schematic"
+                onKeyDown={alPulsarPestanas}
+              >
+                {PESTANAS.map(({ valor, etiqueta }) => (
+                  <button
+                    key={valor}
+                    ref={(el) => {
+                      refPestanas.current[valor] = el;
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`pestana-${valor}`}
+                    className="schematic__pestana rotulo"
+                    aria-selected={pestana === valor}
+                    aria-controls={pestana === valor ? `panel-${valor}` : undefined}
+                    tabIndex={pestana === valor ? 0 : -1}
+                    onClick={() => elegirPestana(valor)}
+                  >
+                    {etiqueta}
+                  </button>
+                ))}
+              </div>
+
+              {pestana === "materiales" ? (
+                <div
+                  className="schematic__panel schematic__panel--materiales"
+                  role="tabpanel"
+                  id="panel-materiales"
+                  aria-labelledby="pestana-materiales"
+                >
+                  <PanelMateriales
+                    id={id}
+                    titulo={entrada?.nombre ?? "schematic"}
+                    regiones={regiones}
+                  />
+                </div>
+              ) : (
+                <div
+                  className="schematic__panel"
+                  role="tabpanel"
+                  id="panel-ficha"
+                  aria-labelledby="pestana-ficha"
+                >
+                  <dl>
+                    {entrada && (
+                      <>
+                        <div className="ficha__fila">
+                          <dt>Formato</dt>
+                          <dd>{nombreFormato(entrada.formato)}</dd>
+                        </div>
+                        <div className="ficha__fila">
+                          <dt>Bloques</dt>
+                          <dd className="cifras">{formatoNumero(entrada.totalBloques)}</dd>
+                        </div>
+                        <div className="ficha__fila">
+                          <dt>Regiones</dt>
+                          <dd className="cifras">{formatoNumero(entrada.regiones)}</dd>
+                        </div>
+                      </>
+                    )}
+                    {dim && (
+                      <>
+                        <div className="ficha__fila">
+                          <dt>Medidas</dt>
+                          <dd className="cifras">{formatoDimensiones(dim)}</dd>
+                        </div>
+                        <div className="ficha__fila ficha__fila--sub">
+                          <dt>Ancho</dt>
+                          <dd className="cifras">{dim.ancho}</dd>
+                        </div>
+                        <div className="ficha__fila ficha__fila--sub">
+                          <dt>Alto</dt>
+                          <dd className="cifras">{dim.alto}</dd>
+                        </div>
+                        <div className="ficha__fila ficha__fila--sub">
+                          <dt>Largo</dt>
+                          <dd className="cifras">{dim.largo}</dd>
+                        </div>
+                        <div className="ficha__fila">
+                          <dt>Volumen</dt>
+                          <dd className="cifras">
+                            {formatoNumero(dim.ancho * dim.alto * dim.largo)} bloques
+                          </dd>
+                        </div>
+                      </>
+                    )}
+                  </dl>
+                  {regiones.length > 1 && (
+                    <>
+                      <h2 className="ficha__subtitulo rotulo">Regiones</h2>
+                      <ul className="ficha__regiones">
+                        {regiones.map((g) => (
+                          <li key={g.nombre} className="ficha__fila">
+                            <span>{g.nombre}</span>
+                            <span className="cifras">{formatoNumero(g.totalBloques)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         </motion.aside>
       </div>
+
+      <ConfirmacionEdicion />
     </motion.section>
   );
 }

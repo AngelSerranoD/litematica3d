@@ -14,11 +14,24 @@ export const DURACION_AVISO_MS = 5000;
 /** Tiempo que se puede deshacer un borrado antes de mandarlo a la Papelera. */
 export const ESPERA_BORRADO_MS = 5000;
 
+/** Botón de un aviso (p. ej. «Deshacer»): al pulsarlo se ejecuta y el aviso se cierra. */
+export interface AccionAviso {
+  etiqueta: string;
+  ejecutar: () => void;
+}
+
 export interface Aviso {
   id: number;
   mensaje: string;
   /** Marca de tiempo (ms) a partir de la cual el aviso ya no se enseña. */
   caduca: number;
+  accion?: AccionAviso;
+}
+
+export interface OpcionesAviso {
+  accion?: AccionAviso;
+  /** Cuánto dura en pantalla (por defecto `DURACION_AVISO_MS`). */
+  duracionMs?: number;
 }
 
 export type CampoOrden = "fecha" | "nombre" | "tamano";
@@ -121,7 +134,9 @@ interface EstadoBiblioteca {
   /** Ordena por ese campo; si ya era el activo, invierte la dirección. */
   alternarOrden: (campo: CampoOrden) => void;
   establecerModoVista: (modo: ModoVista) => void;
-  avisar: (mensaje: string) => void;
+  avisar: (mensaje: string, opciones?: OpcionesAviso) => void;
+  /** Pone al día una entrada que cambió fuera (edición): la cola de miniaturas la revisa. */
+  actualizarEntrada: (entrada: Entrada) => void;
   descartarAviso: (id: number) => void;
 }
 
@@ -268,14 +283,18 @@ export const useBiblioteca = create<EstadoBiblioteca>()((set, get) => ({
     set({ modoVista: modo });
   },
 
-  avisar: (mensaje) => {
+  avisar: (mensaje, opciones) => {
     const aviso: Aviso = {
       id: siguienteAviso++,
       mensaje,
-      caduca: Date.now() + DURACION_AVISO_MS,
+      caduca: Date.now() + (opciones?.duracionMs ?? DURACION_AVISO_MS),
+      accion: opciones?.accion,
     };
     set((s) => ({ avisos: [...s.avisos, aviso] }));
   },
+
+  actualizarEntrada: (entrada) =>
+    set((s) => ({ entradas: s.entradas.map((x) => (x.id === entrada.id ? entrada : x)) })),
 
   descartarAviso: (id) => set((s) => ({ avisos: s.avisos.filter((a) => a.id !== id) })),
 }));

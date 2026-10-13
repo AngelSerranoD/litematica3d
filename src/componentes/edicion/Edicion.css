@@ -1,0 +1,552 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Edición de bloques (modo Modificar). Cuaderno de obra: superficies planas,
+   filetes de 1 px, radio 0–2 px, sin sombras ni degradados. */
+
+.edicion__solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Botones de la edición ── */
+
+.boton-plano--primario {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.boton-plano--primario:hover {
+  background-color: var(--acento-2);
+}
+
+.boton-plano--aviso {
+  border-color: var(--aviso);
+  background-color: var(--aviso);
+  color: var(--sobre-aviso);
+}
+
+.boton-plano--aviso:hover {
+  /* Se oscurece con la tinta oscura de ambos temas: sobre-aviso sigue a ≥ 5,2:1. */
+  background-color: color-mix(in srgb, var(--aviso) 85%, var(--sobre-acento));
+}
+
+.edicion .boton-plano:disabled,
+.visor3d__herramientas .boton-plano:disabled {
+  background-color: var(--superficie);
+  color: var(--tinta-2);
+  border-color: var(--filete);
+  cursor: default;
+}
+
+/* Foco sobre rellenos de acento: el anillo de tema (--foco) en oscuro es el
+   propio acento y no se vería; la tinta oscura da ≥ 8,9:1 (oscuro) y 7,1:1 (claro). */
+.boton-plano--primario:focus-visible,
+.boton-plano--mini[aria-expanded="true"]:focus-visible,
+.parecido[aria-pressed="true"]:focus-visible {
+  outline-color: var(--sobre-acento);
+}
+
+/* ── Conmutador Visualizar | Modificar ── */
+
+.modo {
+  display: inline-flex;
+  align-items: stretch;
+  height: 32px;
+  box-sizing: border-box;
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+}
+
+.modo__opcion {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 var(--esp-3);
+  color: var(--tinta-2);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-instante) linear,
+    color var(--dur-instante) linear;
+}
+
+.modo__opcion + .modo__opcion {
+  border-left: var(--grosor-filete) solid var(--filete);
+}
+
+.modo__opcion:hover {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+.modo__opcion:has(.modo__entrada:checked) {
+  color: var(--sobre-acento);
+}
+
+.modo__opcion:has(.modo__entrada:focus-visible) {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: 1px;
+  z-index: 1;
+}
+
+/* La entrada nativa queda invisible pero da el teclado (flechas). */
+.modo__entrada {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.modo__marca {
+  position: absolute;
+  inset: 0;
+  background-color: var(--acento);
+}
+
+.modo__texto {
+  position: relative;
+  font-weight: 500;
+}
+
+.modo__tecla {
+  align-self: center;
+  margin: 0 var(--esp-2);
+}
+
+/* En Modificar el puntero apunta: el clic elige un bloque. */
+.visor3d--modificar .visor3d__lienzo canvas {
+  cursor: crosshair;
+}
+
+.visor3d--modificar .visor3d__lienzo canvas:active {
+  cursor: grabbing;
+}
+
+/* ── Panel de la aside ── */
+
+.edicion {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.edicion__cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.edicion__ayuda {
+  padding: var(--esp-3) var(--esp-4);
+  font-size: var(--t-2);
+  line-height: var(--interlineado);
+  color: var(--tinta-2);
+}
+
+.edicion__ayuda strong {
+  font-weight: 500;
+  color: var(--tinta);
+}
+
+.edicion__error {
+  margin: var(--esp-2) var(--esp-4);
+  padding: var(--esp-2) var(--esp-3);
+  border-left: 2px solid var(--aviso);
+  font-size: var(--t-2);
+  line-height: var(--interlineado);
+  color: var(--tinta);
+}
+
+/* ── Icono de bloque: textura del atlas o color plano ── */
+
+/* El lado (24 o 16 px) va en línea: el atlas se escala con él. */
+.icono-bloque {
+  flex: none;
+  box-sizing: border-box;
+  border: var(--grosor-filete) solid var(--filete);
+  border-radius: var(--radio-0);
+}
+
+.icono-bloque--textura {
+  border: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.icono-bloque--neutro {
+  background-color: var(--superficie-2);
+}
+
+.bloque-edicion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.bloque-edicion__nombre {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ── Parecidos ── */
+
+.parecidos__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-2) var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.parecidos__origen {
+  flex: 1;
+  min-width: 0;
+}
+
+.parecidos__nombre {
+  margin: 0;
+  font-size: var(--t-3);
+  font-weight: 500;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}
+
+.parecidos__estado {
+  overflow: hidden;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.parecidos__cerrar,
+.pendiente-edicion__quitar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radio-2);
+  background: none;
+  color: var(--tinta-2);
+}
+
+.parecidos__cerrar:hover,
+.pendiente-edicion__quitar:hover {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+.parecidos__cerrar svg,
+.pendiente-edicion__quitar svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.parecidos__titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--esp-3) var(--esp-4) var(--esp-1);
+  color: var(--tinta-2);
+}
+
+.parecidos__titulo .rotulo,
+.pendientes-edicion__titulo {
+  font-size: calc(var(--t-rotulo-s) / 2);
+  text-transform: uppercase;
+}
+
+.parecidos__leyenda {
+  font-size: var(--t-1);
+}
+
+.parecidos__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.parecido {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--esp-1) var(--esp-4);
+  border: 0;
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  background: none;
+  color: var(--tinta);
+  text-align: left;
+  transition: background-color var(--dur-instante) linear;
+}
+
+.parecido:hover {
+  background-color: var(--superficie-2);
+}
+
+/* El elegido (pendiente): relleno de acento. */
+.parecido[aria-pressed="true"] {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.parecido__nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.parecido__distancia {
+  flex: none;
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.parecido[aria-pressed="true"] .parecido__distancia {
+  color: var(--sobre-acento);
+}
+
+/* ── Selección por familia ── */
+
+.parecidos__familia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2) var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.parecidos__pista {
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+.familia-edicion:focus {
+  outline: none;
+}
+
+.familia-edicion:focus-visible {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: -2px;
+}
+
+/* Segunda línea de una fila de familia destino (formas comunes). */
+.parecido__detalle {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+.parecido[aria-pressed="true"] .parecido__detalle {
+  color: var(--sobre-acento);
+}
+
+/* Mientras se prepara un plan, las demás familias no responden. */
+.parecido[aria-disabled="true"] {
+  color: var(--tinta-2);
+  cursor: default;
+}
+
+.parecido[aria-disabled="true"]:hover {
+  background-color: transparent;
+}
+
+.parecido[aria-busy="true"] {
+  background-color: var(--superficie-2);
+}
+
+.tabla-familia {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--grosor-filete) solid var(--filete);
+}
+
+.fila-familia__igual {
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+/* Lista de parecidos de una fila: desplegada debajo, con sangría y filete. */
+.fila-familia__lista {
+  margin-left: var(--esp-4);
+  border-left: var(--grosor-filete) solid var(--filete-fuerte);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.boton-plano--mini {
+  height: 24px;
+  padding: 0 var(--esp-2);
+  font-size: var(--t-1);
+}
+
+.boton-plano--mini[aria-expanded="true"] {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+/* ── Pendientes (pie fijo del panel) ── */
+
+.pendientes-edicion {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 45%;
+  border-top: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.pendientes-edicion__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--esp-3) var(--esp-4) var(--esp-1);
+  color: var(--tinta-2);
+}
+
+.pendientes-edicion__cuenta {
+  font-size: var(--t-3);
+  color: var(--tinta);
+}
+
+.pendientes-edicion__lista {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--grosor-filete) solid var(--filete);
+}
+
+.pendiente-edicion {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-1) var(--esp-2) var(--esp-1) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  font-size: var(--t-2);
+}
+
+.pendiente-edicion__bloques {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--esp-1);
+}
+
+.pendiente-edicion__flecha {
+  color: var(--tinta-2);
+}
+
+.pendiente-edicion__donde {
+  flex: none;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+.pendientes-edicion__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-4);
+}
+
+.pendientes-edicion__total {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+/* ── Historial ── */
+
+.historial {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.historial__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.historial__datos {
+  flex: 1;
+  min-width: 0;
+}
+
+.historial__fecha {
+  font-size: var(--t-3);
+  color: var(--tinta);
+}
+
+.historial__detalle {
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+/* ── Confirmación ── */
+
+.confirmacion-edicion {
+  margin: auto;
+  padding: 0;
+  width: min(440px, calc(100% - 2 * var(--esp-4)));
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: var(--radio-2);
+  background-color: var(--superficie);
+  color: var(--tinta);
+}
+
+.confirmacion-edicion::backdrop {
+  background-color: color-mix(in srgb, var(--papel) 80%, transparent);
+}
+
+.confirmacion-edicion__caja {
+  display: flex;
+  flex-direction: column;
+}
+
+.confirmacion-edicion__titulo {
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: var(--grosor-filete) solid var(--filete-fuerte);
+  font-size: var(--t-rotulo-m);
+}
+
+.confirmacion-edicion__texto {
+  padding: var(--esp-4) var(--esp-5);
+  font-size: var(--t-3);
+  line-height: var(--interlineado);
+}
+
+.confirmacion-edicion__botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-5) var(--esp-4);
+  border-top: var(--grosor-filete) solid var(--filete);
+}

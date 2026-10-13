@@ -258,6 +258,29 @@ pueden tener el archivo abierto un instante), como con las miniaturas.
   `restaurarVersion(id, historial[0].version)` justo después de deshacer.
 - Para exportar: `elegirDestinoLitematic(entrada.nombre)` y
   `exportarSchematic(id, ruta)`.
+- Iconos de bloques que no están en el schematic (la lista de parecidos) y
+  previsualización: `celdas_atlas(estados) -> { atlas, celdas } | null`
+  (`src/api/atlas.ts`, como mucho 256 estados por llamada). Una fila por
+  estado con sus 7 caras en el orden de `Cara` (arriba, abajo, norte, sur,
+  oeste, este, cruz): `{ celda, rotacion, color }` o `null`. `null` entero si
+  el atlas aún no está listo o no hay jar (no genera nada); la `version` de
+  `atlas` tiene que casar con la del atlas cargado en el frontend.
+- Sin atlas (sin jar), el color plano de cualquier estado:
+  `colores_bloques(estados) -> ([r, g, b] | null)[]` (el `color_de` de la
+  malla; como mucho 256 por llamada).
+- Previsualización de los pendientes en el visor, sin remallar:
+  - **Reemplazos**: se reescriben las tablas por material del shader (color,
+    celda del atlas y giro) de los materiales cuyo estado visual es el origen
+    (`claveVisual` en `src/api/visor.ts`, igual que `clave_visual` en Rust),
+    con las caras del destino; misma forma, mismos quads. Las dos mallas (la
+    completa y la del corte) tienen su tabla y se reescriben las dos.
+  - **Cambios sueltos**: una capa encima (`src/componentes/visor/previaEdicion.ts`)
+    con las caras de la celda copiadas de su chunk (recortadas si el greedy
+    meshing las fusionó) y las texturas del destino, más un marco de alambre.
+  - **Resaltados**: la familia seleccionada lleva una trama (canal verde de la
+    tabla de giros) y el bloque pinchado un tinte (un uniform con su celda).
+- Estado de la interfaz: `src/estado/edicion.ts` (modo Visualizar/Modificar,
+  bloque pinchado, lista de parecidos, pendientes, historial y confirmaciones).
 
 ## 8. Parecidos
 

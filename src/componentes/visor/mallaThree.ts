@@ -24,7 +24,7 @@ import {
   type MaterialMalla,
   type Vec3,
 } from "../../api/visor";
-import { crearMateriales, type AtlasVisor, type MaterialesVisor, type UniformsCorte } from "./sombreado";
+import { crearMateriales, type AtlasVisor, type MaterialesVisor, type UniformsVisor } from "./sombreado";
 
 /** Un chunk montado: su Mesh, sus datos y su caja en coordenadas del modelo. */
 export interface ChunkVisor {
@@ -70,10 +70,10 @@ function geometriaDeChunk(c: ChunkMalla): BufferGeometry {
  */
 export function crearGrupo(
   malla: Malla,
-  corte: UniformsCorte,
+  comunes: UniformsVisor,
   atlas: AtlasVisor | null = null,
 ): GrupoVisor {
-  const materiales = crearMateriales(malla.materiales, corte, atlas);
+  const materiales = crearMateriales(malla.materiales, comunes, atlas);
   const lista = [materiales.opaco, materiales.translucido];
   const grupo = new Group();
   grupo.visible = false;

@@ -12,7 +12,7 @@ import type { AtlasCargado } from "../../api/atlas";
 import type { Malla } from "../../api/visor";
 import { crearAtlasVisor } from "./atlasThree";
 import { crearGrupo, type ChunkVisor } from "./mallaThree";
-import { crearUniformsCorte, type AtlasVisor } from "./sombreado";
+import { crearUniformsVisor, type AtlasVisor } from "./sombreado";
 
 /** Lado del PNG en píxeles (Rust admite de 64 a 1024, cuadrado). */
 export const LADO_MINIATURA = 512;
@@ -143,7 +143,7 @@ export async function renderizarMiniatura(
   seguir: () => boolean,
 ): Promise<Uint8Array | null> {
   const r = obtenerRenderizador();
-  const grupo = crearGrupo(malla, crearUniformsCorte(), atlas ? atlasDe(atlas) : null);
+  const grupo = crearGrupo(malla, crearUniformsVisor(), atlas ? atlasDe(atlas) : null);
   const escena = new Scene();
   escena.add(grupo.grupo);
   grupo.grupo.visible = true;

@@ -26,10 +26,13 @@ import {
   Vector3,
 } from "three";
 import { bloqueEn, cargarMalla, type Malla } from "../../api/visor";
+import { useEdicion } from "../../estado/edicion";
 import { capaMax, capaMin, useVisor } from "../../estado/visor";
 import { colorToken, hexToken, usoTema } from "./colores";
 import { aplicarCorte, crearGrupo, lanzarRayo, type GrupoVisor } from "./mallaThree";
-import { aplicarAtlas, crearUniformsCorte, type AtlasVisor, type UniformsCorte } from "./sombreado";
+import { montarCambios } from "./previaEdicion";
+import { aplicarAtlas, crearUniformsVisor, type AtlasVisor, type UniformsVisor } from "./sombreado";
+import { usoPreviaEdicion } from "./usoPreviaEdicion";
 
 /** Espera tras el último cambio del corte antes de pedir la malla cerrada. */
 const ESPERA_REMALLADO = 250;
@@ -90,7 +93,8 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
   const reducir = useReducedMotion();
 
   // ── Mallas: la completa siempre; la cerrada (remallada con el corte) si la hay.
-  const corte = useMemo<UniformsCorte>(crearUniformsCorte, []);
+  // Uniforms comunes a todas las mallas de la escena: corte y marcas de la edición.
+  const corte = useMemo<UniformsVisor>(crearUniformsVisor, []);
   // El atlas va por ref: al llegar solo cambian los uniforms y las tablas
   // (efecto de más abajo), no se rehace la geometría.
   const atlasRef = useRef(atlas);
@@ -176,13 +180,17 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
   // Al llegar (o irse) la malla cerrada, se cambia antes de pintar: sin parpadeo.
   useLayoutEffect(() => aplicar.current(), [cerrada, completa]);
 
-  // Atlas nuevo con la misma malla (p. ej. llegó después de pintar): se
-  // actualizan las tablas de los materiales ya creados.
+  // ── Edición: previsualización de los pendientes y resaltados.
+  const { previa, cambios: cambiosPrevia } = usoPreviaEdicion(malla, atlas !== null);
+
+  // Atlas nuevo con la misma malla (p. ej. llegó después de pintar) o
+  // pendientes nuevos: se reescriben las tablas de los materiales ya creados
+  // (las dos mallas tienen su propia tabla). Nunca se toca la geometría.
   useLayoutEffect(() => {
-    aplicarAtlas(completa.materiales, malla.materiales, atlas);
-    if (cerrada) aplicarAtlas(cerrada.g.materiales, cerrada.g.datos, atlas);
+    aplicarAtlas(completa.materiales, malla.materiales, atlas, previa);
+    if (cerrada) aplicarAtlas(cerrada.g.materiales, cerrada.g.datos, atlas, previa);
     invalidate();
-  }, [atlas, completa, malla, cerrada, invalidate]);
+  }, [atlas, completa, malla, cerrada, previa, invalidate]);
 
   // ── Encuadre: al cargar y cada vez que se pide (botón o tecla F).
   const encuadre = useVisor((s) => s.encuadre);
@@ -223,9 +231,16 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
         return;
       }
       const { celda } = impacto;
+      // Mayús+clic en Modificar: además, seleccionar toda su familia.
+      const familia = e.shiftKey && useEdicion.getState().modo === "modificar";
       s.seleccionar(celda);
       bloqueEn(id, celda[0], celda[1], celda[2])
-        .then((b) => useVisor.getState().completarSeleccion(celda, b))
+        .then((b) => {
+          useVisor.getState().completarSeleccion(celda, b);
+          // Solo si la selección sigue siendo esta (no llegó otro clic antes).
+          const sel = useVisor.getState().seleccion;
+          if (familia && b && sel?.bloque === b) useEdicion.getState().seleccionarFamilia(b.estado);
+        })
         .catch(() => useVisor.getState().completarSeleccion(celda, null));
     };
     lienzo.addEventListener("pointerdown", alPulsar);
@@ -270,11 +285,34 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
         string,
       ],
       rotulo: hexToken("--superficie"),
+      resalte: colorToken("--acento"),
+      marco: colorToken("--foco"),
     }),
     // `tema` no se lee: solo marca cuándo hay que volver a leer los tokens.
     [tema],
   );
-  useEffect(() => invalidate(), [colores, invalidate]);
+  useEffect(() => {
+    corte.uColorMarca.value.copy(colores.seleccion);
+    corte.uColorResalte.value.copy(colores.resalte);
+    invalidate();
+  }, [colores, corte, invalidate]);
+
+  // Bloque pinchado en Modificar: tinte en el shader (un uniform, sin geometría).
+  const pinchado = useEdicion((s) => s.pinchado);
+  useEffect(() => {
+    corte.uMarcar.value = pinchado ? 1 : 0;
+    if (pinchado) corte.uCeldaMarcada.value.set(...pinchado.celda);
+    invalidate();
+  }, [pinchado, corte, invalidate]);
+
+  // Cambios sueltos pendientes: capa con sus caras nuevas dentro de cada
+  // malla (completa y cerrada), que se ve y se oculta con ella.
+  useLayoutEffect(() => {
+    const quitar = [montarCambios(completa, cambiosPrevia, corte, atlas, colores.marco)];
+    if (cerrada) quitar.push(montarCambios(cerrada.g, cambiosPrevia, corte, atlas, colores.marco));
+    invalidate();
+    return () => quitar.forEach((q) => q());
+  }, [completa, cerrada, cambiosPrevia, corte, atlas, colores, invalidate]);
 
   const verRendimiento = useVisor((s) => s.rendimiento);
   const [ancho, , largo] = malla.tamano;

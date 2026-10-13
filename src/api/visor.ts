@@ -100,6 +100,29 @@ export interface BloqueSeleccionado {
   region: string | null;
 }
 
+/** Propiedades que nunca cambian el aspecto (`PROPIEDADES_INVISIBLES` en Rust). */
+const PROPIEDADES_INVISIBLES = new Set(["distance", "persistent", "waterlogged"]);
+
+/**
+ * Estado que identifica el aspecto, como `clave_visual` en Rust
+ * (src-tauri/src/malla/apariencia.rs): el de `MaterialMalla.estado`. Quita las
+ * propiedades invisibles y, en el agua y la lava, `level`. Espera un estado
+ * ya normalizado (namespace y propiedades en orden), como los que devuelven
+ * los comandos.
+ */
+export function claveVisual(estado: string): string {
+  const i = estado.indexOf("[");
+  if (i < 0) return estado;
+  const nombre = estado.slice(0, i);
+  const fluido = nombre === "minecraft:water" || nombre === "minecraft:lava";
+  const resto = estado.endsWith("]") ? estado.slice(i + 1, -1) : estado.slice(i + 1);
+  const props = resto.split(",").filter((par) => {
+    const k = par.split("=", 1)[0];
+    return !PROPIEDADES_INVISIBLES.has(k) && !(fluido && k === "level");
+  });
+  return props.length ? `${nombre}[${props.join(",")}]` : nombre;
+}
+
 const R = Math.SQRT1_2;
 
 /** Vector de cada índice de normal: 0..5 caras, 6..9 planos cruzados. */
