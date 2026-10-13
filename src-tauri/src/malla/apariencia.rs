@@ -225,6 +225,12 @@ static COLORES: LazyLock<HashMap<String, [u8; 3]>> =
         },
     );
 
+/// Tabla de colores integrada completa (`minecraft:stone` → RGB). Vacía si
+/// el JSON no se pudiera leer.
+pub fn colores_integrados() -> &'static HashMap<String, [u8; 3]> {
+    &COLORES
+}
+
 /// PUNTO DE ENGANCHE (colores): color medio de un bloque por su nombre sin
 /// propiedades, de la tabla `colores_bloques.json`. Lo que no está en ella
 /// (bloques de mods, IDs desconocidos) cae a [`color_hash`].

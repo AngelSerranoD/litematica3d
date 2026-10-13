@@ -327,7 +327,7 @@ fn particula_cruz_y_tintes() {
 
 // ---------------------------------------------------------------- atlas
 
-fn png_de(ancho: u32, alto: u32, f: impl Fn(u32, u32) -> [u8; 4]) -> Vec<u8> {
+pub(crate) fn png_de(ancho: u32, alto: u32, f: impl Fn(u32, u32) -> [u8; 4]) -> Vec<u8> {
     let mut px = Vec::new();
     for y in 0..alto {
         for x in 0..ancho {
@@ -780,7 +780,7 @@ fn malla_rellena_textura_rotacion_y_atlas() {
 
 /// Jar de Minecraft para las pruebas de desarrollo: `LITEMATICA3D_MC_VERSION`
 /// si está, si no 1.21.11 si tiene jar, y si no la primera release instalada.
-fn jar_real() -> VersionMinecraft {
+pub(crate) fn jar_real() -> VersionMinecraft {
     let v = versiones::listar(&versiones::carpetas_por_defecto());
     let pedida = std::env::var("LITEMATICA3D_MC_VERSION").ok();
     let elegida = match pedida {

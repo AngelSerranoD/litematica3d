@@ -258,3 +258,208 @@ pueden tener el archivo abierto un instante), como con las miniaturas.
   `restaurarVersion(id, historial[0].version)` justo después de deshacer.
 - Para exportar: `elegirDestinoLitematic(entrada.nombre)` y
   `exportarSchematic(id, ruta)`.
+
+## 8. Parecidos
+
+Sugerencias para cambiar un bloque por otro de la misma forma y color
+parecido, o una familia de material entera por otra (toda la pizarra
+profunda por piedra negra). No cambian nada: devuelven estados y reemplazos
+que se aplican con `aplicar_cambios`. Todo funciona sin red y sin jar.
+
+Código: `src-tauri/src/parecidos/` (`color.rs`, `forma.rs`, `propiedades.rs`,
+`exclusiones.rs`, `familias.rs`, `sugerir.rs` y el `Catalogo` en `mod.rs`) y
+`src/api/parecidos.ts`.
+
+### Catálogo
+
+Los bloques conocidos de la versión de texturas elegida: los
+`blockstates/*.json` del jar, con la forma, las propiedades y el color de
+cada uno. Sin jar, la tabla integrada `datos/colores_bloques.json` más los
+muros vanilla, con colores planos. Los comandos esperan a que el atlas esté
+preparado y guardan el catálogo en memoria (`CacheCatalogo`) hasta que
+cambia la versión o el jar.
+
+### Color
+
+- Color de un block state = media de las texturas de sus caras en ese
+  estado: la de **arriba cuenta ×2** y cada lateral ×1. Así un tronco
+  `axis=y` se parece a sus anillos y uno `axis=x` a su corteza.
+- Los píxeles con **alfa < 128** no cuentan (cristales, hojas, rejillas); si
+  un estado no tiene ninguna cara opaca, se usa el color del bloque.
+- Las texturas tintadas (hierba, hojas…) llevan el tinte del atlas.
+- Se compara con la distancia euclídea en **OKLab** (ΔE_ok): por debajo de
+  ~0,02 apenas se nota; por encima de ~0,1 son colores distintos.
+- Las medias por textura y el color de cada bloque se guardan en
+  `<cache>/texturas/<versión>/colores.json`, junto al atlas; se recalculan
+  si cambia el jar o el esquema del archivo.
+
+### Formas
+
+`entero`, `losa`, `escalera`, `muro`, `valla`, `puertaValla`, `puerta`,
+`trampilla`, `boton`, `placaPresion`, `panel` (paneles y barrotes),
+`alfombra` y `otro`. Se deducen del sufijo del id y, si no lo tiene, de si es
+un cubo completo (con jar, por sus modelos; sin jar, por cómo lo dibuja el
+visor). **Solo se sugieren bloques de la misma forma**: una losa nunca
+sugiere un bloque entero ni una escalera una losa.
+
+Los de forma `otro` (velas, antorchas, brotes, faroles…) solo sugieren
+bloques con su mismo «id base»: el id sin tinte, especie de madera, grado de
+oxidación del cobre, `waxed_` ni `soul_` delante (`white_candle` →
+`red_candle`; `torch` → `soul_torch`; `oak_sapling` → `birch_sapling`). Si no
+hay ninguno, nada: cambiar un «otro» por cualquier otro de color parecido
+rara vez tiene sentido (un farol por una flor).
+
+### Propiedades del estado destino
+
+El estado destino conserva las propiedades del origen que el destino admite
+con ese valor (`facing`, `half`, `shape`, `type`, `axis`, `waterlogged`,
+`north`/`up` de muros y vallas…); las que no tiene se descartan y las que le
+faltan toman su valor por defecto (`facing=north`, `half=bottom`,
+`type=bottom`, `shape=straight`, `axis=y`, `waterlogged=false`, `up=true` en
+muros). Con jar las propiedades salen del blockstate; sin jar, de una
+plantilla por forma (más `axis` en troncos, madera, tallos, pilares,
+basalto, balas de heno…, para no girarlos).
+
+### Exclusiones
+
+Nunca se sugieren como destino:
+
+- Aire y fluidos.
+- Bloques técnicos (comandos, estructuras, barreras, luz…).
+- Bloques sin objeto o duplicados visuales: macetas con planta, antorchas y
+  carteles de pared, partes de plantas, calderos llenos… y los
+  **infestados** (idénticos a su bloque normal).
+- Bloques **con datos** (cofres, barriles, hornos, tolvas, carteles,
+  estandartes, cajas de shulker, cabezas, estanterías…): un cambio de
+  familia o un «parecido» no debe crear ni sustituir contenedores, y
+  `aplicar_cambios` quita la entidad de bloque donde cambia el tipo, así que
+  proponerlos invitaría a **perder su contenido**.
+
+Sí pueden ser el **origen** de una búsqueda (pinchar un cofre en el visor
+muestra bloques de su forma), pero nunca aparecen como destino.
+
+### Familias de material
+
+La familia es la raíz común de un bloque tras quitarle la forma y el
+acabado; la **variante**, el acabado quitado. Sirve para cambiar un material
+entero por otro conservando la correspondencia entre piezas.
+
+1. Se quita el sufijo de forma (`_slab`, `_stairs`, `_wall`, `_fence`…).
+   Las alfombras de color van con la lana de su color (`white_carpet` →
+   `white_wool`).
+2. **Maderas**: tablones, troncos, madera y sus descortezados se agrupan por
+   especie (`oak`, `dark_oak`, `crimson`, `bamboo`…). Las formas de madera
+   (`oak_stairs`, `oak_door`…) son de la variante `tablones`; `oak_log` y
+   `crimson_stem`, `tronco`; `oak_wood` y `crimson_hyphae`, `madera`;
+   `stripped_` añade `descortezado`; `bamboo_mosaic` es `mosaico`. Hojas,
+   brotes y carteles no son madera: cada uno es su propia familia.
+3. **Resto**: se quitan, estén donde estén, `cobbled` (adoquín), `polished`
+   (pulido), `chiseled` (cincelado), `cracked` (agrietado), `smooth` (liso),
+   `cut` (cortado), `mossy` (musgoso), `waxed` (encerado), `gilded`
+   (dorado), `bricks`/`brick` (ladrillo), `tiles`/`tile` (baldosa), `pillar`
+   (pilar), `grate` (rejilla), `bulb` (bombilla) y `block` (sin variante).
+   Lo que queda es la familia: `cracked_polished_blackstone_bricks` →
+   `blackstone`, variante `agrietado+pulido+ladrillo`;
+   `waxed_exposed_cut_copper_slab` → `exposed_copper`, `encerado+cortado`.
+4. **Excepciones**:
+   - `bricks` (ladrillo de arcilla) es la familia `bricks`, variante
+     `ladrillo` (si no, se quedaría sin raíz).
+   - `nether_bricks` y `red_nether_bricks` son familias propias (no
+     `nether`).
+   - `cobblestone` es la variante `adoquín` de `stone` (como
+     `cobbled_deepslate` de `deepslate`); `mossy_cobblestone`,
+     `musgoso+adoquín`.
+   - `dark_prismarine` es la variante `oscuro` de `prismarine`.
+   - Las placas con peso son de `iron` (`heavy_`) y de `gold` (`light_`).
+   - El bambú planta es `bamboo_plant` (no la madera `bamboo`).
+   - Salen solas de las reglas: `quartz` (`quartz_block`, `quartz_bricks`,
+     `quartz_pillar`, `smooth_quartz`, `chiseled_quartz_block`),
+     `sandstone`/`red_sandstone`, `prismarine`, `end_stone`
+     (`end_stone_bricks`), `purpur`, `tuff`, `mud` (`mud_bricks`) y el cobre
+     por grado de oxidación (`copper`, `exposed_copper`…). Las menas
+     (`deepslate_coal_ore`, `nether_quartz_ore`) son familias propias.
+   - Ids de otros namespaces: mismas reglas, con el namespace delante
+     (`mod:granito`).
+
+**Equivalencia entre variantes.** Para emparejar piezas de dos familias se
+usa un coste entre variantes: la suma de los pesos de los componentes que no
+comparten (ladrillo y baldosa 1,5; musgoso 0,75; adoquín y agrietado 0,5; el
+resto 1), con los pares afines ladrillo/baldosa y pulido/liso a 0,25, menos
+la mitad del peso de lo que comparten. Así:
+
+- `deepslate_brick_stairs` (ladrillo) → `polished_blackstone_brick_stairs`
+  (pulido+ladrillo), no `blackstone_stairs`;
+- `cobbled_deepslate_stairs` (adoquín) → `blackstone_stairs` (la piedra negra
+  no tiene adoquín: su base es la equivalente);
+- `polished_deepslate_slab` → `polished_blackstone_slab` (exacta);
+- `deepslate_tile_wall` (baldosa) → `polished_blackstone_brick_wall`;
+- y al revés, `polished_blackstone_bricks` → `deepslate_bricks`.
+
+### Comandos
+
+Todos trabajan en segundo plano. Los block states se validan como en
+`aplicar_cambios`; los nombres de familia, con minúsculas, cifras y `_-.:/`
+(máximo 128 caracteres): si no, `edicionInvalida`. `n` es opcional (12 por
+defecto) y se acota a 1–100.
+
+#### `parecidos(estado, n?) -> Parecido[]`
+
+Los `n` bloques sugeribles de la misma forma más cercanos en color al
+estado (sin el propio bloque), del más al menos parecido. Cada uno trae
+`id`, `estado` (el destino ya construido), `forma`, `familia`, `color`
+(`[r, g, b]` del estado destino) y `distancia` (OKLab). Vacío si el bloque
+no está en el catálogo (mods) o no tiene color.
+
+#### `familia_de(estado) -> FamiliaBloque`
+
+`{ familia, variante, nombreVariante, forma, sugerible }`; `variante` es la
+lista de componentes (`["pulido", "ladrillo"]`; vacía = base) y
+`nombreVariante`, `base` o `pulido+ladrillo`. Funciona con cualquier id,
+esté o no en el catálogo.
+
+#### `miembros_familia(id, familia) -> EstadoPresente[]`
+
+Los block states de esa familia presentes en el schematic (todas las
+regiones, sin aire), con cuántas posiciones ocupa cada uno
+(`{ estado, cantidad }`), ordenados por estado. Para seleccionar el grupo al
+pinchar un bloque: `familiaDe(bloque.estado)` y después
+`miembrosFamilia(id, familia)`.
+
+#### `familias_parecidas(familia, n?) -> FamiliaParecida[]`
+
+Familias ordenadas por `puntuacion` (menor = más parecida):
+
+```
+puntuacion = distancia OKLab entre los colores medios
+           + 0,20 × (fracción de formas de la origen que le faltan)
+           + 0,05 × (1 − variantesComunes)
+```
+
+El color medio es la media en OKLab de los miembros sugeribles (en la
+origen, de todos si ninguno lo es). `variantesComunes` (0–1) es la media,
+para cada variante de la origen, del parecido con la más equivalente de la
+destino. Se descartan las familias sin ningún miembro sugerible con color y
+las que no comparten ninguna forma con la origen. Cada una trae `familia`,
+`color`, `distancia`, `formasComunes`, `variantesComunes`, `puntuacion` y sus
+`miembros` sugeribles (`{ id, forma, variante, sugerible }`). Vacío si la
+familia no existe. Con la tabla integrada, `deepslate` da primero
+`blackstone`.
+
+#### `plan_familia(id, familiaOrigen, familiaDestino) -> Reemplazo[]`
+
+Un reemplazo por cada block state de la familia origen presente en el
+schematic, ordenados por estado origen. El destino de cada uno:
+
+1. Entre los miembros sugeribles de la familia destino **de la misma
+   forma**, el de variante más equivalente (coste mínimo; la exacta si
+   existe); a igual coste, el más cercano en color; a igual color, por id.
+2. Si la familia destino no tiene esa forma (el basalto no tiene
+   escaleras), el bloque sugerible de esa forma más parecido en color de
+   **todo el catálogo** (el primero de `parecidos`).
+3. Si tampoco hay (un `otro` sin equivalentes), ese estado no entra en el
+   plan y se queda como está.
+
+Los estados que no cambiarían tampoco entran (origen = destino da un plan
+vacío). Error `edicionInvalida` si la familia destino no existe. El plan se
+aplica tal cual: `aplicarCambios(id, [], plan)`, y queda en el historial
+como cualquier otro cambio.

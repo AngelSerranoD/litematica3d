@@ -17,7 +17,7 @@ pub mod nombres;
 pub mod versiones;
 
 #[cfg(test)]
-mod pruebas;
+pub(crate) mod pruebas;
 
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
@@ -158,6 +158,11 @@ impl GestorTexturas {
             preparando: Mutex::new(()),
             nombres: Mutex::new(None),
         }
+    }
+
+    /// `<app_cache_dir>/texturas`: aquí cuelga la carpeta de cada versión.
+    pub fn dir_cache(&self) -> &Path {
+        &self.dir_cache
     }
 
     pub fn ajustes(&self) -> Ajustes {
@@ -313,7 +318,7 @@ pub fn nombres_con_cache(dir_cache: &Path, v: &VersionMinecraft) -> MapaNombres 
 }
 
 /// Nombre de carpeta seguro para una versión.
-fn carpeta_version(id: &str) -> String {
+pub(crate) fn carpeta_version(id: &str) -> String {
     id.chars()
         .map(|c| {
             if c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_') {
@@ -362,7 +367,7 @@ pub fn cargar_o_generar(dir_cache: &Path, v: &VersionMinecraft) -> Result<Activo
 }
 
 /// Escribe a un temporal y lo renombra.
-fn escribir(ruta: &Path, bytes: &[u8]) -> std::io::Result<()> {
+pub(crate) fn escribir(ruta: &Path, bytes: &[u8]) -> std::io::Result<()> {
     let tmp = ruta.with_extension("tmp");
     fs::write(&tmp, bytes)?;
     fs::rename(&tmp, ruta)

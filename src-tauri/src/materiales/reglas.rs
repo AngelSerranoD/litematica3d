@@ -262,7 +262,7 @@ impl Reglas {
 }
 
 /// Separa `ns:id[a=1,b=2]` en el ID y sus propiedades.
-fn separar(estado: &str) -> (&str, Vec<(&str, &str)>) {
+pub(crate) fn separar(estado: &str) -> (&str, Vec<(&str, &str)>) {
     match estado.split_once('[') {
         None => (estado, Vec::new()),
         Some((id, resto)) => {

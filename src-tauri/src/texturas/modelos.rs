@@ -53,10 +53,50 @@ struct CaraModelo {
     tintada: bool,
 }
 
-/// Elemento (caja) de un modelo: solo las caras, por dirección.
+/// Elemento (caja) de un modelo: sus límites y sus caras, por dirección.
 #[derive(Debug, Clone, Default)]
 struct Elemento {
+    /// Esquina mínima (`from`), en 1/16 de bloque.
+    desde: [f64; 3],
+    /// Esquina máxima (`to`), en 1/16 de bloque.
+    hasta: [f64; 3],
     caras: [Option<CaraModelo>; 6],
+}
+
+impl Elemento {
+    /// Lados del bloque (índices como en [`NOMBRES_CARA`], en el espacio del
+    /// modelo) que este elemento tapa por completo: tiene la cara de ese lado,
+    /// llega hasta el borde del bloque y ocupa de 0 a 16 en los otros dos
+    /// ejes. Sirve igual un cubo entero que una lámina sin grosor (los
+    /// bloques de champiñón y la nieve en polvo se montan así). `None` si el
+    /// elemento se sale del bloque. Tolerancia de 0,01 (hay modelos con
+    /// 0,002 para evitar parpadeos).
+    fn lados_tapados(&self) -> Option<Vec<usize>> {
+        const TOL: f64 = 0.01;
+        let min: [f64; 3] = std::array::from_fn(|e| self.desde[e].min(self.hasta[e]));
+        let max: [f64; 3] = std::array::from_fn(|e| self.desde[e].max(self.hasta[e]));
+        if (0..3).any(|e| min[e] < -TOL || max[e] > 16.0 + TOL) {
+            return None;
+        }
+        let entero = |e: usize| min[e] <= TOL && max[e] >= 16.0 - TOL;
+        let mut lados = Vec::new();
+        for (i, cara) in self.caras.iter().enumerate() {
+            if cara.is_none() {
+                continue;
+            }
+            let eje = VECTORES[i].iter().position(|&c| c != 0).unwrap_or(0);
+            let positiva = VECTORES[i][eje] > 0;
+            let en_borde = if positiva {
+                max[eje] >= 16.0 - TOL
+            } else {
+                min[eje] <= TOL
+            };
+            if en_borde && (0..3).filter(|&e| e != eje).all(entero) {
+                lados.push(i);
+            }
+        }
+        Some(lados)
+    }
 }
 
 /// Modelo con la herencia ya aplicada.
@@ -134,6 +174,35 @@ impl Recursos {
     /// Nombres de los bloques con blockstate (sin espacio de nombres).
     pub fn bloques(&self) -> impl Iterator<Item = &str> {
         self.blockstates.keys().map(String::as_str)
+    }
+
+    /// JSON del blockstate de `nombre` (sin espacio de nombres), tal cual.
+    pub fn blockstate(&self, nombre: &str) -> Option<&Value> {
+        self.blockstates.get(nombre)
+    }
+
+    /// ¿El bloque `nombre` con estas propiedades es un cubo completo? Sí
+    /// cuando ningún elemento de los modelos que aplica se sale del bloque y,
+    /// entre todos y ya girados por la variante, tapan los seis lados (ver
+    /// `Elemento::lados_tapados`). La hierba, los bloques de champiñón o la
+    /// estantería cincelada cuentan; un farol, un cactus, un caldero, un
+    /// cofre o el agua, no.
+    pub fn es_cubo_completo(&self, nombre: &str, props: &[(&str, &str)]) -> bool {
+        let mut tapados = [false; 6];
+        for a in self.aplicados(nombre, props) {
+            let Some(p) = self.plano(&a.modelo) else {
+                return false;
+            };
+            for e in &p.elementos {
+                let Some(lados) = e.lados_tapados() else {
+                    return false;
+                };
+                for l in lados {
+                    tapados[direccion(girar(VECTORES[l], a.x, a.y))] = true;
+                }
+            }
+        }
+        tapados.iter().all(|&t| t)
     }
 
     pub fn n_blockstates(&self) -> usize {
@@ -375,9 +444,22 @@ fn aplicado(v: &Value) -> Option<Aplicado> {
     })
 }
 
-/// Lee un elemento de modelo (solo sus caras).
+/// Lee un elemento de modelo (límites y caras).
 fn elemento(v: &Value) -> Elemento {
-    let mut e = Elemento::default();
+    let esquina = |k: &str| -> [f64; 3] {
+        let mut r = [0.0; 3];
+        if let Some(l) = v.get(k).and_then(Value::as_array) {
+            for (i, x) in l.iter().take(3).enumerate() {
+                r[i] = x.as_f64().unwrap_or(0.0);
+            }
+        }
+        r
+    };
+    let mut e = Elemento {
+        desde: esquina("from"),
+        hasta: esquina("to"),
+        ..Elemento::default()
+    };
     let Some(caras) = v.get("faces").and_then(Value::as_object) else {
         return e;
     };

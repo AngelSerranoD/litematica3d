@@ -8,6 +8,7 @@ pub mod edicion;
 pub mod error;
 pub mod malla;
 pub mod materiales;
+pub mod parecidos;
 pub mod schematic;
 pub mod texturas;
 
@@ -17,6 +18,7 @@ use tauri::{Emitter, Manager};
 
 use crate::biblioteca::Biblioteca;
 use crate::malla::CacheVisor;
+use crate::parecidos::CacheCatalogo;
 use crate::texturas::GestorTexturas;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -47,6 +49,7 @@ pub fn run() {
             let biblioteca = Biblioteca::abrir(&dir_datos)?;
             app.manage(Arc::new(biblioteca));
             app.manage(Arc::new(CacheVisor::default()));
+            app.manage(Arc::new(CacheCatalogo::default()));
             let texturas = Arc::new(GestorTexturas::nuevo(
                 &app.path().app_cache_dir()?,
                 &app.path().app_config_dir()?,
@@ -73,6 +76,11 @@ pub fn run() {
             comandos::historial,
             comandos::restaurar_version,
             comandos::exportar_schematic,
+            comandos::parecidos,
+            comandos::familia_de,
+            comandos::miembros_familia,
+            comandos::familias_parecidas,
+            comandos::plan_familia,
             comandos::malla,
             comandos::malla_miniatura,
             comandos::guardar_miniatura,
