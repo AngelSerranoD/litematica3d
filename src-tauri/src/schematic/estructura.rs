@@ -88,6 +88,8 @@ pub(crate) fn leer(datos: &[u8]) -> Result<Schematic, ErrorSchematic> {
         tamano,
         paleta: paleta.en_vec(),
         bloques,
+        // Las entidades y entidades de bloque de este formato no se conservan.
+        extras: Default::default(),
     }];
     Ok(Schematic {
         formato: Formato::Estructura,

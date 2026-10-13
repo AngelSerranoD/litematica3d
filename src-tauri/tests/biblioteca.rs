@@ -350,7 +350,7 @@ fn migra_una_biblioteca_v1_con_datos() {
     let v: i32 = conn
         .pragma_query_value(None, "user_version", |f| f.get(0))
         .unwrap();
-    assert_eq!(v, 3);
+    assert_eq!(v, 4);
     // Abrirla otra vez no vuelve a migrar.
     let b = Biblioteca::abrir(tmp.path()).unwrap();
     assert_eq!(b.comprobacion("viejo").unwrap(), ["minecraft:stone"]);
@@ -531,7 +531,7 @@ fn migra_una_biblioteca_v2_con_comprobacion() {
     let v: i32 = conn
         .pragma_query_value(None, "user_version", |f| f.get(0))
         .unwrap();
-    assert_eq!(v, 3);
+    assert_eq!(v, 4);
     drop(conn);
     // Reabrir no vuelve a migrar (el ALTER TABLE fallaría por columna repetida).
     let b = Biblioteca::abrir(tmp.path()).unwrap();
@@ -544,8 +544,132 @@ fn una_biblioteca_mas_nueva_no_se_abre() {
     let tmp = tempfile::tempdir().unwrap();
     drop(Biblioteca::abrir(tmp.path()).unwrap());
     let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
-    conn.pragma_update(None, "user_version", 4).unwrap();
+    conn.pragma_update(None, "user_version", 5).unwrap();
     drop(conn);
     let e = Biblioteca::abrir(tmp.path()).err().unwrap();
     assert_eq!(e.tipo(), "versionBiblioteca");
+}
+
+/// Esquema v3 tal cual: el de v2 más las columnas de la miniatura.
+const ESQUEMA_V3: &str = "CREATE TABLE schematics (
+         id TEXT PRIMARY KEY NOT NULL,
+         nombre TEXT NOT NULL,
+         autor TEXT,
+         descripcion TEXT,
+         formato TEXT NOT NULL,
+         ancho INTEGER NOT NULL,
+         alto INTEGER NOT NULL,
+         largo INTEGER NOT NULL,
+         total_bloques INTEGER NOT NULL,
+         regiones INTEGER NOT NULL,
+         version_datos INTEGER,
+         fecha_creacion INTEGER,
+         fecha_importacion INTEGER NOT NULL,
+         ruta TEXT NOT NULL,
+         nombre_original TEXT,
+         tamano_archivo INTEGER NOT NULL,
+         hash TEXT NOT NULL UNIQUE,
+         miniatura_fecha INTEGER,
+         miniatura_texturas TEXT
+     );
+     CREATE INDEX schematics_fecha ON schematics (fecha_importacion DESC);
+     CREATE TABLE comprobacion (
+         schematic_id TEXT NOT NULL REFERENCES schematics (id) ON DELETE CASCADE,
+         item TEXT NOT NULL,
+         PRIMARY KEY (schematic_id, item)
+     ) WITHOUT ROWID;";
+
+/// Tablas de la base de datos, ordenadas.
+fn tablas(datos: &Path) -> Vec<String> {
+    let conn = rusqlite::Connection::open(datos.join("biblioteca.sqlite3")).unwrap();
+    conn.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
+        .unwrap()
+        .query_map([], |f| f.get(0))
+        .unwrap()
+        .collect::<rusqlite::Result<_>>()
+        .unwrap()
+}
+
+#[test]
+fn migra_una_biblioteca_v3_con_miniatura() {
+    let tmp = tempfile::tempdir().unwrap();
+    {
+        let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+        conn.execute_batch(ESQUEMA_V3).unwrap();
+        conn.execute_batch(
+            "INSERT INTO schematics VALUES ('viejo', 'Casa vieja', NULL, NULL,
+                 'litematic', 3, 4, 5, 60, 1, NULL, NULL, 1700000000000,
+                 'viejo.litematic', 'casa.litematic', 123, 'abc', 1700000000500, 'r1|-');
+             INSERT INTO comprobacion VALUES ('viejo', 'minecraft:stone');
+             PRAGMA user_version = 3;",
+        )
+        .unwrap();
+    }
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let lista = b.listar().unwrap();
+    assert_eq!(lista.len(), 1);
+    let m = lista[0].miniatura.clone().unwrap();
+    assert_eq!(m.texturas.as_deref(), Some("r1|-"));
+    assert_eq!(m.fecha, 1700000000500);
+    assert_eq!(b.comprobacion("viejo").unwrap(), ["minecraft:stone"]);
+    // La tabla nueva existe y empieza vacía.
+    assert!(b.historial("viejo").unwrap().is_empty());
+    drop(b);
+
+    assert_eq!(
+        tablas(tmp.path()),
+        ["comprobacion", "historial", "schematics"]
+    );
+    let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+    let v: i32 = conn
+        .pragma_query_value(None, "user_version", |f| f.get(0))
+        .unwrap();
+    assert_eq!(v, 4);
+    drop(conn);
+    // Reabrir no vuelve a migrar (el CREATE TABLE fallaría por tabla repetida).
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    assert!(b.historial("viejo").unwrap().is_empty());
+}
+
+#[test]
+fn migrar_desde_v1_y_v2_crea_tambien_el_historial() {
+    for version in [1, 2] {
+        let tmp = tempfile::tempdir().unwrap();
+        {
+            let conn = rusqlite::Connection::open(tmp.path().join("biblioteca.sqlite3")).unwrap();
+            // v1 y v2 son el esquema v3 sin lo que añadió cada versión.
+            let esquema = ESQUEMA_V3.replace(
+                ",
+         miniatura_fecha INTEGER,
+         miniatura_texturas TEXT",
+                "",
+            );
+            let esquema = if version == 1 {
+                esquema
+                    .split("CREATE TABLE comprobacion")
+                    .next()
+                    .unwrap()
+                    .to_string()
+            } else {
+                esquema
+            };
+            conn.execute_batch(&esquema).unwrap();
+            conn.execute_batch(&format!(
+                "INSERT INTO schematics VALUES ('viejo', 'Casa vieja', NULL, NULL,
+                     'litematic', 3, 4, 5, 60, 1, NULL, NULL, 1700000000000,
+                     'viejo.litematic', 'casa.litematic', 123, 'abc');
+                 PRAGMA user_version = {version};"
+            ))
+            .unwrap();
+        }
+        let b = Biblioteca::abrir(tmp.path()).unwrap();
+        assert_eq!(b.listar().unwrap()[0].miniatura, None);
+        assert!(b.historial("viejo").unwrap().is_empty(), "v{version}");
+        drop(b);
+        assert_eq!(
+            tablas(tmp.path()),
+            ["comprobacion", "historial", "schematics"],
+            "v{version}"
+        );
+    }
 }

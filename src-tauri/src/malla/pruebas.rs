@@ -42,6 +42,7 @@ fn region(nombre: &str, origen: [i32; 3], bloques: &[([i32; 3], &str)]) -> Regio
         },
         paleta,
         bloques: datos,
+        extras: Default::default(),
     }
 }
 

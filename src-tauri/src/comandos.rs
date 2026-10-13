@@ -3,7 +3,7 @@
 
 //! Comandos Tauri que usa el frontend. El trabajo pesado (leer, descomprimir,
 //! calcular el hash, SQLite) va a un hilo bloqueante para no frenar la interfaz.
-//! Las miniaturas: `docs/miniaturas.md`.
+//! Las miniaturas: `docs/miniaturas.md`. La edición: `docs/edicion.md`.
 
 use std::collections::HashMap;
 use std::fs;
@@ -14,7 +14,8 @@ use serde::Serialize;
 use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::{AppHandle, Manager, State};
 
-use crate::biblioteca::{Biblioteca, Detalle, Entrada, Importacion};
+use crate::biblioteca::{Biblioteca, Detalle, Edicion, Entrada, Importacion, Version};
+use crate::edicion::{Cambio, Reemplazo};
 use crate::error::ErrorApp;
 use crate::malla::{self, BloqueSeleccionado, CacheVisor, DatosAtlas, FuenteTexturas, Mundo};
 use crate::materiales::{self, ListaMateriales, Opciones};
@@ -211,6 +212,67 @@ pub fn escribir_texto(ruta: &Path, contenido: &str) -> Result<(), ErrorApp> {
 #[tauri::command]
 pub async fn guardar_texto(ruta: String, contenido: String) -> Result<(), ErrorApp> {
     en_segundo_plano(move || escribir_texto(Path::new(&ruta), &contenido)).await
+}
+
+/// Aplica cambios puntuales y reemplazos a la copia de la biblioteca
+/// (docs/edicion.md). La versión anterior queda en el historial.
+#[tauri::command]
+pub async fn aplicar_cambios(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    cache: State<'_, Arc<CacheVisor>>,
+    id: String,
+    cambios: Vec<Cambio>,
+    reemplazos: Vec<Reemplazo>,
+) -> Result<Edicion, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    let c = cache.inner().clone();
+    en_segundo_plano(move || {
+        let r = b.aplicar_cambios(&id, &cambios, &reemplazos);
+        // El visor tiene que volver a leer el archivo.
+        c.olvidar(&id);
+        r
+    })
+    .await
+}
+
+/// Versiones anteriores de un schematic, de la más reciente a la más antigua.
+#[tauri::command]
+pub async fn historial(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    id: String,
+) -> Result<Vec<Version>, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    en_segundo_plano(move || b.historial(&id)).await
+}
+
+/// Vuelve a una versión del historial (la actual pasa antes al historial).
+#[tauri::command]
+pub async fn restaurar_version(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    cache: State<'_, Arc<CacheVisor>>,
+    id: String,
+    version: i64,
+) -> Result<Edicion, ErrorApp> {
+    let b = biblioteca.inner().clone();
+    let c = cache.inner().clone();
+    en_segundo_plano(move || {
+        let r = b.restaurar_version(&id, version);
+        c.olvidar(&id);
+        r
+    })
+    .await
+}
+
+/// Escribe la copia actual como .litematic en la ruta elegida con el diálogo
+/// de guardar (absoluta y acabada en `.litematic`).
+#[tauri::command]
+pub async fn exportar_schematic(
+    biblioteca: State<'_, Arc<Biblioteca>>,
+    id: String,
+    ruta: String,
+) -> Result<(), ErrorApp> {
+    let b = biblioteca.inner().clone();
+    en_segundo_plano(move || b.exportar(&id, Path::new(&ruta))).await
 }
 
 /// Schematic combinado del id, leído y parseado del archivo (sin caché).

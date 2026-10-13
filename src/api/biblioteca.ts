@@ -68,6 +68,8 @@ export type TipoError =
   | "versionBiblioteca"
   | "carpetaMinecraft"
   | "miniaturaInvalida"
+  | "edicionInvalida"
+  | "versionNoEncontrada"
   | "interno";
 
 /** Error de los comandos de Rust; `mensaje` viene en español, listo para enseñar. */

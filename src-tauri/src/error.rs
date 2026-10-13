@@ -9,7 +9,7 @@ use std::io;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
-use crate::schematic::ErrorSchematic;
+use crate::schematic::{ErrorEscritura, ErrorSchematic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ErrorApp {
@@ -67,6 +67,14 @@ pub enum ErrorApp {
     #[error("La miniatura no es válida: {0}.")]
     MiniaturaInvalida(String),
 
+    /// Un cambio, un reemplazo o un block state que manda el frontend no vale
+    /// (texto para el usuario).
+    #[error("{0}")]
+    EdicionInvalida(String),
+
+    #[error("Esa versión ya no está en el historial del schematic.")]
+    VersionNoEncontrada,
+
     #[error("Error interno de la aplicación.")]
     Interno(String),
 }
@@ -108,6 +116,8 @@ impl ErrorApp {
             ErrorApp::VersionBiblioteca => "versionBiblioteca",
             ErrorApp::CarpetaMinecraft(_) => "carpetaMinecraft",
             ErrorApp::MiniaturaInvalida(_) => "miniaturaInvalida",
+            ErrorApp::EdicionInvalida(_) => "edicionInvalida",
+            ErrorApp::VersionNoEncontrada => "versionNoEncontrada",
             ErrorApp::Interno(_) => "interno",
         }
     }
@@ -116,6 +126,17 @@ impl ErrorApp {
         ErrorApp::Io {
             accion: accion.into(),
             fuente,
+        }
+    }
+
+    /// Traduce un error del escritor de .litematic.
+    pub fn de_escritura(e: ErrorEscritura) -> Self {
+        match e {
+            ErrorEscritura::Io(fuente) => ErrorApp::io("guardar el schematic", fuente),
+            ErrorEscritura::Invalido(d) => {
+                ErrorApp::EdicionInvalida(format!("No se puede guardar como .litematic: {d}."))
+            }
+            ErrorEscritura::Nbt(d) => ErrorApp::Interno(d),
         }
     }
 

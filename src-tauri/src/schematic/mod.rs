@@ -5,6 +5,7 @@
 //! a un modelo común. El formato se detecta por el contenido, nunca por la
 //! extensión del archivo.
 
+mod escritor_litematic;
 mod estructura;
 mod litematic;
 mod mcedit;
@@ -18,8 +19,12 @@ use std::io::Read;
 use serde::Deserialize;
 use serde::de::IgnoredAny;
 
+pub use escritor_litematic::{
+    ErrorEscritura, OpcionesLitematic, VERSION_DATOS_POR_DEFECTO, VERSION_LITEMATIC,
+    escribir_empaquetado, escribir_litematic, escribir_litematic_en,
+};
 pub use litematic::leer_empaquetado;
-pub use modelo::{Dimensiones, Formato, Region, Schematic, es_aire};
+pub use modelo::{Dimensiones, ExtrasRegion, Formato, Region, Schematic, es_aire};
 pub use sponge::leer_varints;
 
 /// Máximo de posiciones (sumando regiones) que se aceptan: 512 Mi.

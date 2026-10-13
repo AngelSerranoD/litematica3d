@@ -178,6 +178,8 @@ fn construir(
         tamano,
         paleta: paleta.en_vec(),
         bloques: indices,
+        // Las entidades y entidades de bloque de este formato no se conservan.
+        extras: Default::default(),
     }];
     Ok(Schematic {
         formato: Formato::Sponge,

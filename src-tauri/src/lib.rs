@@ -4,6 +4,7 @@
 pub mod argumentos;
 pub mod biblioteca;
 pub mod comandos;
+pub mod edicion;
 pub mod error;
 pub mod malla;
 pub mod materiales;
@@ -68,6 +69,10 @@ pub fn run() {
             comandos::marcar,
             comandos::nombres_items,
             comandos::guardar_texto,
+            comandos::aplicar_cambios,
+            comandos::historial,
+            comandos::restaurar_version,
+            comandos::exportar_schematic,
             comandos::malla,
             comandos::malla_miniatura,
             comandos::guardar_miniatura,

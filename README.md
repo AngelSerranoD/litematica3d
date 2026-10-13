@@ -14,6 +14,9 @@ modos: exacto, en stacks y en shulkers. Funciona sin conexión.
   (detección por contenido, no por extensión) y biblioteca en
   `%APPDATA%\com.aserrano.litematica3d\` (copias de los archivos e índice
   SQLite). Eliminar manda el archivo a la Papelera de Windows.
+- Edición: cambios puntuales y reemplazos sobre la copia de la biblioteca,
+  guardada siempre como `.litematic`, con historial de 20 versiones para
+  deshacer y exportación. Contrato en [docs/edicion.md](docs/edicion.md).
 - Visor 3D: mallado en Rust por chunks de 16³ (caras ocultas, greedy meshing,
   modelos aproximados) enviado en binario. Contrato en
   [docs/visor.md](docs/visor.md).

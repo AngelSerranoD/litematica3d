@@ -709,6 +709,7 @@ fn mundo_simple() -> Mundo {
             "minecraft:dirt".into(),
         ],
         bloques: vec![1, 2],
+        extras: Default::default(),
     }];
     Mundo::desde_schematic(&Schematic {
         formato: Formato::Litematic,

@@ -29,6 +29,7 @@ fn fila(nombre: &str, origen: [i32; 3], estados: &[(&str, u32)]) -> Region {
         },
         paleta,
         bloques,
+        extras: Default::default(),
     }
 }
 
@@ -420,6 +421,7 @@ fn filtro_por_altura_en_coordenadas_del_schematic() {
         },
         paleta: paleta.iter().map(|s| s.to_string()).collect(),
         // Capa y local -> índice de paleta y (dos bloques por capa).
+        extras: Default::default(),
         bloques: vec![0, 0, 1, 1, 2, 2, 3, 3],
     };
     let s = schem(vec![

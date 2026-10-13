@@ -76,6 +76,21 @@ pub struct Region {
     /// Índice en `paleta` de cada posición, en orden `(y*largo + z)*ancho + x`.
     #[serde(skip)]
     pub bloques: Vec<u32>,
+    /// Datos de la región que el visor no interpreta pero que se conservan al
+    /// reescribirla como .litematic. Solo los rellena el lector de .litematic.
+    #[serde(skip)]
+    pub extras: ExtrasRegion,
+}
+
+/// NBT crudo de una región .litematic: entidades de bloque, entidades y ticks
+/// pendientes. `None` significa que el original no lo traía (o que venía de
+/// otro formato); al escribir se sustituye por una lista vacía.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct ExtrasRegion {
+    pub entidades_bloque: Option<fastnbt::Value>,
+    pub entidades: Option<fastnbt::Value>,
+    pub ticks_bloque: Option<fastnbt::Value>,
+    pub ticks_fluido: Option<fastnbt::Value>,
 }
 
 impl Region {

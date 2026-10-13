@@ -72,8 +72,14 @@ siguen enseñando hasta que llegan los nuevos.
 
 ### `eliminar`
 
-Manda a la Papelera la copia y la miniatura en una sola operación (lo que ya
-no exista se salta) y quita la fila.
+Manda a la Papelera la copia, la miniatura y la carpeta de historial en una
+sola operación (lo que ya no exista se salta) y quita sus filas.
+
+### `aplicar_cambios` y `restaurar_version`
+
+Al editar un schematic (docs/edicion.md) su miniatura queda obsoleta
+(`miniatura_texturas = NULL` para ese id): el PNG viejo se sigue viendo hasta
+que la cola lo regenera.
 
 ## 4. Render (`src/componentes/visor/miniatura3d.ts`)
 

@@ -11,6 +11,13 @@
 //! - v3: columnas `miniatura_fecha` y `miniatura_texturas` de `schematics`
 //!   (miniatura isométrica en `<datos>/biblioteca/<uuid>.miniatura.png`, ver
 //!   `docs/miniaturas.md`).
+//! - v4: tabla `historial` (versiones anteriores de cada schematic editado,
+//!   en `<datos>/biblioteca/historial/<uuid>/<versión>.<ext>`, ver
+//!   `docs/edicion.md`).
+
+mod historial;
+
+pub use historial::{Edicion, MAX_VERSIONES, Motivo, Version};
 
 use std::fs;
 use std::io;
@@ -26,7 +33,7 @@ use crate::error::ErrorApp;
 use crate::schematic::{self, Dimensiones, Formato, Schematic};
 
 /// Versión del esquema de la base de datos (`PRAGMA user_version`).
-const VERSION_ESQUEMA: i32 = 3;
+const VERSION_ESQUEMA: i32 = 4;
 
 /// Longitud máxima de un nombre, en caracteres.
 pub const MAX_NOMBRE: usize = 200;
@@ -111,15 +118,44 @@ pub enum Importacion {
     Duplicado(Entrada),
 }
 
+/// Destino de lo que se borra. La app usa la Papelera del sistema; las
+/// pruebas, una que se puede inspeccionar (o hacer fallar).
+pub trait Papelera: Send + Sync {
+    /// Manda los archivos o carpetas a la Papelera, todos en una operación.
+    /// Error: texto técnico para el registro.
+    fn enviar(&self, rutas: &[PathBuf]) -> Result<(), String>;
+}
+
+/// Papelera de reciclaje del sistema (crate `trash`). Nunca borra del todo.
+pub struct PapeleraSistema;
+
+impl Papelera for PapeleraSistema {
+    fn enviar(&self, rutas: &[PathBuf]) -> Result<(), String> {
+        trash::delete_all(rutas).map_err(|e| e.to_string())
+    }
+}
+
 pub struct Biblioteca {
     dir: PathBuf,
     conn: Mutex<Connection>,
+    papelera: Box<dyn Papelera>,
+    /// Una sola edición a la vez (aplicar, restaurar, eliminar): cada una lee
+    /// la copia actual, la archiva y la sustituye, y no deben cruzarse.
+    edicion: Mutex<()>,
 }
 
 impl Biblioteca {
     /// Abre (o crea) la biblioteca dentro de `dir_datos`. Sirve igual para la
     /// app (`app_data_dir`) que para los tests (un directorio temporal).
     pub fn abrir(dir_datos: &Path) -> Result<Self, ErrorApp> {
+        Self::abrir_con_papelera(dir_datos, Box::new(PapeleraSistema))
+    }
+
+    /// Como [`Biblioteca::abrir`], con otra Papelera (para las pruebas).
+    pub fn abrir_con_papelera(
+        dir_datos: &Path,
+        papelera: Box<dyn Papelera>,
+    ) -> Result<Self, ErrorApp> {
         let dir = dir_datos.join("biblioteca");
         fs::create_dir_all(&dir)
             .map_err(|e| ErrorApp::io("crear la carpeta de la biblioteca", e))?;
@@ -134,6 +170,8 @@ impl Biblioteca {
         Ok(Biblioteca {
             dir,
             conn: Mutex::new(conn),
+            papelera,
+            edicion: Mutex::new(()),
         })
     }
 
@@ -145,6 +183,10 @@ impl Biblioteca {
     fn conexion(&self) -> MutexGuard<'_, Connection> {
         // Un panic con el candado cogido no deja la conexión inservible.
         self.conn.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    fn candado_edicion(&self) -> MutexGuard<'_, ()> {
+        self.edicion.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// Importa un archivo: lo valida, lo copia y lo registra. Si algo falla no
@@ -298,18 +340,21 @@ impl Biblioteca {
     /// Entrada y schematic completo (con bloques) de un id.
     pub fn cargar(&self, id: &str) -> Result<(Entrada, Schematic), ErrorApp> {
         let (entrada, ruta) = self.entrada_y_ruta(id)?;
-        let bytes = match fs::read(self.dir.join(&ruta)) {
-            Ok(b) => b,
-            Err(e) if e.kind() == io::ErrorKind::NotFound => {
-                return Err(ErrorApp::ArchivoPerdido {
-                    nombre: entrada.nombre,
-                });
-            }
-            Err(e) => return Err(ErrorApp::io(format!("leer «{}»", entrada.nombre), e)),
-        };
+        let bytes = self.leer_interno(&entrada.nombre, &ruta)?;
         let schem =
             schematic::cargar(&bytes).map_err(|e| ErrorApp::de_schematic(e, &entrada.nombre))?;
         Ok((entrada, schem))
+    }
+
+    /// Bytes de un archivo de la biblioteca (`ruta` relativa a su carpeta).
+    fn leer_interno(&self, nombre: &str, ruta: &str) -> Result<Vec<u8>, ErrorApp> {
+        match fs::read(self.dir.join(ruta)) {
+            Ok(b) => Ok(b),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => Err(ErrorApp::ArchivoPerdido {
+                nombre: nombre.to_string(),
+            }),
+            Err(e) => Err(ErrorApp::io(format!("leer «{nombre}»"), e)),
+        }
     }
 
     /// Cambia el nombre visible (no el archivo). Vacío o > 200 caracteres: error.
@@ -335,12 +380,18 @@ impl Biblioteca {
         Ok(self.entrada_y_ruta(id)?.0)
     }
 
-    /// Mueve la copia y su miniatura a la Papelera y quita la fila. Lo que ya
-    /// no exista se salta: si no queda ningún archivo, solo quita la fila.
+    /// Mueve la copia, su miniatura y su carpeta de historial a la Papelera y
+    /// quita sus filas. Lo que ya no exista se salta: si no queda ningún
+    /// archivo, solo quita las filas.
     pub fn eliminar(&self, id: &str) -> Result<(), ErrorApp> {
+        let _edicion = self.candado_edicion();
         let (entrada, ruta) = self.entrada_y_ruta(id)?;
-        let mut archivos = Vec::with_capacity(2);
-        for archivo in [self.dir.join(&ruta), ruta_miniatura(&self.dir, id)] {
+        let mut archivos = Vec::with_capacity(3);
+        let mut candidatos = vec![self.dir.join(&ruta), ruta_miniatura(&self.dir, id)];
+        if id_valido(id) {
+            candidatos.push(historial::carpeta(&self.dir, id));
+        }
+        for archivo in candidatos {
             let existe = archivo.try_exists().map_err(|e| {
                 ErrorApp::io(format!("comprobar los archivos de «{}»", entrada.nombre), e)
             })?;
@@ -349,15 +400,18 @@ impl Biblioteca {
             }
         }
         if !archivos.is_empty() {
-            // Los dos en la misma operación de la Papelera.
-            trash::delete_all(&archivos).map_err(|e| ErrorApp::Papelera {
-                nombre: entrada.nombre.clone(),
-                detalle: e.to_string(),
-            })?;
+            // Todo en la misma operación de la Papelera.
+            self.papelera
+                .enviar(&archivos)
+                .map_err(|detalle| ErrorApp::Papelera {
+                    nombre: entrada.nombre.clone(),
+                    detalle,
+                })?;
         }
         let mut conn = self.conexion();
         let tx = conn.transaction()?;
         tx.execute("DELETE FROM comprobacion WHERE schematic_id = ?1", [id])?;
+        tx.execute("DELETE FROM historial WHERE schematic_id = ?1", [id])?;
         tx.execute("DELETE FROM schematics WHERE id = ?1", [id])?;
         tx.commit()?;
         Ok(())
@@ -513,6 +567,28 @@ fn migrar(conn: &mut Connection) -> Result<(), ErrorApp> {
             "ALTER TABLE schematics ADD COLUMN miniatura_fecha INTEGER;
              ALTER TABLE schematics ADD COLUMN miniatura_texturas TEXT;
              PRAGMA user_version = 3;",
+        )?;
+        tx.commit()?;
+    }
+    if version < 4 {
+        // `version`: marca en ms, única por schematic (también da nombre al
+        // archivo); `fecha`: cuándo se archivó. `ruta`, relativa a la
+        // carpeta de la biblioteca.
+        let tx = conn.transaction()?;
+        tx.execute_batch(
+            "CREATE TABLE historial (
+                 schematic_id TEXT NOT NULL REFERENCES schematics (id) ON DELETE CASCADE,
+                 version INTEGER NOT NULL,
+                 fecha INTEGER NOT NULL,
+                 formato TEXT NOT NULL,
+                 ruta TEXT NOT NULL,
+                 motivo TEXT NOT NULL,
+                 cambios INTEGER NOT NULL,
+                 total_bloques INTEGER NOT NULL,
+                 tamano_archivo INTEGER NOT NULL,
+                 PRIMARY KEY (schematic_id, version)
+             ) WITHOUT ROWID;
+             PRAGMA user_version = 4;",
         )?;
         tx.commit()?;
     }

@@ -6,7 +6,7 @@
 
 use serde::Deserialize;
 
-use super::modelo::{Formato, Region, Schematic, caja_englobante};
+use super::modelo::{ExtrasRegion, Formato, Region, Schematic, caja_englobante};
 use super::nbt::{EntradaPaleta, MapaOrdenado, deserializar};
 use super::{ErrorSchematic, MAX_POSICIONES, Paleta, reservar_bloques, texto_util, validar_tamano};
 
@@ -49,6 +49,15 @@ struct RegionNbt {
     paleta: Vec<EntradaPaleta>,
     #[serde(rename = "BlockStates")]
     estados: fastnbt::LongArray,
+    // Se guardan como NBT crudo para poder reescribir el archivo sin perderlos.
+    #[serde(rename = "TileEntities")]
+    entidades_bloque: Option<fastnbt::Value>,
+    #[serde(rename = "Entities")]
+    entidades: Option<fastnbt::Value>,
+    #[serde(rename = "PendingBlockTicks")]
+    ticks_bloque: Option<fastnbt::Value>,
+    #[serde(rename = "PendingFluidTicks")]
+    ticks_fluido: Option<fastnbt::Value>,
 }
 
 pub(crate) fn leer(datos: &[u8]) -> Result<Schematic, ErrorSchematic> {
@@ -158,6 +167,12 @@ fn leer_region(nombre: String, r: RegionNbt) -> Result<Region, ErrorSchematic> {
         tamano,
         paleta: paleta.en_vec(),
         bloques,
+        extras: ExtrasRegion {
+            entidades_bloque: r.entidades_bloque,
+            entidades: r.entidades,
+            ticks_bloque: r.ticks_bloque,
+            ticks_fluido: r.ticks_fluido,
+        },
     })
 }
 

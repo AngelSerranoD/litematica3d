@@ -43,3 +43,20 @@ export async function elegirCarpetaMinecraft(desde?: string): Promise<string | n
   });
   return typeof ruta === "string" ? ruta : null;
 }
+
+/**
+ * Pide dónde exportar un schematic. Devuelve `null` si se cancela. Se asegura
+ * de que la ruta acabe en `.litematic` (`exportar_schematic` solo acepta esa
+ * extensión).
+ */
+export async function elegirDestinoLitematic(nombrePropuesto: string): Promise<string | null> {
+  const ruta = await save({
+    title: "Exportar schematic",
+    defaultPath: /\.litematic$/i.test(nombrePropuesto)
+      ? nombrePropuesto
+      : `${nombrePropuesto}.litematic`,
+    filters: [{ name: "Litematica (.litematic)", extensions: ["litematic"] }],
+  });
+  if (!ruta) return null;
+  return /\.litematic$/i.test(ruta) ? ruta : `${ruta}.litematic`;
+}

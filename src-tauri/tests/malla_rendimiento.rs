@@ -57,6 +57,7 @@ fn schematic(paleta: &[&str], elegir: impl Fn(u32, u32, u32, u32) -> u32) -> Sch
             tamano,
             paleta: paleta.iter().map(|s| s.to_string()).collect(),
             bloques,
+            extras: Default::default(),
         }],
     }
 }
