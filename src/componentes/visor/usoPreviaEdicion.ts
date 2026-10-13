@@ -56,7 +56,7 @@ export function usoPreviaEdicion(malla: Malla, conAtlas: boolean) {
       const d = destinoDe(r.estadoDestino);
       if (d) porOrigen.set(claveVisual(r.estadoOrigen), d);
     }
-    // La trama marca la familia mientras se elige destino; con un destino
+    // El contorno acento marca la familia mientras se elige destino; con un destino
     // elegido, lo que se ve es ya la previsualización.
     const resaltados = new Set<string>();
     if (familia?.estado === "lista" && familia.destino === null && familia.pidiendoPlan === null)

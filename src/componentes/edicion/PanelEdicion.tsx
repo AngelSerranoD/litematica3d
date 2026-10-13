@@ -414,7 +414,7 @@ function recorrerLista(e: KeyboardEvent<HTMLUListElement>) {
 
 /**
  * Familia del bloque pinchado: cuántos bloques tiene en el schematic (se ven
- * con una trama en el visor), las familias por las que cambiarla y la tabla
+ * con un contorno acento en el visor), las familias por las que cambiarla y la tabla
  * origen → destino, donde cada destino se puede cambiar con su lista de
  * parecidos. Lo elegido queda pendiente como cualquier otro cambio.
  */
@@ -498,7 +498,7 @@ function SeccionFamilia({ familia }: { familia: SeleccionFamilia }) {
           <p className="edicion__ayuda">
             {familia.destino
               ? "El modelo ya muestra el cambio. Puedes ajustar cada bloque en la tabla."
-              : "Sus bloques van tramados en el modelo. Elige la familia por la que cambiarlos:"}
+              : "Sus bloques van con contorno en el modelo. Elige la familia por la que cambiarlos:"}
           </p>
           {familia.destinos && familia.destinos.length > 0 && (
             <>

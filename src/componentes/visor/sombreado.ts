@@ -46,7 +46,7 @@ export interface UniformsVisor {
   uCeldaMarcada: IUniform<Vector3>;
   /** Tinte de la celda marcada (token `--seleccion`). */
   uColorMarca: IUniform<Color>;
-  /** Color de la trama de los materiales resaltados (familia seleccionada). */
+  /** Color del contorno de los materiales resaltados (familia seleccionada). */
   uColorResalte: IUniform<Color>;
 }
 
@@ -71,7 +71,7 @@ export interface DestinoPrevia {
  * Previsualización de la edición sobre la tabla de materiales: sin tocar la
  * geometría, cada material cuyo estado visual es el origen de un reemplazo
  * pendiente toma la celda, el giro y el color del destino (misma forma →
- * mismos quads), y los de la familia seleccionada llevan una trama.
+ * mismos quads), y los de la familia seleccionada llevan un contorno de color acento.
  */
 export interface PreviaMateriales {
   /** Por estado visual de origen (`claveVisual`). */
@@ -234,14 +234,17 @@ void main() {
     color.rgb *= 1.0 - 0.16 * linea * cerca * uBordes;
   }
 
-  // Familia seleccionada: trama diagonal de plano técnico (tres rayas por
-  // bloque). A lo lejos, donde las rayas serían ruido, se funde en un tinte.
+  // Familia seleccionada: contorno de color acento en el borde de cada cara
+  // (marco con la coordenada local de la cara; la textura del centro queda
+  // intacta). El grosor es un 9 % del bloque, con un mínimo de 1,5 píxeles
+  // para que a lo lejos siga viéndose como una línea y no como ruido.
   if (vResalte > 0.5) {
-    float t = (vUv.x + vUv.y) * 3.0;
-    float w = max(fwidth(t), 1e-4);
-    float raya = 1.0 - smoothstep(0.25 - w, 0.25 + w, abs(fract(t) - 0.5));
-    raya = mix(raya, 0.5, clamp(w * 2.0 - 0.5, 0.0, 1.0));
-    color.rgb = mix(color.rgb * 0.75, uColorResalte, 0.7 * raya);
+    vec2 local = fract(vUv);
+    vec2 paso = max(fwidth(vUv), vec2(1e-5));
+    vec2 d = min(local, 1.0 - local);
+    vec2 grosor = max(vec2(0.09), paso * 1.5);
+    vec2 m = 1.0 - smoothstep(grosor - paso, grosor, d);
+    color.rgb = mix(color.rgb, uColorResalte, max(m.x, m.y));
   }
   // Bloque pinchado en Modificar: tinte de selección (sin geometría extra).
   if (uMarcar > 0.5 && all(equal(celdaFragmento, uCeldaMarcada))) {
