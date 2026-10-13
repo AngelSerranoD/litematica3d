@@ -189,7 +189,7 @@ export function Visor3D({ id, marcador }: Props) {
   else
     nota = (
       <p className="visor3d__nota">
-        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar ·{" "}
+        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar · Con el foco en el visor: flechas giran, +/− acercan ·{" "}
         {modo === "modificar"
           ? "Clic: elegir bloque · Mayús+clic: su familia"
           : "Clic: inspeccionar"}

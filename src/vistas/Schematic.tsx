@@ -154,7 +154,9 @@ export function Schematic({ id }: { id: string }) {
       >
         <div className="schematic__marco">
           <motion.div
+            id="contenido-principal"
             className="schematic__visor"
+            tabIndex={-1}
             layoutId={idVisor(id)}
             transition={{ layout: muelle("compartido") }}
           >

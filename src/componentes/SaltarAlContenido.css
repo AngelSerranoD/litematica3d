@@ -1,0 +1,27 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* Fuera de pantalla hasta recibir el foco; entonces aparece sobre la barra de
+   título, plano y con filete. */
+.saltar {
+  position: fixed;
+  top: var(--esp-2);
+  left: var(--esp-2);
+  z-index: 1000;
+  padding: var(--esp-2) var(--esp-4);
+  background-color: var(--superficie);
+  color: var(--tinta);
+  border: var(--grosor-filete) solid var(--filete-fuerte);
+  border-radius: 2px;
+  font-size: var(--t-3);
+  text-decoration: none;
+  transform: translateY(-300%);
+}
+
+.saltar:focus {
+  transform: none;
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: 2px;
+}

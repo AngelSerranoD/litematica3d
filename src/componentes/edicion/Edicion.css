@@ -340,6 +340,11 @@
   color: var(--tinta-2);
 }
 
+/* La familia seleccionada se marca con un filete de color acento (sin trama). */
+.familia-edicion {
+  border-left: 2px solid var(--acento);
+}
+
 .familia-edicion:focus {
   outline: none;
 }

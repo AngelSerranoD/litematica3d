@@ -461,7 +461,13 @@ export function Biblioteca({ soltando }: { soltando: boolean }) {
       {/* Sin layoutScroll: medir el desplazamiento en cada uno de los 500 nodos
           costaba más que todo lo demás, y el vuelo compartido cae bien igual
           (el desplazamiento se restaura antes de que Motion mida). */}
-      <div ref={cuerpo} className="biblioteca__cuerpo" onKeyDown={alPulsarTecla}>
+      <div
+        ref={cuerpo}
+        id="contenido-principal"
+        className="biblioteca__cuerpo"
+        tabIndex={-1}
+        onKeyDown={alPulsarTecla}
+      >
         {contenido}
       </div>
     </motion.section>

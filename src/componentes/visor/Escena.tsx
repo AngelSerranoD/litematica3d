@@ -22,6 +22,7 @@ import {
   LineBasicMaterial,
   PerspectiveCamera,
   Raycaster,
+  Spherical,
   Vector2,
   Vector3,
 } from "three";
@@ -251,7 +252,12 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
     };
   }, [gl, camera, id]);
 
-  // ── Teclado: el lienzo recibe foco (Tab) y las flechas desplazan la cámara.
+  // ── Teclado: el lienzo recibe foco (Tab). Con el foco en él, las flechas
+  // giran la cámara alrededor del objetivo (izquierda/derecha: azimut;
+  // arriba/abajo: elevación, dentro de los límites de OrbitControls) y +/-
+  // acercan y alejan. Mayús da pasos más grandes. Cada pulsación es un paso
+  // discreto (sin animación), así que no hay nada que reducir con
+  // prefers-reduced-motion.
   useEffect(() => {
     const lienzo = gl.domElement;
     const ctrl = controles.current;
@@ -259,11 +265,41 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
     lienzo.setAttribute("role", "application");
     lienzo.setAttribute(
       "aria-label",
-      "Visor 3D del schematic. Flechas: desplazar la vista. F: encuadrar",
+      "Visor 3D del schematic. Flechas: girar la vista. Más y menos: acercar y alejar. F: encuadrar",
     );
-    ctrl?.listenToKeyEvents(lienzo);
-    return () => ctrl?.stopListenToKeyEvents();
-  }, [gl]);
+    if (!ctrl) return;
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const paso = e.shiftKey ? 0.25 : 0.08; // radianes por pulsación
+      const factor = e.shiftKey ? 0.75 : 0.9; // escala de la distancia al acercar
+      let azimut = 0;
+      let elevacion = 0;
+      let escala = 1;
+      switch (e.key) {
+        case "ArrowLeft": azimut = -paso; break;
+        case "ArrowRight": azimut = paso; break;
+        case "ArrowUp": elevacion = -paso; break; // cámara hacia arriba (polar menor)
+        case "ArrowDown": elevacion = paso; break;
+        case "+": case "=": escala = factor; break;
+        case "-": case "_": escala = 1 / factor; break;
+        default:
+          if (e.code === "NumpadAdd") escala = factor;
+          else if (e.code === "NumpadSubtract") escala = 1 / factor;
+          else return;
+      }
+      e.preventDefault();
+      const esfera = new Spherical().setFromVector3(camera.position.clone().sub(ctrl.target));
+      esfera.theta += azimut;
+      esfera.phi = Math.min(ctrl.maxPolarAngle, Math.max(ctrl.minPolarAngle, esfera.phi + elevacion));
+      esfera.radius = Math.min(ctrl.maxDistance, Math.max(ctrl.minDistance, esfera.radius * escala));
+      esfera.makeSafe();
+      camera.position.copy(ctrl.target).add(new Vector3().setFromSpherical(esfera));
+      ctrl.update();
+      invalidate();
+    };
+    lienzo.addEventListener("keydown", alPulsar);
+    return () => lienzo.removeEventListener("keydown", alPulsar);
+  }, [gl, camera, invalidate]);
 
   // ── Aviso de listo tras el primer fotograma con la malla.
   const avisado = useRef(false);

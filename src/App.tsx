@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig } from "motion/react";
 import { Avisos, ZonaSoltar } from "./componentes/Avisos";
+import { SaltarAlContenido } from "./componentes/SaltarAlContenido";
 import { BarraTitulo } from "./componentes/BarraTitulo";
 import { PanelAjustes } from "./componentes/PanelAjustes";
 import { useAjustes } from "./estado/ajustes";
@@ -61,6 +62,7 @@ export default function App() {
     // anula transformaciones y vuelos de layout y deja solo la opacidad.
     <MotionConfig reducedMotion="user" transition={muelle("vista")}>
       <div className="app">
+        <SaltarAlContenido />
         <BarraTitulo />
         <main className="app__vistas papel">
           <LayoutGroup>
