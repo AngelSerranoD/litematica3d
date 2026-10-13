@@ -50,6 +50,13 @@ pub const LADO_MINIATURA: std::ops::RangeInclusive<u32> = 64..=1024;
 /// Longitud máxima de la clave de texturas de una miniatura.
 pub const MAX_CLAVE_TEXTURAS: usize = 100;
 
+/// Tamaño máximo, en bytes, del archivo que se importa: 256 MiB. Va a juego
+/// con [`schematic::MAX_BYTES_DESCOMPRIMIDOS`] (1 GiB): el NBT de un schematic
+/// comprime de 4 a 10 veces, así que un archivo más grande casi nunca cabría
+/// descomprimido, y no vale la pena leerlo entero en memoria para descubrirlo.
+/// Los schematics reales más grandes rondan unas decenas de MiB.
+pub const MAX_BYTES_IMPORTAR: u64 = 256 * 1024 * 1024;
+
 const COLUMNAS: &str = "id, nombre, autor, descripcion, formato, ancho, alto, largo, \
      total_bloques, regiones, version_datos, fecha_creacion, fecha_importacion, \
      nombre_original, tamano_archivo, miniatura_fecha, miniatura_texturas";
@@ -196,8 +203,7 @@ impl Biblioteca {
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_else(|| ruta.display().to_string());
-        let bytes =
-            fs::read(ruta).map_err(|e| ErrorApp::io(format!("leer «{nombre_archivo}»"), e))?;
+        let bytes = leer_acotado(ruta, &nombre_archivo)?;
         let hash = sha256_hex(&bytes);
         if let Some(e) = self.buscar_por_hash(&hash)? {
             return Ok(Importacion::Duplicado(e));
@@ -384,13 +390,19 @@ impl Biblioteca {
     /// quita sus filas. Lo que ya no exista se salta: si no queda ningún
     /// archivo, solo quita las filas.
     pub fn eliminar(&self, id: &str) -> Result<(), ErrorApp> {
+        // Como en `guardar_miniatura`: el id forma rutas (miniatura e
+        // historial), así que se valida antes de nada.
+        if !id_valido(id) {
+            return Err(ErrorApp::NoEncontrado);
+        }
         let _edicion = self.candado_edicion();
         let (entrada, ruta) = self.entrada_y_ruta(id)?;
         let mut archivos = Vec::with_capacity(3);
-        let mut candidatos = vec![self.dir.join(&ruta), ruta_miniatura(&self.dir, id)];
-        if id_valido(id) {
-            candidatos.push(historial::carpeta(&self.dir, id));
-        }
+        let candidatos = [
+            self.dir.join(&ruta),
+            ruta_miniatura(&self.dir, id),
+            historial::carpeta(&self.dir, id),
+        ];
         for archivo in candidatos {
             let existe = archivo.try_exists().map_err(|e| {
                 ErrorApp::io(format!("comprobar los archivos de «{}»", entrada.nombre), e)
@@ -599,6 +611,39 @@ fn migrar(conn: &mut Connection) -> Result<(), ErrorApp> {
 /// así que no puede chocar con el archivo del schematic.
 fn ruta_miniatura(dir: &Path, id: &str) -> PathBuf {
     dir.join(format!("{id}.miniatura.png"))
+}
+
+/// Lee el archivo que se va a importar sin pasar de [`MAX_BYTES_IMPORTAR`]:
+/// mira el tamaño antes de leer y, por si crece mientras tanto, no lee más
+/// allá del tope.
+fn leer_acotado(ruta: &Path, nombre_archivo: &str) -> Result<Vec<u8>, ErrorApp> {
+    use std::io::Read;
+
+    let accion = || format!("leer «{nombre_archivo}»");
+    let demasiado_grande = || ErrorApp::DemasiadoGrande {
+        archivo: nombre_archivo.to_string(),
+        detalle: format!(
+            "pasa de {} MiB, el máximo que se puede importar",
+            MAX_BYTES_IMPORTAR / (1024 * 1024)
+        ),
+    };
+    let archivo = fs::File::open(ruta).map_err(|e| ErrorApp::io(accion(), e))?;
+    let tamano = archivo
+        .metadata()
+        .map_err(|e| ErrorApp::io(accion(), e))?
+        .len();
+    if tamano > MAX_BYTES_IMPORTAR {
+        return Err(demasiado_grande());
+    }
+    let mut bytes = Vec::with_capacity(tamano as usize);
+    archivo
+        .take(MAX_BYTES_IMPORTAR + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| ErrorApp::io(accion(), e))?;
+    if bytes.len() as u64 > MAX_BYTES_IMPORTAR {
+        return Err(demasiado_grande());
+    }
+    Ok(bytes)
 }
 
 /// Ids que genera la biblioteca (UUID): solo letras, cifras y guiones.

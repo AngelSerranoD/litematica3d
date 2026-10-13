@@ -121,6 +121,50 @@ fn un_error_no_deja_rastro() {
 }
 
 #[test]
+fn importar_rechaza_archivos_demasiado_grandes() {
+    use litematica3d_lib::biblioteca::MAX_BYTES_IMPORTAR;
+
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    let fuera = tempfile::tempdir().unwrap();
+
+    // Un byte por encima del tope. `set_len` no escribe los ceros, así que la
+    // prueba no llena el disco: se rechaza por el tamaño, sin llegar a leerlo.
+    let grande = fuera.path().join("enorme.litematic");
+    fs::File::create(&grande)
+        .unwrap()
+        .set_len(MAX_BYTES_IMPORTAR + 1)
+        .unwrap();
+    let e = b.importar(&grande).unwrap_err();
+    assert_eq!(e.tipo(), "demasiadoGrande");
+    let mensaje = e.to_string();
+    assert!(mensaje.contains("«enorme.litematic»"), "{mensaje}");
+    assert!(mensaje.contains("256 MiB"), "{mensaje}");
+    assert!(copias(&b).is_empty());
+    assert!(b.listar().unwrap().is_empty());
+
+    // Justo en el tope sí se lee: falla después, por no ser un schematic.
+    fs::OpenOptions::new()
+        .write(true)
+        .open(&grande)
+        .unwrap()
+        .set_len(MAX_BYTES_IMPORTAR)
+        .unwrap();
+    assert_ne!(b.importar(&grande).unwrap_err().tipo(), "demasiadoGrande");
+}
+
+#[test]
+fn eliminar_rechaza_ids_que_no_genera_la_biblioteca() {
+    let tmp = tempfile::tempdir().unwrap();
+    let b = Biblioteca::abrir(tmp.path()).unwrap();
+    importado(b.importar(&dato("estructura.nbt")));
+    for id in ["", "../otro", "a/b", "a\\b", "x.miniatura.png"] {
+        assert_eq!(b.eliminar(id).unwrap_err().tipo(), "noEncontrado", "{id:?}");
+    }
+    assert_eq!(b.listar().unwrap().len(), 1);
+}
+
+#[test]
 fn renombrar() {
     let tmp = tempfile::tempdir().unwrap();
     let b = Biblioteca::abrir(tmp.path()).unwrap();

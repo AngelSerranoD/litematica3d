@@ -435,6 +435,18 @@ fn exportar_solo_a_litematic() {
         .unwrap_err();
     assert_eq!(err.tipo(), "nombreInvalido");
     assert!(!Path::new("relativa.litematic").exists());
+    // Ni dentro de la carpeta de copias, donde pisaría la de otro schematic.
+    let copia = ruta_copia(&b, &lit);
+    let antes = fs::read(&copia).unwrap();
+    for destino in [
+        b.carpeta_archivos().join("pisar.litematic"),
+        b.carpeta_archivos().join(format!("{}.litematic", mce.id)),
+    ] {
+        let err = b.exportar(&lit.id, &destino).unwrap_err();
+        assert_eq!(err.tipo(), "nombreInvalido", "{}", destino.display());
+    }
+    assert!(!b.carpeta_archivos().join("pisar.litematic").exists());
+    assert_eq!(fs::read(&copia).unwrap(), antes);
     assert_eq!(
         b.exportar("no-existe", &fuera.join("x.litematic"))
             .unwrap_err()

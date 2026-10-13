@@ -295,6 +295,7 @@ impl Biblioteca {
     /// elegida por el usuario). Si la copia no es .litematic, se convierte.
     pub fn exportar(&self, id: &str, destino: &Path) -> Result<(), ErrorApp> {
         validar_destino_litematic(destino)?;
+        self.fuera_de_la_biblioteca(destino)?;
         let datos = {
             let _edicion = self.candado_edicion();
             let (entrada, ruta) = self.entrada_y_ruta(id)?;
@@ -318,6 +319,22 @@ impl Biblioteca {
             let _ = fs::remove_file(&tmp);
             guardar(e)
         })
+    }
+
+    /// Un destino dentro de la carpeta de copias podría pisar la copia de otro
+    /// schematic (`<id>.litematic`) o su historial: se rechaza. Si la carpeta
+    /// del destino no existe, ya fallará al escribir.
+    fn fuera_de_la_biblioteca(&self, destino: &Path) -> Result<(), ErrorApp> {
+        let (Some(padre), Ok(carpeta)) = (destino.parent(), fs::canonicalize(&self.dir)) else {
+            return Ok(());
+        };
+        if fs::canonicalize(padre).is_ok_and(|p| p.starts_with(&carpeta)) {
+            return Err(ErrorApp::NombreInvalido(
+                "No se puede exportar dentro de la carpeta de la biblioteca; elige otra carpeta."
+                    .into(),
+            ));
+        }
+        Ok(())
     }
 
     /// Siguiente marca de versión libre para `id`: ahora, o una más que la

@@ -172,7 +172,9 @@ elegirDestinoLitematic(nombrePropuesto: string): Promise<string | null> // src/a
 
 Escribe la copia actual en `ruta`, elegida con el diálogo de guardar. Igual
 que `guardar_texto`, solo acepta rutas absolutas que acaben en `.litematic`
-(sin distinguir mayúsculas); si no, `nombreInvalido` y no escribe nada. Si la
+(sin distinguir mayúsculas); si no, `nombreInvalido` y no escribe nada. Tampoco
+deja exportar dentro de la carpeta de copias de la biblioteca (pisaría la copia
+de otro schematic): también `nombreInvalido`. Si la
 copia es `.litematic` sale tal cual; si no, se convierte con el escritor
 (sección 1). Escribe en `<ruta>.tmp` y lo renombra encima: si falla, el
 archivo que hubiera en `ruta` sigue entero. No toca la biblioteca.
