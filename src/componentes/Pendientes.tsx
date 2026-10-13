@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { ESPERA_BORRADO_MS, useBiblioteca, type PendienteDeBorrar } from "../estado/biblioteca";
 import { useFoco } from "../estado/foco";
 import { muelle } from "../estilos/movimiento";
@@ -65,7 +65,7 @@ function FilaPendiente({
   });
 
   return (
-    <motion.div
+    <m.div
       className="pendiente"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -91,7 +91,7 @@ function FilaPendiente({
         Deshacer
         {conAtajo && <kbd>Ctrl Z</kbd>}
       </button>
-    </motion.div>
+    </m.div>
   );
 }
 

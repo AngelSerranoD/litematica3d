@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { formatoNumero } from "../formato";
 import {
   bloquesAfectados,
@@ -96,7 +96,7 @@ function Contenido({
       PREGUNTA_DESCARTE[confirmacion.motivo];
 
   return (
-    <motion.div
+    <m.div
       className="confirmacion-edicion__caja"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -130,6 +130,6 @@ function Contenido({
           {aplicar ? "Aplicar" : "Descartar"}
         </button>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

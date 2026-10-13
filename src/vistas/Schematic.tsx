@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { motion, useIsPresent } from "motion/react";
+import { m, useIsPresent } from "motion/react";
 import { Cifra } from "../componentes/Cifra";
 import { Miniatura } from "../componentes/Miniatura";
 import { ConfirmacionEdicion } from "../componentes/edicion/ConfirmacionEdicion";
@@ -112,7 +112,7 @@ export function Schematic({ id }: { id: string }) {
   const dim = entrada?.dimensiones;
 
   return (
-    <motion.section
+    <m.section
       className="vista"
       aria-labelledby="titulo-schematic"
       variants={varianteVista}
@@ -122,7 +122,7 @@ export function Schematic({ id }: { id: string }) {
       custom={direccion}
       inert={!presente}
     >
-      <motion.header
+      <m.header
         className="vista__cabecera vista__cabecera--schematic"
         variants={variantePieza}
         custom={direccion}
@@ -138,7 +138,7 @@ export function Schematic({ id }: { id: string }) {
           {entrada?.nombre ?? (cargando ? "" : "No encontrado")}
         </h1>
         {entrada && <p className="vista__dato cifras">{nombreFormato(entrada.formato)}</p>}
-      </motion.header>
+      </m.header>
 
       <div
         className={
@@ -150,7 +150,7 @@ export function Schematic({ id }: { id: string }) {
         }
       >
         <div className="schematic__marco">
-          <motion.div
+          <m.div
             id="contenido-principal"
             className="schematic__visor"
             tabIndex={-1}
@@ -175,10 +175,10 @@ export function Schematic({ id }: { id: string }) {
                 Este schematic ya no está en la biblioteca.
               </p>
             )}
-          </motion.div>
+          </m.div>
         </div>
 
-        <motion.aside
+        <m.aside
           className="schematic__ficha"
           aria-label={modo === "modificar" ? "Edición del schematic" : "Datos del schematic"}
           variants={variantePieza}
@@ -295,10 +295,10 @@ export function Schematic({ id }: { id: string }) {
               )}
             </>
           )}
-        </motion.aside>
+        </m.aside>
       </div>
 
       <ConfirmacionEdicion />
-    </motion.section>
+    </m.section>
   );
 }

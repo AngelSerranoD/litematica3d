@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect } from "react";
-import { AnimatePresence, LayoutGroup, MotionConfig } from "motion/react";
+import { AnimatePresence, LayoutGroup, LazyMotion, MotionConfig } from "motion/react";
 import { Avisos, ZonaSoltar } from "./componentes/Avisos";
 import { SaltarAlContenido } from "./componentes/SaltarAlContenido";
 import { BarraTitulo } from "./componentes/BarraTitulo";
@@ -18,6 +18,9 @@ import { muelle } from "./estilos/movimiento";
 import { Biblioteca } from "./vistas/Biblioteca";
 import { Schematic } from "./vistas/Schematic";
 import "./App.css";
+
+// Carga diferida de las funciones de Motion: fuera del chunk de entrada.
+const cargarFunciones = () => import("./estilos/funcionesMotion").then((r) => r.default);
 
 export default function App() {
   const ruta = useNavegacion((s) => s.ruta);
@@ -60,25 +63,27 @@ export default function App() {
   return (
     // reducedMotion="user": con «reducir movimiento» del sistema, Motion
     // anula transformaciones y vuelos de layout y deja solo la opacidad.
-    <MotionConfig reducedMotion="user" transition={muelle("vista")}>
-      <div className="app">
-        <SaltarAlContenido />
-        <BarraTitulo />
-        <main className="app__vistas papel">
-          <LayoutGroup>
-            <AnimatePresence initial={false} custom={direccion}>
-              {ruta.vista === "biblioteca" ? (
-                <Biblioteca key="biblioteca" soltando={soltando} />
-              ) : (
-                <Schematic key={`schematic-${ruta.id}`} id={ruta.id} />
-              )}
-            </AnimatePresence>
-          </LayoutGroup>
-          <ZonaSoltar visible={soltando && !(vacia && ruta.vista === "biblioteca")} />
-          <Avisos />
-          <PanelAjustes />
-        </main>
-      </div>
-    </MotionConfig>
+    <LazyMotion features={cargarFunciones} strict>
+      <MotionConfig reducedMotion="user" transition={muelle("vista")}>
+        <div className="app">
+          <SaltarAlContenido />
+          <BarraTitulo />
+          <main className="app__vistas papel">
+            <LayoutGroup>
+              <AnimatePresence initial={false} custom={direccion}>
+                {ruta.vista === "biblioteca" ? (
+                  <Biblioteca key="biblioteca" soltando={soltando} />
+                ) : (
+                  <Schematic key={`schematic-${ruta.id}`} id={ruta.id} />
+                )}
+              </AnimatePresence>
+            </LayoutGroup>
+            <ZonaSoltar visible={soltando && !(vacia && ruta.vista === "biblioteca")} />
+            <Avisos />
+            <PanelAjustes />
+          </main>
+        </div>
+      </MotionConfig>
+    </LazyMotion>
   );
 }

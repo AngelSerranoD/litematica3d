@@ -3,7 +3,7 @@
 // Lista de bloques parecidos al pinchado (o al origen de una fila de la familia).
 
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { Parecido } from "../../api/parecidos";
 import { useEdicion, type ListaParecidos as Lista } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
@@ -187,7 +187,7 @@ function FilaParecido({
 }) {
   const nombre = useNombre(parecido.estado);
   return (
-    <motion.li
+    <m.li
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{
@@ -209,6 +209,6 @@ function FilaParecido({
           {formatoDistancia(parecido.distancia)}
         </span>
       </button>
-    </motion.li>
+    </m.li>
   );
 }

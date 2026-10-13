@@ -1,7 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useBiblioteca } from "../../estado/biblioteca";
 import { useEdicion, type ModoVisor } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
@@ -23,26 +23,26 @@ export function ConmutadorModo() {
 
   return (
     <div className="modo" role="radiogroup" aria-label="Modo del visor (M)">
-      {MODOS.map((m) => (
-        <label key={m.valor} className="modo__opcion">
+      {MODOS.map((opcion) => (
+        <label key={opcion.valor} className="modo__opcion">
           <input
             type="radio"
             name="modo-visor"
             className="modo__entrada"
-            value={m.valor}
-            checked={modo === m.valor}
+            value={opcion.valor}
+            checked={modo === opcion.valor}
             aria-keyshortcuts="M"
-            onChange={() => fijarModo(m.valor)}
+            onChange={() => fijarModo(opcion.valor)}
           />
-          {modo === m.valor && (
-            <motion.span
+          {modo === opcion.valor && (
+            <m.span
               layoutId="modo-visor-marca"
               className="modo__marca"
               transition={muelle("pulsacion")}
               aria-hidden="true"
             />
           )}
-          <span className="modo__texto">{m.etiqueta}</span>
+          <span className="modo__texto">{opcion.etiqueta}</span>
         </label>
       ))}
       <kbd className="modo__tecla" aria-hidden="true">

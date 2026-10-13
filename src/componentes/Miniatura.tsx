@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { memo, useMemo, useState, type CSSProperties } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { Dimensiones, Miniatura as DatosMiniatura } from "../api/biblioteca";
 import { urlMiniatura } from "../api/miniaturas";
 import { muelle } from "../estilos/movimiento";
@@ -77,7 +77,7 @@ export const Miniatura = memo(function Miniatura({ id, dimensiones, miniatura, l
       onError: () => setRota(url),
     };
     return layoutId ? (
-      <motion.img {...imagen} layoutId={layoutId} transition={{ layout: muelle("compartido") }} />
+      <m.img {...imagen} layoutId={layoutId} transition={{ layout: muelle("compartido") }} />
     ) : (
       <img {...imagen} loading="lazy" />
     );

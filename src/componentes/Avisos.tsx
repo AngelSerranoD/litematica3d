@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { useBiblioteca } from "../estado/biblioteca";
 import { muelle } from "../estilos/movimiento";
 import { Pendientes } from "./Pendientes";
@@ -13,7 +13,7 @@ export function ZonaSoltar({ visible }: { visible: boolean }) {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           className="zona-soltar"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -21,7 +21,7 @@ export function ZonaSoltar({ visible }: { visible: boolean }) {
           transition={muelle("pulsacion")}
         >
           <p className="zona-soltar__texto rotulo">Suelta para importar</p>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
@@ -46,7 +46,7 @@ export function Avisos() {
       <div className="avisos__lista" role="status" aria-live="polite">
         <AnimatePresence initial={false}>
           {avisos.map((a) => (
-            <motion.div
+            <m.div
               key={a.id}
               className="aviso"
               initial={{ opacity: 0 }}
@@ -70,7 +70,7 @@ export function Avisos() {
               <button type="button" className="boton-plano" onClick={() => descartar(a.id)}>
                 Cerrar
               </button>
-            </motion.div>
+            </m.div>
           ))}
         </AnimatePresence>
       </div>

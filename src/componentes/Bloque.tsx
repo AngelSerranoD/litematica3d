@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import type { CSSProperties } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { Dimensiones } from "../api/biblioteca";
 import { muelle } from "../estilos/movimiento";
 import "./Bloque.css";
@@ -77,13 +77,13 @@ export function Bloque({ dimensiones, layoutId, className, style }: Props) {
 
   // El layoutId va en un div: Motion no proyecta layout sobre elementos SVG.
   return (
-    <motion.div
+    <m.div
       className={clase}
       style={style}
       layoutId={layoutId}
       transition={{ layout: muelle("compartido") }}
     >
       {dibujo}
-    </motion.div>
+    </m.div>
   );
 }

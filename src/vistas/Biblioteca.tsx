@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { motion, useIsPresent } from "motion/react";
+import { m, useIsPresent } from "motion/react";
 import { BarraBiblioteca } from "../componentes/BarraBiblioteca";
 import { BibliotecaVacia } from "../componentes/BibliotecaVacia";
 import { Cifra } from "../componentes/Cifra";
@@ -187,7 +187,7 @@ export function Biblioteca({ soltando }: { soltando: boolean }) {
   }
 
   return (
-    <motion.section
+    <m.section
       className="vista vista--biblioteca"
       aria-labelledby="titulo-biblioteca"
       variants={varianteVista}
@@ -197,7 +197,7 @@ export function Biblioteca({ soltando }: { soltando: boolean }) {
       custom={direccion}
       inert={!presente}
     >
-      <motion.header className="vista__cabecera" variants={variantePieza} custom={direccion}>
+      <m.header className="vista__cabecera" variants={variantePieza} custom={direccion}>
         <h1 id="titulo-biblioteca" className="vista__titulo rotulo">
           Biblioteca
         </h1>
@@ -214,11 +214,11 @@ export function Biblioteca({ soltando }: { soltando: boolean }) {
             )}
           </p>
         )}
-      </motion.header>
+      </m.header>
 
-      <motion.div className="biblioteca__barra" variants={variantePieza} custom={direccion}>
+      <m.div className="biblioteca__barra" variants={variantePieza} custom={direccion}>
         <BarraBiblioteca refBuscar={buscar} alSalirDeBusqueda={salirDeBusqueda} />
-      </motion.div>
+      </m.div>
 
       <p id={idAyuda} className="solo-lectores">
         Flechas para moverse, Intro para abrir, F2 para renombrar y Supr para enviar a la Papelera.
@@ -236,6 +236,6 @@ export function Biblioteca({ soltando }: { soltando: boolean }) {
       >
         {contenido}
       </div>
-    </motion.section>
+    </m.section>
   );
 }

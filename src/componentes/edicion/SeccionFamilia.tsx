@@ -3,7 +3,7 @@
 // Selección por familia: familias destino y tabla origen → destino.
 
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { FamiliaParecida } from "../../api/parecidos";
 import { useEdicion, type SeleccionFamilia } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
@@ -170,7 +170,7 @@ function FilaFamiliaDestino({
   const nombre = nombreFamilia(destino.familia);
   const formas = `${destino.formasComunes} ${destino.formasComunes === 1 ? "forma común" : "formas comunes"}`;
   return (
-    <motion.li
+    <m.li
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ ...muelle("pulsacion"), delay: Math.min(indice, 12) * 0.015 }}
@@ -200,6 +200,6 @@ function FilaFamiliaDestino({
           {formatoDistancia(destino.distancia)}
         </span>
       </button>
-    </motion.li>
+    </m.li>
   );
 }

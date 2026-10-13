@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { memo, useRef, type Ref } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { type Entrada } from "../api/biblioteca";
 import { muelle } from "../estilos/movimiento";
 import { idBloque, idVisor } from "../estilos/idsTransicion";
@@ -57,7 +57,7 @@ export const FilaLista = memo(function FilaLista({
   const boton = useRef<HTMLButtonElement>(null);
 
   return (
-    <motion.tr
+    <m.tr
       ref={ref}
       className="fila"
       data-id={id}
@@ -88,13 +88,13 @@ export const FilaLista = memo(function FilaLista({
         >
           {/* Solo el visor compartido es un nodo de Motion: los demás, un span. */}
           {compartido ? (
-            <motion.span
+            <m.span
               className="fila__visor"
               layoutId={idVisor(id)}
               transition={{ layout: muelle("compartido") }}
             >
               <Miniatura id={id} dimensiones={dimensiones} miniatura={entrada.miniatura} layoutId={idBloque(id)} />
-            </motion.span>
+            </m.span>
           ) : (
             <span className="fila__visor">
               <Miniatura id={id} dimensiones={dimensiones} miniatura={entrada.miniatura} />
@@ -150,6 +150,6 @@ export const FilaLista = memo(function FilaLista({
           <IconoPapelera />
         </button>
       </td>
-    </motion.tr>
+    </m.tr>
   );
 });

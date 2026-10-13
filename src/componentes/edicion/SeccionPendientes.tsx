@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 // Pendientes de la edición, siempre a la vista, con Descartar y Aplicar.
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import {
   bloquesAfectados,
   numPendientes,
@@ -100,7 +100,7 @@ function FilaPendiente({
   const nombreOrigen = useNombre(origen);
   const nombreDestino = useNombre(destino);
   return (
-    <motion.li
+    <m.li
       className="pendiente-edicion"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -127,7 +127,7 @@ function FilaPendiente({
           <path d="M1 1L9 9M9 1L1 9" />
         </svg>
       </button>
-    </motion.li>
+    </m.li>
   );
 }
 

@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import type { Tema } from "../api/atlas";
 import { normalizarError } from "../api/llamar";
 import { elegirCarpetaMinecraft } from "../api/dialogo";
@@ -65,7 +65,7 @@ export function PanelAjustes() {
     >
       {/* Se monta en cada apertura: así entra siempre con su muelle. */}
       {abierto && (
-        <motion.div
+        <m.div
           className="ajustes__caja"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -88,7 +88,7 @@ export function PanelAjustes() {
           </div>
 
           <Pie />
-        </motion.div>
+        </m.div>
       )}
     </dialog>
   );
@@ -116,7 +116,7 @@ function FilaTema() {
                 onChange={() => void cambiar({ tema: t.valor })}
               />
               {tema === t.valor && (
-                <motion.span
+                <m.span
                   layoutId="ajustes-tema-marca"
                   className="segmentos__marca"
                   transition={muelle("pulsacion")}
@@ -271,7 +271,7 @@ function FilaFluidos() {
             onChange={(e) => void cambiar({ incluirFluidos: e.target.checked })}
           />
           <span className="interruptor__pista" aria-hidden="true">
-            <motion.span
+            <m.span
               className="interruptor__boton"
               initial={false}
               animate={{ x: incluir ? 14 : 0 }}

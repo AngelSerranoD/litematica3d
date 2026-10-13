@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { obtenerAtlas, type AtlasCargado } from "../../api/atlas";
 import { cargarMalla, type Malla } from "../../api/visor";
 import { useAjustes } from "../../estado/ajustes";
@@ -198,17 +198,17 @@ export function Visor3D({ id, marcador }: Props) {
 
   return (
     <>
-      <motion.div
+      <m.div
         className="visor3d__marcador"
         initial={false}
         animate={{ opacity: lista && !vacia ? 0 : 1 }}
         transition={transicion}
       >
         {marcador}
-      </motion.div>
+      </m.div>
 
       {carga.tipo === "lista" && !vacia && (
-        <motion.div
+        <m.div
           className={modo === "modificar" ? "visor3d visor3d--modificar" : "visor3d"}
           initial={{ opacity: 0 }}
           animate={{ opacity: lista ? 1 : 0 }}
@@ -237,7 +237,7 @@ export function Visor3D({ id, marcador }: Props) {
           </div>
 
           <DeslizadorCapas origenY={carga.malla.origen[1]} />
-        </motion.div>
+        </m.div>
       )}
 
       {nota}
