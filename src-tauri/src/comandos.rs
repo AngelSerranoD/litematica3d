@@ -51,6 +51,15 @@ where
         .map_err(|e| ErrorApp::Interno(e.to_string()))?
 }
 
+/// Archivo con el que se arrancó la app (doble clic en un schematic), si lo
+/// hay. Se entrega una sola vez.
+#[tauri::command]
+pub fn archivo_pendiente(
+    estado: tauri::State<'_, crate::argumentos::ArchivoPendiente>,
+) -> Option<String> {
+    estado.0.lock().ok().and_then(|mut g| g.take())
+}
+
 /// Importa varios archivos; devuelve un resultado por ruta, en el mismo orden.
 #[tauri::command]
 pub async fn importar(app: AppHandle, rutas: Vec<String>) -> Vec<ResultadoImportacion> {

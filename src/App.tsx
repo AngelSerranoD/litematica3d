@@ -10,6 +10,7 @@ import { useAjustes } from "./estado/ajustes";
 import { useBiblioteca } from "./estado/biblioteca";
 import { iniciarMiniaturas } from "./estado/miniaturas";
 import { useNavegacion } from "./estado/navegacion";
+import { usoAbrirArchivo } from "./estado/usoAbrirArchivo";
 import { usoCierreVentana } from "./estado/usoCierreVentana";
 import { usoSoltarArchivos } from "./estado/usoSoltarArchivos";
 import { muelle } from "./estilos/movimiento";
@@ -26,6 +27,7 @@ export default function App() {
   // superpone la capa general.
   const vacia = useBiblioteca((s) => !s.cargando && !s.error && s.entradas.length === 0);
   usoCierreVentana();
+  usoAbrirArchivo();
 
   // Ajustes guardados (tema, fluidos…) desde el arranque.
   useEffect(() => {

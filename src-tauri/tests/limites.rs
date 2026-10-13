@@ -10,7 +10,12 @@ use fastnbt::Value;
 use litematica3d_lib::schematic::cargar;
 
 fn compuesto(pares: Vec<(&str, Value)>) -> Value {
-    Value::Compound(pares.into_iter().map(|(k, v)| (k.to_string(), v)).collect::<HashMap<_, _>>())
+    Value::Compound(
+        pares
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v))
+            .collect::<HashMap<_, _>>(),
+    )
 }
 
 fn bytes(v: &Value) -> Vec<u8> {
@@ -62,7 +67,11 @@ fn litematic_con_regiones_enormes_se_rechaza_antes_de_reservar() {
         compuesto(vec![
             (
                 "Position",
-                compuesto(vec![("x", Value::Int(x)), ("y", Value::Int(0)), ("z", Value::Int(0))]),
+                compuesto(vec![
+                    ("x", Value::Int(x)),
+                    ("y", Value::Int(0)),
+                    ("z", Value::Int(0)),
+                ]),
             ),
             (
                 "Size",
@@ -79,7 +88,10 @@ fn litematic_con_regiones_enormes_se_rechaza_antes_de_reservar() {
                     Value::String("minecraft:air".into()),
                 )])]),
             ),
-            ("BlockStates", Value::LongArray(fastnbt::LongArray::new(vec![]))),
+            (
+                "BlockStates",
+                Value::LongArray(fastnbt::LongArray::new(vec![])),
+            ),
         ])
     };
     let nbt = compuesto(vec![

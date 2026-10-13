@@ -11,7 +11,8 @@ use serde::Deserialize;
 use super::modelo::{Formato, Region, Schematic, caja_englobante};
 use super::nbt::deserializar;
 use super::{
-    ErrorSchematic, Paleta, limitar_implicito, normalizar_estado, reservar_bloques, texto_util, validar_tamano,
+    ErrorSchematic, Paleta, limitar_implicito, normalizar_estado, reservar_bloques, texto_util,
+    validar_tamano,
 };
 
 /// Índice de paleta máximo admitido (evita tablas enormes con datos malos).

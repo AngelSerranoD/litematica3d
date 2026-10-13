@@ -25,19 +25,63 @@
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPDATA/biblioteca/*.miniatura.png"]
+        "scope": [
+          "$APPDATA/biblioteca/*.miniatura.png"
+        ]
       }
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "publisher": "Ángel Serrano Domínguez",
+    "copyright": "© Ángel Serrano Domínguez. Todos los derechos reservados.",
+    "shortDescription": "Visor y biblioteca de schematics de Minecraft",
+    "longDescription": "Visor 3D y biblioteca local de schematics de Minecraft (.litematic, .schem, .schematic), sin conexión.",
+    "category": "Utility",
+    "licenseFile": "../LICENSE",
+    "fileAssociations": [
+      {
+        "ext": [
+          "litematic"
+        ],
+        "name": "Schematic de Minecraft (.litematic)",
+        "description": "Schematic de Minecraft (.litematic)",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "schem"
+        ],
+        "name": "Schematic de Minecraft (.schem)",
+        "description": "Schematic de Minecraft (.schem)",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "schematic"
+        ],
+        "name": "Schematic de Minecraft (.schematic)",
+        "description": "Schematic de Minecraft (.schematic)",
+        "role": "Viewer"
+      }
+    ],
+    "windows": {
+      "nsis": {
+        "languages": [
+          "Spanish"
+        ],
+        "installMode": "currentUser"
+      }
+    }
   }
 }
