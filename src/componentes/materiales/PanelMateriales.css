@@ -260,8 +260,12 @@
   margin-left: auto;
 }
 
+/* El rojo de aviso no llega a 4,5:1 como texto en el tema oscuro: va en el
+   filete y el texto en tinta. */
 .materiales__error {
-  color: var(--aviso);
+  padding-left: var(--esp-2);
+  border-left: var(--grosor-foco) solid var(--aviso);
+  color: var(--tinta);
 }
 
 /* ── Tabla ── */

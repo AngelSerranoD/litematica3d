@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useBiblioteca } from "../estado/biblioteca";
+import { muelle } from "../estilos/movimiento";
 import { Pendientes } from "./Pendientes";
 import "./Avisos.css";
 
@@ -17,7 +18,7 @@ export function ZonaSoltar({ visible }: { visible: boolean }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.14 }}
+          transition={muelle("pulsacion")}
         >
           <p className="zona-soltar__texto rotulo">Suelta para importar</p>
         </motion.div>
@@ -51,7 +52,7 @@ export function Avisos() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.14 }}
+              transition={muelle("pulsacion")}
             >
               <p className="aviso__texto">{a.mensaje}</p>
               <button type="button" className="boton-plano" onClick={() => descartar(a.id)}>

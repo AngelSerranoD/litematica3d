@@ -3,15 +3,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { animate, useReducedMotion } from "motion/react";
+import { muelle } from "../estilos/movimiento";
 import { Cifra } from "./Cifra";
-
-/** Duración del conteo: la de --dur-media (0 con movimiento reducido). */
-function duracionConteo(): number {
-  const ms = Number.parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue("--dur-media"),
-  );
-  return Number.isNaN(ms) ? 0 : ms / 1000;
-}
 
 /**
  * Cifra que «cuenta» del valor anterior al nuevo cuando cambia. Al montarse
@@ -24,15 +17,13 @@ export function CifraAnimada({ valor, className }: { valor: number; className?: 
   const actual = useRef(valor);
 
   useEffect(() => {
-    const duracion = reducir ? 0 : duracionConteo();
-    if (duracion === 0 || actual.current === valor) {
+    if (reducir || actual.current === valor) {
       actual.current = valor;
       setMostrado(valor);
       return;
     }
     const control = animate(actual.current, valor, {
-      duration: duracion,
-      ease: [0.2, 0.7, 0.2, 1], // --curva-salida
+      ...muelle("vista"),
       onUpdate: (v) => {
         actual.current = v;
         setMostrado(Math.round(v));

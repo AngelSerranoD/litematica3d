@@ -1,7 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import type { Transition, Variants } from "motion/react";
+import type { TargetAndTransition, Transition, Variants } from "motion/react";
 import { muelle } from "../estilos/movimiento";
 
 /**
@@ -27,8 +27,11 @@ export interface AccionesElemento {
   eliminar: (id: string) => void;
 }
 
-/** Salida al filtrar o eliminar: se desvanece rápido, sin muelle. */
-export const salidaElemento = { opacity: 0, transition: { duration: 0.12 } };
+/** Salida al filtrar o eliminar: se desvanece con el muelle de pulsación (se lee al usarla, no al importar). */
+export const salidaElemento = (): TargetAndTransition => ({
+  opacity: 0,
+  transition: muelle("pulsacion"),
+});
 
 /** Layout (reordenar, filtrar): firme, sin rebote. */
 export const transicionElemento = (): Transition => ({ layout: muelle("vista") });
@@ -44,7 +47,7 @@ export const varianteElemento: Variants = {
     opacity: 1,
     y: 0,
     transition: a.caer
-      ? { ...muelle("caida"), opacity: { duration: 0.1 } }
+      ? { ...muelle("caida"), opacity: muelle("pulsacion") }
       : { ...muelle("vista"), delay: a.retraso },
   }),
 };

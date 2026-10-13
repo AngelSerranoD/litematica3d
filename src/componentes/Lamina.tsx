@@ -59,7 +59,7 @@ export const Lamina = memo(function Lamina({
       layout
       custom={info}
       variants={varianteElemento}
-      exit={salidaElemento}
+      exit={salidaElemento()}
       transition={transicionElemento()}
       onClick={(e) => {
         if (renombrando) return;

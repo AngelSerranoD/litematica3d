@@ -63,7 +63,7 @@ export const FilaLista = memo(function FilaLista({
       layout="position"
       custom={info}
       variants={varianteElemento}
-      exit={salidaElemento}
+      exit={salidaElemento()}
       transition={transicionElemento()}
       onClick={(e) => {
         if (renombrando) return;

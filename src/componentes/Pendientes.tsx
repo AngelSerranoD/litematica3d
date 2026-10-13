@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ESPERA_BORRADO_MS, useBiblioteca, type PendienteDeBorrar } from "../estado/biblioteca";
 import { useFoco } from "../estado/foco";
+import { muelle } from "../estilos/movimiento";
 import "./Pendientes.css";
 
 /** El borrado pendiente más reciente: el que deshace Ctrl+Z. */
@@ -69,7 +70,7 @@ function FilaPendiente({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.14 }}
+      transition={muelle("pulsacion")}
     >
       <span className="pendiente__cuenta" style={estiloBarra} aria-hidden="true" />
       <p className="pendiente__texto">

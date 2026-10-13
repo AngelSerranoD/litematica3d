@@ -180,7 +180,7 @@ export function Schematic({ id }: { id: string }) {
                 id={`pestana-${valor}`}
                 className="schematic__pestana rotulo"
                 aria-selected={pestana === valor}
-                aria-controls={`panel-${valor}`}
+                aria-controls={pestana === valor ? `panel-${valor}` : undefined}
                 tabIndex={pestana === valor ? 0 : -1}
                 onClick={() => elegirPestana(valor)}
               >

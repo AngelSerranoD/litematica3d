@@ -12,6 +12,7 @@ import {
   type ComponentRef,
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { useReducedMotion } from "motion/react";
 import { GizmoHelper, GizmoViewport, Grid, OrbitControls } from "@react-three/drei";
 import {
   BoxGeometry,
@@ -85,6 +86,8 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
   const invalidate = useThree((s) => s.invalidate);
   const controles = useRef<Controles>(null);
   const tema = usoTema();
+  // Sin inercia al girar con «reducir movimiento» del sistema.
+  const reducir = useReducedMotion();
 
   // ── Mallas: la completa siempre; la cerrada (remallada con el corte) si la hay.
   const corte = useMemo<UniformsCorte>(crearUniformsCorte, []);
@@ -233,6 +236,20 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
     };
   }, [gl, camera, id]);
 
+  // ── Teclado: el lienzo recibe foco (Tab) y las flechas desplazan la cámara.
+  useEffect(() => {
+    const lienzo = gl.domElement;
+    const ctrl = controles.current;
+    lienzo.tabIndex = 0;
+    lienzo.setAttribute("role", "application");
+    lienzo.setAttribute(
+      "aria-label",
+      "Visor 3D del schematic. Flechas: desplazar la vista. F: encuadrar",
+    );
+    ctrl?.listenToKeyEvents(lienzo);
+    return () => ctrl?.stopListenToKeyEvents();
+  }, [gl]);
+
   // ── Aviso de listo tras el primer fotograma con la malla.
   const avisado = useRef(false);
   useFrame(() => {
@@ -265,7 +282,7 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
 
   return (
     <>
-      <OrbitControls ref={controles} makeDefault enableDamping dampingFactor={0.12} />
+      <OrbitControls ref={controles} makeDefault enableDamping={!reducir} dampingFactor={0.12} />
       <primitive object={completa.grupo} dispose={null} />
       {cerrada && <primitive object={cerrada.g.grupo} dispose={null} />}
       <Grid
