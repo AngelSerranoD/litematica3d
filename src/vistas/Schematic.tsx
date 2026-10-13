@@ -9,17 +9,14 @@ import { ConfirmacionEdicion } from "../componentes/edicion/ConfirmacionEdicion"
 import { PanelEdicion } from "../componentes/edicion/PanelEdicion";
 import { PanelMateriales } from "../componentes/materiales/PanelMateriales";
 import { Visor3D } from "../componentes/visor/Visor3D";
-import {
-  formatoDimensiones,
-  nombreFormato,
-  obtener,
-  type Region,
-} from "../api/biblioteca";
+import { obtener, type Region } from "../api/biblioteca";
+import { formatoDimensiones, nombreFormato } from "../componentes/formato";
 import { useBiblioteca } from "../estado/biblioteca";
 import { useEdicion } from "../estado/edicion";
 import { fijarGuardaSalida, useNavegacion } from "../estado/navegacion";
 import { muelle } from "../estilos/movimiento";
-import { idBloque, idVisor, variantePieza, varianteVista } from "./transicion";
+import { idBloque, idVisor } from "../estilos/idsTransicion";
+import { variantePieza, varianteVista } from "./transicion";
 import "./vistas.css";
 import "./Schematic.css";
 

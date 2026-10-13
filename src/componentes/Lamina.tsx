@@ -3,9 +3,9 @@
 
 import { memo, useId, useRef, type Ref } from "react";
 import { motion } from "motion/react";
-import { nombreFormato, type Entrada } from "../api/biblioteca";
+import { type Entrada } from "../api/biblioteca";
 import { muelle } from "../estilos/movimiento";
-import { idBloque, idVisor } from "../vistas/transicion";
+import { idBloque, idVisor } from "../estilos/idsTransicion";
 import { Cifra } from "./Cifra";
 import {
   salidaElemento,
@@ -14,7 +14,7 @@ import {
   type AccionesElemento,
   type InfoEntrada,
 } from "./elementoBiblioteca";
-import { dimensionesCompactas, dimensionesHabladas, formatoCorto } from "./formato";
+import { dimensionesHabladas, formatoCorto, formatoDimensiones, nombreFormato } from "./formato";
 import { IconoPapelera } from "./Iconos";
 import { Miniatura } from "./Miniatura";
 import { NombreEditable } from "./NombreEditable";
@@ -133,7 +133,7 @@ export const Lamina = memo(function Lamina({
         )}
         <p className="lamina__meta" id={idMeta}>
           <span className="cifras" aria-hidden="true" title="Ancho × alto × largo, en bloques">
-            {dimensionesCompactas(dimensiones)}
+            {formatoDimensiones(dimensiones, true)}
           </span>
           <span className="solo-lectores">{dimensionesHabladas(dimensiones)}, </span>
           <span className="lamina__bloques">

@@ -14,7 +14,6 @@ import {
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
-  formatoNumero,
   materiales,
   type ListaMateriales,
   type Region,
@@ -29,6 +28,7 @@ import { useTexturas } from "../../estado/texturas";
 import { capaMax, capaMin, useVisor } from "../../estado/visor";
 import { Cifra } from "../Cifra";
 import { CifraAnimada } from "../CifraAnimada";
+import { formatoNumero } from "../formato";
 import {
   aFilas,
   capasAMateriales,

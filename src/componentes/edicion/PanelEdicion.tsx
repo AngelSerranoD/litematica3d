@@ -3,7 +3,6 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { formatoNumero, nombreFormato } from "../../api/biblioteca";
 import type { FamiliaParecida, Parecido, Rgb } from "../../api/parecidos";
 import {
   bloquesAfectados,
@@ -21,7 +20,7 @@ import { useMateriales } from "../../estado/materiales";
 import { muelle } from "../../estilos/movimiento";
 import { Cifra } from "../Cifra";
 import { CifraAnimada } from "../CifraAnimada";
-import { fechaCompleta } from "../formato";
+import { fechaCompleta, formatoNumero, nombreFormato } from "../formato";
 import { nombreItem } from "../materiales/logica";
 import "./Edicion.css";
 

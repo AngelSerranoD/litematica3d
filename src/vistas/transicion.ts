@@ -26,8 +26,3 @@ export const variantePieza: Variants = {
   oculta: (direccion: 1 | -1) => ({ opacity: 0, x: 12 * direccion }),
   visible: () => ({ opacity: 1, x: 0, transition: muelle("vista") }),
 };
-
-/** layoutId del elemento compartido miniatura (biblioteca) ↔ visor (schematic). */
-export const idVisor = (id: string) => `visor-${id}`;
-/** layoutId del dibujo dentro del visor, para que no se deforme en el vuelo. */
-export const idBloque = (id: string) => `bloque-${id}`;

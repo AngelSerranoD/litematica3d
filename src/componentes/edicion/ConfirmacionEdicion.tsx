@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { motion } from "motion/react";
-import { formatoNumero } from "../../api/biblioteca";
+import { formatoNumero } from "../formato";
 import {
   bloquesAfectados,
   numPendientes,

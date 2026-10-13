@@ -3,9 +3,13 @@
 
 import type { Dimensiones, Formato } from "../api/biblioteca";
 
-/** «32×18×40»: ancho × alto × largo, sin espacios (para celdas estrechas). */
-export function dimensionesCompactas({ ancho, alto, largo }: Dimensiones): string {
-  return `${ancho}×${alto}×${largo}`;
+/**
+ * «9 × 31 × 9»: ancho × alto × largo. Con `compacta`, sin espacios («9×31×9»),
+ * para celdas estrechas.
+ */
+export function formatoDimensiones({ ancho, alto, largo }: Dimensiones, compacta = false): string {
+  const sep = compacta ? "×" : " × ";
+  return [ancho, alto, largo].join(sep);
 }
 
 /** «32 por 18 por 40», para lectores de pantalla. */
@@ -28,15 +32,24 @@ export function gruposDeMiles(n: number): string[] {
   return grupos;
 }
 
-const NOMBRE_CORTO: Record<Formato, string> = {
-  litematic: "Litematica",
-  sponge: "Sponge",
-  mcedit: "MCEdit",
-  estructura: "Estructura",
+/**
+ * Número en texto con los mismos grupos que `Cifra`, separados por un espacio
+ * fino irrompible: «2 932», «12 345».
+ */
+export const formatoNumero = (n: number): string => gruposDeMiles(n).join(" ");
+
+const NOMBRES_FORMATO: Record<Formato, { corto: string; largo: string }> = {
+  litematic: { corto: "Litematica", largo: "Litematica (.litematic)" },
+  sponge: { corto: "Sponge", largo: "Sponge (.schem)" },
+  mcedit: { corto: "MCEdit", largo: "MCEdit (.schematic)" },
+  estructura: { corto: "Estructura", largo: "Estructura (.nbt)" },
 };
 
 /** Nombre del formato sin la extensión: «Litematica». */
-export const formatoCorto = (f: Formato): string => NOMBRE_CORTO[f];
+export const formatoCorto = (f: Formato): string => NOMBRES_FORMATO[f].corto;
+
+/** Nombre del formato con su extensión: «Litematica (.litematic)». */
+export const nombreFormato = (f: Formato): string => NOMBRES_FORMATO[f].largo;
 
 const dosCifras = (n: number) => String(n).padStart(2, "0");
 

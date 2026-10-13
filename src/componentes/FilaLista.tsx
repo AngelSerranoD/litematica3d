@@ -3,9 +3,9 @@
 
 import { memo, useRef, type Ref } from "react";
 import { motion } from "motion/react";
-import { nombreFormato, type Entrada } from "../api/biblioteca";
+import { type Entrada } from "../api/biblioteca";
 import { muelle } from "../estilos/movimiento";
-import { idBloque, idVisor } from "../vistas/transicion";
+import { idBloque, idVisor } from "../estilos/idsTransicion";
 import { Cifra } from "./Cifra";
 import {
   salidaElemento,
@@ -15,11 +15,12 @@ import {
   type InfoEntrada,
 } from "./elementoBiblioteca";
 import {
-  dimensionesCompactas,
   dimensionesHabladas,
   fechaCompleta,
   fechaCorta,
   formatoCorto,
+  formatoDimensiones,
+  nombreFormato,
 } from "./formato";
 import { IconoPapelera } from "./Iconos";
 import { Miniatura } from "./Miniatura";
@@ -121,7 +122,7 @@ export const FilaLista = memo(function FilaLista({
       </td>
       <td className="fila__num">
         <span className="cifras" aria-hidden="true">
-          {dimensionesCompactas(dimensiones)}
+          {formatoDimensiones(dimensiones, true)}
         </span>
         <span className="solo-lectores">{dimensionesHabladas(dimensiones)}</span>
       </td>

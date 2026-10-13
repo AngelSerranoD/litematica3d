@@ -4,7 +4,8 @@
 // Cuentas de la pantalla de materiales sin React: nombres, filtro y orden,
 // conversión de capas y exportación (texto y CSV).
 
-import { formatoNumero, type Material } from "../../api/biblioteca";
+import { type Material } from "../../api/biblioteca";
+import { formatoNumero } from "../formato";
 import { normalizarTexto } from "../../estado/biblioteca";
 
 /** ID con el que el núcleo agrupa los bloques antiguos sin traducción. */

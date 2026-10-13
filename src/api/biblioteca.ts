@@ -2,7 +2,6 @@
 // Ver LICENSE y NOTICE.
 
 import { llamar } from "./llamar";
-import { gruposDeMiles } from "../componentes/formato";
 
 /** Dimensiones de un schematic en bloques (ejes de Minecraft: X, Y, Z). */
 export interface Dimensiones {
@@ -136,23 +135,3 @@ export const renombrar = (id: string, nombre: string) =>
 export const eliminar = (id: string) => llamar<null>("eliminar", { id });
 export const materiales = (id: string, opciones: OpcionesMateriales) =>
   llamar<ListaMateriales>("materiales", { id, opciones });
-
-/**
- * Número en texto con los mismos grupos que `Cifra`, separados por un espacio
- * fino irrompible: «2 932», «12 345».
- */
-export const formatoNumero = (n: number): string => gruposDeMiles(n).join(" ");
-
-/** «9 × 31 × 9»: ancho × alto × largo. */
-export function formatoDimensiones({ ancho, alto, largo }: Dimensiones): string {
-  return `${ancho} × ${alto} × ${largo}`;
-}
-
-const NOMBRES_FORMATO: Record<Formato, string> = {
-  litematic: "Litematica (.litematic)",
-  sponge: "Sponge (.schem)",
-  mcedit: "MCEdit (.schematic)",
-  estructura: "Estructura (.nbt)",
-};
-
-export const nombreFormato = (f: Formato): string => NOMBRES_FORMATO[f];
