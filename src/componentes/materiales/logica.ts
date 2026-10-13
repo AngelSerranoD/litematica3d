@@ -116,9 +116,15 @@ export function textoLista(filas: Fila[], reunidos: ReadonlySet<string>, r: Resu
   ].join("\n");
 }
 
-/** Campo CSV: entre comillas si lleva separador, comillas o saltos de línea. */
+/**
+ * Campo CSV: entre comillas si lleva separador, comillas o saltos de línea.
+ * Los textos que empiezan por = + - @ tabulador o retorno llevan un apóstrofo
+ * delante: los ids vienen del schematic (archivo ajeno) y Excel los ejecutaría
+ * como fórmulas.
+ */
 function campoCsv(valor: string | number): string {
-  const texto = String(valor);
+  let texto = String(valor);
+  if (typeof valor === "string" && /^[=+\-@\t\r]/.test(texto)) texto = `'${texto}`;
   return /[;"\r\n]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
 }
 
