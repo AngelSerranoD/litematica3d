@@ -303,11 +303,14 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
 
   // ── Aviso de listo tras el primer fotograma con la malla.
   const avisado = useRef(false);
+  const cuadroAviso = useRef(0);
   useFrame(() => {
     if (avisado.current) return;
     avisado.current = true;
-    requestAnimationFrame(onListo);
+    cuadroAviso.current = requestAnimationFrame(onListo);
   });
+  // Si la escena se desmonta antes del cuadro, el aviso ya no tiene destino.
+  useEffect(() => () => cancelAnimationFrame(cuadroAviso.current), []);
 
   // ── Colores de los tokens (se recalculan al cambiar de tema).
   const colores = useMemo(

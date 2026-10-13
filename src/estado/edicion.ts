@@ -861,7 +861,7 @@ export const useEdicion = create<EstadoEdicion>()((set, get) => {
 
 // En Modificar, cada bloque que se pincha en el visor abre su lista de
 // parecidos; al quitar la selección (clic en el vacío, Esc) se cierra.
-useVisor.subscribe((s, antes) => {
+const desuscribir = useVisor.subscribe((s, antes) => {
   if (s.seleccion === antes.seleccion) return;
   const e = useEdicion.getState();
   if (e.modo !== "modificar") return;
@@ -879,6 +879,8 @@ useVisor.subscribe((s, antes) => {
   // `bloque` llega después (respuesta de `bloque_en`): hasta entonces nada.
   if (sel.bloque && sel.bloque !== antes.seleccion?.bloque) e.pinchar(sel.celda, sel.bloque);
 });
+// Con la recarga en caliente del desarrollo, el módulo viejo deja de escuchar.
+import.meta.hot?.dispose(() => desuscribir());
 
 // Con otras texturas las celdas de antes no valen: se vuelven a pedir.
 alCambiarTexturas(() => {

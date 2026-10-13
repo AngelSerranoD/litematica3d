@@ -3,7 +3,11 @@
 
 import { open, save } from "@tauri-apps/plugin-dialog";
 
-/** Extensiones que admite el núcleo (sin punto). `.mcstructure` no está soportado. */
+/**
+ * Extensiones que admite el núcleo (sin punto). `.mcstructure` no está
+ * soportado. Espejo de `EXTENSIONES` en `src-tauri/src/argumentos.rs` y de
+ * `fileAssociations` en `tauri.conf.json`: si se cambia una, cambian las tres.
+ */
 export const EXTENSIONES_ADMITIDAS = ["litematic", "schem", "schematic", "nbt"];
 
 /** Abre el selector de archivos del sistema (multiselección). Devuelve `[]` si se cancela. */

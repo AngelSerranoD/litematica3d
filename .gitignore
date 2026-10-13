@@ -18,3 +18,13 @@ npm-debug.log*
 !.vscode/extensions.json
 *.suo
 *.sw?
+
+# Claves, certificados y binarios de instalación (nunca al repositorio)
+*.key
+*.pem
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.msi
+*.exe

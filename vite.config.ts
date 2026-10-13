@@ -12,8 +12,10 @@ export default defineConfig(() => ({
   plugins: [react()],
 
   build: {
-    // Three.js ocupa ~740 kB minificado y no se puede partir. Va aparte y se
-    // carga bajo demanda, así que el aviso de 500 kB no aplica a ese trozo.
+    // Three.js ocupa ~740 kB minificado y no se puede partir; va aparte y se
+    // carga bajo demanda. El entry (React, motion, zustand y la app) ronda los
+    // 515 kB. Se sube el aviso a 800 kB para que solo salte si algo crece de
+    // verdad por encima de lo ya conocido.
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {

@@ -9,15 +9,62 @@ a Mojang ni a Microsoft y NO redistribuye assets de Mojang.
 
 == Componentes de terceros ==
 
-- Tauri — MIT / Apache-2.0 — https://tauri.app
-- React — MIT — https://react.dev
-- Motion — MIT — https://motion.dev
-- Zustand — MIT — https://github.com/pmndrs/zustand
-- fastnbt — MIT / Apache-2.0 — https://github.com/owengage/fastnbt
-- flate2 — MIT / Apache-2.0 — https://github.com/rust-lang/flate2-rs
-- rusqlite (incluye SQLite, dominio público) — MIT — https://github.com/rusqlite/rusqlite
-- trash — MIT — https://github.com/ArturKovacs/trash
-- uuid, sha2, thiserror — MIT / Apache-2.0
+Cada componente se distribuye bajo su propia licencia, cuyo texto completo
+acompaña a su código fuente (paquete npm o crate). Donde se indica
+«MIT / Apache-2.0» se acepta cualquiera de las dos. Los avisos de copyright
+son los de los archivos LICENSE de cada paquete.
+
+Interfaz (React / TypeScript):
+- React y React DOM — MIT — Copyright (c) Meta Platforms, Inc. and affiliates.
+  https://react.dev
+- three.js — MIT — Copyright © 2010-2026 three.js authors.
+  https://threejs.org
+- @react-three/fiber — MIT — Copyright (c) Poimandres (react-three-fiber).
+  https://github.com/pmndrs/react-three-fiber
+- @react-three/drei — MIT — Copyright (c) 2020 react-spring.
+  https://github.com/pmndrs/drei
+- @tanstack/react-virtual — MIT — Copyright (c) 2021-present Tanner Linsley.
+  https://tanstack.com/virtual
+- Motion — MIT — Copyright (c) 2024 Motion B.V. https://motion.dev
+- Zustand — MIT — Copyright (c) 2019 Paul Henschel.
+  https://github.com/pmndrs/zustand
+- @tauri-apps/api y @tauri-apps/plugin-dialog — MIT / Apache-2.0 —
+  Copyright (c) 2017 - Present Tauri Apps Contributors. https://tauri.app
+
+Núcleo (Rust):
+- Tauri — MIT / Apache-2.0 — Copyright (c) 2017 - Present Tauri Apps
+  Contributors. https://tauri.app
+- tauri-plugin-dialog — MIT / Apache-2.0 — Copyright (c) 2017 - Present
+  Tauri Apps Contributors. https://github.com/tauri-apps/plugins-workspace
+- tauri-plugin-single-instance — MIT / Apache-2.0 — Copyright (c) 2017 -
+  Present The Tauri Programme in the Commons Conservancy.
+  https://github.com/tauri-apps/plugins-workspace
+- serde — MIT / Apache-2.0 — Erick Tryzelaar y David Tolnay.
+  https://serde.rs
+- serde_json — MIT / Apache-2.0 — Erick Tryzelaar y David Tolnay.
+  https://github.com/serde-rs/json
+- fastnbt — MIT / Apache-2.0 — Owen Gage.
+  https://github.com/owengage/fastnbt
+- flate2 — MIT / Apache-2.0 — Copyright (c) 2014-2026 Alex Crichton.
+  https://github.com/rust-lang/flate2-rs
+- zip — MIT — Copyright (c) 2014 Mathijs van de Nes.
+  https://github.com/zip-rs/zip2
+- png — MIT / Apache-2.0 — Copyright (c) 2015 nwin.
+  https://github.com/image-rs/image-png
+- rayon — MIT / Apache-2.0 — Copyright (c) 2010 The Rust Project Developers.
+  https://github.com/rayon-rs/rayon
+- rusqlite (incluye SQLite, dominio público) — MIT — Copyright (c) 2014 The
+  rusqlite developers. https://github.com/rusqlite/rusqlite
+- trash — MIT — Artur Kovacs. https://github.com/ArturKovacs/trash
+- uuid — MIT / Apache-2.0 — Copyright (c) 2014 The Rust Project Developers y
+  (c) 2018 Ashley Mannix, Christopher Armstrong, Dylan DPC, Hunar Roop Kahlon.
+- sha2 — MIT / Apache-2.0 — Copyright (c) 2016-2026 The RustCrypto Project
+  Developers. https://github.com/RustCrypto/hashes
+- thiserror — MIT / Apache-2.0 — David Tolnay.
+  https://github.com/dtolnay/thiserror
+
+Las dependencias transitivas (listadas en package-lock.json y Cargo.lock)
+llevan sus propias licencias permisivas (MIT, Apache-2.0, BSD, ISC o similares).
 
 Datos de terceros:
 - src-tauri/datos/legado_bloques.json: tabla de IDs numéricos antiguos

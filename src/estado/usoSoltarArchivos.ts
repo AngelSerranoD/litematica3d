@@ -4,9 +4,10 @@
 import { useEffect, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { EXTENSIONES_ADMITIDAS } from "../api/dialogo";
 import { useBiblioteca } from "./biblioteca";
 
-const EXTENSIONES = [".litematic", ".schem", ".schematic", ".nbt"];
+const EXTENSIONES = EXTENSIONES_ADMITIDAS.map((ext) => `.${ext}`);
 
 const admitido = (ruta: string) => {
   const minusculas = ruta.toLowerCase();
