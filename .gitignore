@@ -37,3 +37,6 @@ build/
 
 # Configuración local de Claude Code
 .claude/
+
+# Datos de la demo web: los regenera `cargo run --example volcar_demo`
+demo-datos/
