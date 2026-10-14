@@ -19,7 +19,7 @@
 
   Antes: generar el paquete con scripts\empaquetar-msix.ps1 y, si estaba
   registrado el diseño de desarrollo (Add-AppxPackage -Register), quitarlo:
-    Get-AppxPackage AngelSerranoDominguez.SchematicLab | Remove-AppxPackage
+    Get-AppxPackage ngelSerranoDomnguez.SchematicLab | Remove-AppxPackage
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts\firmar-msix-prueba.ps1
@@ -27,7 +27,7 @@
 [CmdletBinding()]
 param(
     # Tiene que ser idéntico al Publisher con el que se generó el paquete.
-    [string]$Publisher = 'CN=Angel Serrano Dominguez',
+    [string]$Publisher = 'CN=D55F1367-3A8A-40AF-8B0C-2A907C0785BE',
     # Por defecto, el .msix más reciente de src-tauri\target\msix.
     [string]$Msix
 )
@@ -91,6 +91,6 @@ Write-Host ''
 Write-Host 'Instalado. Ábrelo desde el menú Inicio (Schematic Lab).' -ForegroundColor Green
 Write-Host ''
 Write-Host 'Para deshacerlo todo cuando acabes de probar:'
-Write-Host '  Get-AppxPackage AngelSerranoDominguez.SchematicLab | Remove-AppxPackage'
+Write-Host '  Get-AppxPackage ngelSerranoDomnguez.SchematicLab | Remove-AppxPackage'
 Write-Host "  Get-ChildItem Cert:\LocalMachine\TrustedPeople | Where-Object Thumbprint -eq '$($cert.Thumbprint)' | Remove-Item"
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object Thumbprint -eq '$($cert.Thumbprint)' | Remove-Item"

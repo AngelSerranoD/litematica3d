@@ -30,13 +30,14 @@
 [CmdletBinding()]
 param(
     # ---- Identidad del paquete -------------------------------------------
-    # PROVISIONALES. Al reservar el nombre en Partner Center, copiar aquí (o
-    # pasar como parámetros) los valores de «Identidad del producto»:
+    # Definitivos: los de Partner Center («Identidad del producto»), copiados
+    # al reservar «Schematic Lab» (2026-10-14). Partner Center quita los
+    # acentos del nombre, por eso «ngelSerranoDomnguez».
     #   Package/Identity/Name                -> IdentityName
     #   Package/Identity/Publisher           -> Publisher
     #   Package/Properties/PublisherDisplayName -> PublisherDisplayName
-    [string]$IdentityName = 'AngelSerranoDominguez.SchematicLab',
-    [string]$Publisher = 'CN=Angel Serrano Dominguez',
+    [string]$IdentityName = 'ngelSerranoDomnguez.SchematicLab',
+    [string]$Publisher = 'CN=D55F1367-3A8A-40AF-8B0C-2A907C0785BE',
     [string]$PublisherDisplayName = 'Ángel Serrano Domínguez',
     # -----------------------------------------------------------------------
 

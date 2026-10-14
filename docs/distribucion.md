@@ -37,8 +37,8 @@ Parámetros:
 
 | Parámetro | Por defecto | Para qué |
 |---|---|---|
-| `-IdentityName` | `AngelSerranoDominguez.SchematicLab` | `Package/Identity/Name`. **Provisional** |
-| `-Publisher` | `CN=Angel Serrano Dominguez` | `Package/Identity/Publisher`. **Provisional** |
+| `-IdentityName` | `ngelSerranoDomnguez.SchematicLab` | `Package/Identity/Name`, de Partner Center (quita los acentos) |
+| `-Publisher` | `CN=D55F1367-3A8A-40AF-8B0C-2A907C0785BE` | `Package/Identity/Publisher`, de Partner Center |
 | `-PublisherDisplayName` | `Ángel Serrano Domínguez` | Nombre del editor que se ve en la Store |
 | `-SinCompilar` | — | Reutiliza el exe de `src-tauri\target\release` |
 
@@ -158,7 +158,7 @@ instalado:
 ```powershell
 Add-AppxPackage -Register src-tauri\target\msix\diseno\AppxManifest.xml
 # ... probar (aparece en el menú Inicio como Schematic Lab) ...
-Get-AppxPackage AngelSerranoDominguez.SchematicLab | Remove-AppxPackage
+Get-AppxPackage ngelSerranoDomnguez.SchematicLab | Remove-AppxPackage
 ```
 
 Mientras está registrado no se puede regenerar el paquete, porque el script
@@ -265,8 +265,8 @@ menudo; si alguno no coincide, se busca el equivalente.
    or PWA app*, reservar el nombre **Schematic Lab**. Si está cogido, parar y
    decidir otro antes de seguir: cambia el `DisplayName` del manifiesto.
    La identidad definitiva del paquete (`Package/Identity/Name` y
-   `Publisher`) la da Partner Center al reservarlo; la de los scripts
-   (`AngelSerranoDominguez.SchematicLab`) es provisional.
+   `Publisher`) la da Partner Center al reservarlo. Hecho el 2026-10-14:
+   ya está en los scripts (`ngelSerranoDomnguez.SchematicLab`).
 5. En la app reservada → *Administración de productos* → *Identidad del
    producto*, copiar tres valores:
    - `Package/Identity/Name` → `-IdentityName`
