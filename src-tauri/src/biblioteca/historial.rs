@@ -17,9 +17,8 @@ use std::path::{Path, PathBuf};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Serialize;
 
-use super::{
-    Biblioteca, Entrada, ahora_ms, es_violacion_unica, existe, id_valido, reemplazar, sha256_hex,
-};
+use super::archivos::{id_valido, reemplazar};
+use super::{Biblioteca, Entrada, ahora_ms, es_violacion_unica, existe, sha256_hex};
 use crate::edicion::{self, Cambio, Reemplazo};
 use crate::error::ErrorApp;
 use crate::schematic::{

@@ -19,7 +19,9 @@ pub mod versiones;
 #[cfg(test)]
 pub(crate) mod pruebas;
 
-use std::collections::{BTreeMap, HashMap};
+#[cfg(test)]
+use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
@@ -28,6 +30,7 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 
 use crate::error::ErrorApp;
+#[cfg(test)]
 use crate::malla::apariencia::{ESQUEMA_COLORES, TablaColores};
 use crate::malla::{Cara, DatosAtlas, FuenteTexturas, TexturaCara};
 
@@ -383,7 +386,11 @@ pub fn cargar_o_generar(dir_cache: &Path, v: &VersionMinecraft) -> Result<Activo
 
 /// Escribe a un temporal y lo renombra.
 pub(crate) fn escribir(ruta: &Path, bytes: &[u8]) -> std::io::Result<()> {
-    let tmp = ruta.with_extension("tmp");
+    // «.tmp» se añade al nombre completo: `atlas.png` y `atlas.json` no
+    // comparten temporal.
+    let mut nombre_tmp = ruta.file_name().unwrap_or_default().to_os_string();
+    nombre_tmp.push(".tmp");
+    let tmp = ruta.with_file_name(nombre_tmp);
     fs::write(&tmp, bytes)?;
     fs::rename(&tmp, ruta)
 }
@@ -405,6 +412,7 @@ pub fn generar(jar: &Path, version: &str, bytes_jar: u64) -> Result<(Activo, Atl
 /// Tabla de colores medios por bloque (`colores_bloques.json`): media
 /// ponderada por alfa de la textura de arriba y la de un lado (norte) del
 /// estado por defecto. Los bloques sin textura no entran.
+#[cfg(test)]
 pub fn tabla_colores(activo: &Activo, a: &Atlas) -> TablaColores {
     let mut colores = BTreeMap::new();
     for bloque in activo.recursos.bloques() {

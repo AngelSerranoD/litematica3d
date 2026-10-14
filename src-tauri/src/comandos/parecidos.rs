@@ -21,6 +21,8 @@ use crate::texturas::GestorTexturas;
 pub const PARECIDOS_POR_DEFECTO: usize = 12;
 /// Máximo de parecidos o familias en una llamada.
 pub const MAX_PARECIDOS: usize = 100;
+/// Máximo de estados de origen en `destinos_conservando`.
+pub const MAX_ESTADOS_ORIGEN: usize = 1000;
 /// Longitud máxima del nombre de una familia, en bytes.
 pub const MAX_LONGITUD_FAMILIA: usize = 128;
 
@@ -147,6 +149,16 @@ pub async fn plan_familia(
     .await
 }
 
+/// Rechaza listas de estados de origen demasiado largas.
+fn comprobar_origenes(estados: &[String]) -> Result<(), ErrorApp> {
+    if estados.len() > MAX_ESTADOS_ORIGEN {
+        return Err(ErrorApp::EdicionInvalida(format!(
+            "Son demasiados estados de origen (máximo {MAX_ESTADOS_ORIGEN})."
+        )));
+    }
+    Ok(())
+}
+
 /// Reemplazos de cada estado de `estados_origen` por el bloque de
 /// `estado_destino` conservando las propiedades de cada uno (para las filas
 /// de familia que agrupan varios estados del mismo bloque).
@@ -160,6 +172,7 @@ pub async fn destinos_conservando(
     let g = texturas.inner().clone();
     let c = catalogos.inner().clone();
     en_segundo_plano(move || {
+        comprobar_origenes(&estados_origen)?;
         let destino = validar_estado(&estado_destino)?;
         let origenes = estados_origen
             .iter()
@@ -188,5 +201,16 @@ mod pruebas {
         assert_eq!(cuantos(None), PARECIDOS_POR_DEFECTO);
         assert_eq!(cuantos(Some(0)), 1);
         assert_eq!(cuantos(Some(5000)), MAX_PARECIDOS);
+    }
+
+    #[test]
+    fn tope_de_estados_de_origen() {
+        let justo = vec!["minecraft:stone".to_string(); MAX_ESTADOS_ORIGEN];
+        assert!(comprobar_origenes(&justo).is_ok());
+        let de_mas = vec!["minecraft:stone".to_string(); MAX_ESTADOS_ORIGEN + 1];
+        assert_eq!(
+            comprobar_origenes(&de_mas).unwrap_err().tipo(),
+            "edicionInvalida"
+        );
     }
 }

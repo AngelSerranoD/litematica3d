@@ -205,10 +205,12 @@ impl Recursos {
         tapados.iter().all(|&t| t)
     }
 
+    #[cfg(test)]
     pub fn n_blockstates(&self) -> usize {
         self.blockstates.len()
     }
 
+    #[cfg(test)]
     pub fn n_modelos(&self) -> usize {
         self.modelos.len()
     }

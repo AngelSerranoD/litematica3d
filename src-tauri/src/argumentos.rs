@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn admite_espacios_y_tildes() {
-        let ruta = r"C:\Users\Ángel Serrano\Construcciones\Catedral gótica.litematic";
+        let ruta = r"C:\Users\Usuario Ñandú\Construcciones\Catedral gótica.litematic";
         assert_eq!(ruta_de_argv(&["app.exe", ruta]).as_deref(), Some(ruta));
         let entre_comillas = format!("\"{ruta}\"");
         assert_eq!(

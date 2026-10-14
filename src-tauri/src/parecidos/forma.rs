@@ -46,23 +46,6 @@ pub enum FormaBloque {
 }
 
 impl FormaBloque {
-    /// Todas, en orden.
-    pub const TODAS: [FormaBloque; 13] = [
-        FormaBloque::Entero,
-        FormaBloque::Losa,
-        FormaBloque::Escalera,
-        FormaBloque::Muro,
-        FormaBloque::Valla,
-        FormaBloque::PuertaValla,
-        FormaBloque::Puerta,
-        FormaBloque::Trampilla,
-        FormaBloque::Boton,
-        FormaBloque::PlacaPresion,
-        FormaBloque::Panel,
-        FormaBloque::Alfombra,
-        FormaBloque::Otro,
-    ];
-
     /// Nombre en español para la interfaz.
     pub fn nombre(self) -> &'static str {
         match self {

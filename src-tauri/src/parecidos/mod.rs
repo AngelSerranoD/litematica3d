@@ -289,6 +289,7 @@ impl Catalogo {
         self.version.as_deref()
     }
 
+    #[cfg(test)]
     pub fn con_jar(&self) -> bool {
         self.jar.is_some()
     }

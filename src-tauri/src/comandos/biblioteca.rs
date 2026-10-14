@@ -42,9 +42,32 @@ pub fn archivo_pendiente(
     estado.0.lock().ok().and_then(|mut g| g.take())
 }
 
+/// Máximo de rutas en una llamada a `importar`.
+pub const MAX_RUTAS_IMPORTAR: usize = 1000;
+
+/// Error de entrada si se pasan demasiadas rutas de golpe.
+fn comprobar_rutas(rutas: &[String]) -> Result<(), ErrorApp> {
+    if rutas.len() > MAX_RUTAS_IMPORTAR {
+        return Err(ErrorApp::EdicionInvalida(format!(
+            "Son demasiados archivos de golpe (máximo {MAX_RUTAS_IMPORTAR})."
+        )));
+    }
+    Ok(())
+}
+
 /// Importa varios archivos; devuelve un resultado por ruta, en el mismo orden.
 #[tauri::command]
 pub async fn importar(app: AppHandle, rutas: Vec<String>) -> Vec<ResultadoImportacion> {
+    if let Err(e) = comprobar_rutas(&rutas) {
+        let texto = e.to_string();
+        return rutas
+            .into_iter()
+            .map(|ruta| ResultadoImportacion::Error {
+                ruta,
+                error: ErrorApp::EdicionInvalida(texto.clone()),
+            })
+            .collect();
+    }
     let Some(biblioteca) = app
         .try_state::<Arc<Biblioteca>>()
         .map(|s| s.inner().clone())
@@ -118,6 +141,17 @@ pub async fn eliminar(
 #[cfg(test)]
 mod pruebas {
     use super::*;
+
+    #[test]
+    fn tope_de_rutas_a_importar() {
+        let justo = vec![String::new(); MAX_RUTAS_IMPORTAR];
+        assert!(comprobar_rutas(&justo).is_ok());
+        let de_mas = vec![String::new(); MAX_RUTAS_IMPORTAR + 1];
+        assert_eq!(
+            comprobar_rutas(&de_mas).unwrap_err().tipo(),
+            "edicionInvalida"
+        );
+    }
 
     #[test]
     fn forma_json_del_error_de_importacion() {

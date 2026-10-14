@@ -124,6 +124,11 @@ pub async fn guardar_miniatura(
     let id = cabecera(CABECERA_ID).ok_or(ErrorApp::NoEncontrado)?;
     let texturas = cabecera(CABECERA_TEXTURAS)
         .ok_or_else(|| ErrorApp::MiniaturaInvalida("falta la clave de texturas".into()))?;
+    if png.len() > crate::biblioteca::MAX_BYTES_MINIATURA {
+        return Err(ErrorApp::MiniaturaInvalida(
+            "la imagen es demasiado grande".into(),
+        ));
+    }
     let png = png.clone();
     let b = biblioteca.inner().clone();
     en_segundo_plano(move || b.guardar_miniatura(&id, &png, &texturas)).await
