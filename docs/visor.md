@@ -1,6 +1,6 @@
 # Visor 3D: contrato entre el núcleo Rust y el frontend
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Este documento fija cómo llega la geometría del schematic al frontend. El mallado
 lo hace Rust (`src-tauri/src/malla/`) y el frontend solo crea buffers de GPU con
@@ -290,7 +290,7 @@ Dos opciones que se combinan bien:
 ## 10. Rendimiento medido
 
 `cargo test --release --test malla_rendimiento -- --ignored --nocapture`
-(100 × 100 × 100 sintéticos; con `LITEMATICA3D_VOLCAR_MALLA=<carpeta>` deja los
+(100 × 100 × 100 sintéticos; con `SCHEMATICLAB_VOLCAR_MALLA=<carpeta>` deja los
 binarios para probar el decodificador):
 
 | Caso | Bloques | Vértices | Triángulos | Binario | Combinar | Mallar | Serializar |
@@ -455,7 +455,7 @@ cae al hash estable `color_hash`. Para regenerarla con otra versión:
 
 ```
 cargo test --release --lib -- --ignored generar_colores_bloques --nocapture
-# LITEMATICA3D_MC_VERSION=1.21.11 elige la versión; por defecto, 1.21.11 si
+# SCHEMATICLAB_MC_VERSION=1.21.11 elige la versión; por defecto, 1.21.11 si
 # tiene jar y si no la release más reciente instalada.
 ```
 

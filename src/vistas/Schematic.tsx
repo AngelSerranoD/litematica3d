@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
@@ -27,7 +27,7 @@ const PESTANAS: { valor: Pestana; etiqueta: string }[] = [
   { valor: "materiales", etiqueta: "Materiales" },
 ];
 
-const CLAVE_PESTANA = "litematica3d.pestanaSchematic";
+const CLAVE_PESTANA = "schematiclab.pestanaSchematic";
 
 /** Pestaña recordada entre schematics (comodidad: si falla, la ficha). */
 function pestanaGuardada(): Pestana {

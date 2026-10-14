@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 // Cuentas de la pantalla de materiales sin React: nombres, filtro y orden,
@@ -9,7 +9,7 @@ import { formatoNumero } from "./formato";
 import { normalizarTexto } from "../estado/biblioteca";
 
 /** ID con el que el núcleo agrupa los bloques antiguos sin traducción. */
-const ID_DESCONOCIDO = "litematica3d:desconocido";
+const ID_DESCONOCIDO = "schematiclab:desconocido";
 
 /** «minecraft:oak_planks» → «Oak Planks» (cuando no hay nombres del juego). */
 function humanizarId(id: string): string {

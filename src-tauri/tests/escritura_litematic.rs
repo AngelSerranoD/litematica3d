@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Ida y vuelta: cada archivo válido de tests/datos se carga, se escribe como
@@ -11,7 +11,7 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use fastnbt::Value;
-use litematica3d_lib::schematic::{
+use schematic_lab_lib::schematic::{
     self, Formato, OpcionesLitematic, Schematic, VERSION_LITEMATIC, escribir_litematic,
 };
 use serde_json::Value as Json;

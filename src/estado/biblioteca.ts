@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { useMemo } from "react";
@@ -53,7 +53,7 @@ export interface PendienteDeBorrar {
   vence: number;
 }
 
-const CLAVE_MODO_VISTA = "litematica3d.modoVista";
+const CLAVE_MODO_VISTA = "schematiclab.modoVista";
 
 function leerModoVista(): ModoVista {
   try {

@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Color de cada block state y distancia entre colores en OKLab.

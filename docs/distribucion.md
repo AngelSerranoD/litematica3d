@@ -1,8 +1,8 @@
 # Distribución: paquete MSIX para la Microsoft Store
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
-Litematica3D se distribuye por dos canales:
+Schematic Lab se distribuye por dos canales:
 
 - **Microsoft Store**, con un paquete **MSIX**. Es el canal principal: la Store
   firma el paquete sin coste, así que no aparece el aviso de SmartScreen.
@@ -22,7 +22,7 @@ Un solo comando. Compila (`npx tauri build --no-bundle`), monta el diseño del
 paquete y lo empaqueta. Resultado:
 
 ```
-src-tauri\target\msix\Litematica3D_<versión>_x64.msix   (≈4,4 MiB, sin firmar)
+src-tauri\target\msix\SchematicLab_<versión>_x64.msix   (≈4,4 MiB, sin firmar)
 src-tauri\target\msix\diseno\                            (el mismo contenido, sin comprimir)
 ```
 
@@ -37,7 +37,7 @@ Parámetros:
 
 | Parámetro | Por defecto | Para qué |
 |---|---|---|
-| `-IdentityName` | `AngelSerranoDominguez.Litematica3D` | `Package/Identity/Name`. **Provisional** |
+| `-IdentityName` | `AngelSerranoDominguez.SchematicLab` | `Package/Identity/Name`. **Provisional** |
 | `-Publisher` | `CN=Angel Serrano Dominguez` | `Package/Identity/Publisher`. **Provisional** |
 | `-PublisherDisplayName` | `Ángel Serrano Domínguez` | Nombre del editor que se ve en la Store |
 | `-SinCompilar` | — | Reutiliza el exe de `src-tauri\target\release` |
@@ -48,7 +48,7 @@ script o se pasan al llamarlo:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\empaquetar-msix.ps1 `
-  -IdentityName '12345AngelSerrano.Litematica3D' `
+  -IdentityName '12345AngelSerrano.SchematicLab' `
   -Publisher 'CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
 ```
 
@@ -58,10 +58,10 @@ final, y cada envío necesita una versión mayor que la anterior.
 
 ### Qué hace el script, paso a paso
 
-1. `npx tauri build --no-bundle`: frontend y `litematica3d.exe` en modo release,
+1. `npx tauri build --no-bundle`: frontend y `SchematicLab.exe` en modo release,
    sin generar el NSIS.
 2. Monta `src-tauri\target\msix\diseno` (la borra y la rehace entera cada vez):
-   - `litematica3d.exe`;
+   - `SchematicLab.exe`;
    - `LICENSE`, `NOTICE` y `licencias\OFL.txt`, los mismos avisos que lleva el NSIS;
    - `Assets\`, copiado de `src-tauri\msix\Assets`;
    - `AppxManifest.xml`, a partir de la plantilla `src-tauri\msix\AppxManifest.xml`
@@ -157,8 +157,8 @@ instalado:
 
 ```powershell
 Add-AppxPackage -Register src-tauri\target\msix\diseno\AppxManifest.xml
-# ... probar (aparece en el menú Inicio como Litematica3D) ...
-Get-AppxPackage AngelSerranoDominguez.Litematica3D | Remove-AppxPackage
+# ... probar (aparece en el menú Inicio como Schematic Lab) ...
+Get-AppxPackage AngelSerranoDominguez.SchematicLab | Remove-AppxPackage
 ```
 
 Mientras está registrado no se puede regenerar el paquete, porque el script
@@ -182,7 +182,7 @@ de Windows a sus controles.
 | Qué | Resultado |
 |---|---|
 | Arranque, visor 3D | Funciona |
-| Datos de la biblioteca | Carpetas propias del paquete, distintas de las de NSIS (ver más abajo): biblioteca y `ajustes.json` en `%LOCALAPPDATA%\Packages\<familia del paquete>\LocalState\`, atlas de texturas en `…\LocalCache	exturas\`. Persisten entre arranques y las miniaturas se ven desde el primer arranque. Los datos de WebView2 (preferencias de la interfaz en `localStorage`) siguen en `%LOCALAPPDATA%\com.aserrano.litematica3d`, que Windows redirige a `LocalCache\Local\…` (si la versión NSIS ya la había creado, se usa la real) |
+| Datos de la biblioteca | Carpetas propias del paquete, distintas de las de NSIS (ver más abajo): biblioteca y `ajustes.json` en `%LOCALAPPDATA%\Packages\<familia del paquete>\LocalState\`, atlas de texturas en `…\LocalCache	exturas\`. Persisten entre arranques y las miniaturas se ven desde el primer arranque. Los datos de WebView2 (preferencias de la interfaz en `localStorage`) siguen en `%LOCALAPPDATA%\com.aserrano.schematiclab`, que Windows redirige a `LocalCache\Local\…` (si la versión NSIS ya la había creado, se usa la real) |
 | Desinstalar (`Remove-AppxPackage`) | Borra `Packages\<familia>` entero (biblioteca incluida) y las asociaciones. No deja nada en `%APPDATA%` |
 | Carpeta `.minecraft` | Se lee la carpeta real del usuario (`%APPDATA%\.minecraft`). Las versiones se detectan, el atlas se genera y las texturas se ven en el visor. Elegir la carpeta a mano en Ajustes también funciona (`guardar_ajustes` con la ruta) |
 | Papelera | Borrar un schematic y el recorte del historial (más de 20 versiones) mandan los archivos a la Papelera del sistema. Allí aparecen con su ruta dentro de la carpeta del paquete |
@@ -205,8 +205,8 @@ las carpetas del propio paquete en vez de `app_data_dir`, `app_config_dir` y
 
 | | NSIS / `cargo run` | Store (MSIX) |
 |---|---|---|
-| Biblioteca y `ajustes.json` | `%APPDATA%\com.aserrano.litematica3d\` | `%LOCALAPPDATA%\Packages\<familia>\LocalState\` |
-| Atlas de texturas | `%LOCALAPPDATA%\com.aserrano.litematica3d	exturas\` | `%LOCALAPPDATA%\Packages\<familia>\LocalCache	exturas\` |
+| Biblioteca y `ajustes.json` | `%APPDATA%\com.aserrano.schematiclab\` | `%LOCALAPPDATA%\Packages\<familia>\LocalState\` |
+| Atlas de texturas | `%LOCALAPPDATA%\com.aserrano.schematiclab	exturas\` | `%LOCALAPPDATA%\Packages\<familia>\LocalCache	exturas\` |
 
 Por qué así y no dejando que Windows virtualice `%APPDATA%`:
 
@@ -251,7 +251,7 @@ menudo; si alguno no coincide, se busca el equivalente.
 **Antes de empezar**
 
 1. Publicar el portfolio con la página de privacidad
-   (`https://www.aserrano.dev/privacidad/litematica3d`). La Store la pide como
+   (`https://www.aserrano.dev/privacidad/schematic-lab`). La Store la pide como
    URL pública, así que tiene que estar en línea antes del envío.
 2. Probar a mano arrastrar y soltar con el paquete registrado (§4). Es lo único
    que no se pudo comprobar sin ratón.
@@ -262,8 +262,11 @@ menudo; si alguno no coincide, se busca el equivalente.
    crear la cuenta de desarrollador **individual** (gratuita). Se verifica
    la identidad; puede tardar unos días.
 4. En Partner Center → *Aplicaciones y juegos* → *Nueva aplicación* → *MSIX
-   or PWA app*, reservar el nombre **Litematica3D**. Si está cogido, parar y
+   or PWA app*, reservar el nombre **Schematic Lab**. Si está cogido, parar y
    decidir otro antes de seguir: cambia el `DisplayName` del manifiesto.
+   La identidad definitiva del paquete (`Package/Identity/Name` y
+   `Publisher`) la da Partner Center al reservarlo; la de los scripts
+   (`AngelSerranoDominguez.SchematicLab`) es provisional.
 5. En la app reservada → *Administración de productos* → *Identidad del
    producto*, copiar tres valores:
    - `Package/Identity/Name` → `-IdentityName`
@@ -279,7 +282,7 @@ menudo; si alguno no coincide, se busca el equivalente.
    powershell -ExecutionPolicy Bypass -File scripts\empaquetar-msix.ps1
    ```
 
-   Sale `src-tauri\target\msix\Litematica3D_<versión>_x64.msix`, **sin
+   Sale `src-tauri\target\msix\SchematicLab_<versión>_x64.msix`, **sin
    firmar**: la Store lo firma al publicarlo. La familia del paquete cambia con
    la identidad nueva; las miniaturas siguen funcionando porque el alcance del
    protocolo `asset` usa un comodín (§5).
@@ -317,11 +320,11 @@ en Partner Center con el paquete nuevo.
 
 ## 7. Notas para depurar dentro del paquete
 
-- `Invoke-CommandInDesktopPackage -PackageFamilyName <familia> -AppId Litematica3D
+- `Invoke-CommandInDesktopPackage -PackageFamilyName <familia> -AppId SchematicLab
   -Command cmd.exe -Args '/c ...'` abre un proceso dentro del contenedor del
   paquete. Sirve para ver qué ve la app en `%APPDATA%`. Las variables de
   entorno del PowerShell que lo lanza **no** llegan; hay que fijarlas dentro
-  del `cmd /c set ...&& start "" litematica3d.exe`.
+  del `cmd /c set ...&& start "" SchematicLab.exe`.
 - Con `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`, el
   WebView expone el protocolo de depuración de Chromium en
   `http://127.0.0.1:9333/json/list`. Desde ahí se pueden llamar los comandos

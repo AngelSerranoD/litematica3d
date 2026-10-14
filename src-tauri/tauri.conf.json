@@ -1,8 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Litematica3D",
+  "productName": "Schematic Lab",
+  "mainBinaryName": "SchematicLab",
   "version": "../package.json",
-  "identifier": "com.aserrano.litematica3d",
+  "identifier": "com.aserrano.schematiclab",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Litematica3D",
+        "title": "Schematic Lab",
         "width": 1280,
         "height": 800,
         "minWidth": 720,

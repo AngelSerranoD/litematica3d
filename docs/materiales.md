@@ -1,6 +1,6 @@
 # Pantalla de materiales: contrato entre el núcleo Rust y el frontend
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Este documento fija los comandos Tauri que usa la pantalla de materiales: la
 lista de ítems de un schematic, la comprobación de lo ya reunido, los nombres en
@@ -34,7 +34,7 @@ Todos los campos son opcionales (los que falten valen su defecto).
 ```ts
 ListaMateriales: {
   materiales: Array<{
-    item: string;            // "minecraft:stone"; "litematica3d:desconocido" agrupa IDs antiguos sin traducción
+    item: string;            // "minecraft:stone"; "schematiclab:desconocido" agrupa IDs antiguos sin traducción
     cantidad: number;
     tamanoStack: number;     // 64, 16 o 1
     stacks: number;          // stacks × tamanoStack + sueltos = cantidad

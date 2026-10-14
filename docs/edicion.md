@@ -1,6 +1,6 @@
 # Edición de schematics con historial
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Los schematics de la biblioteca se pueden modificar: cambiar el bloque de una
 posición o sustituir todas las apariciones de un block state por otro. Cada
@@ -16,7 +16,7 @@ exportar), `src-tauri/src/schematic/escritor_litematic.rs` (escritor) y
 ## 1. Qué se modifica y en qué formato queda
 
 - Al aplicar cambios se **sobrescribe la copia** de la biblioteca
-  (`%APPDATA%\com.aserrano.litematica3d\biblioteca\<id>.<ext>`). La versión
+  (`%APPDATA%\com.aserrano.schematiclab\biblioteca\<id>.<ext>`). La versión
   anterior pasa al historial.
 - Lo modificado se guarda **siempre como `.litematic`**, aunque el original
   fuera `.schem`, `.schematic` o `.nbt`. Esa versión original sigue en el

@@ -1,12 +1,12 @@
-# Política de privacidad de Litematica3D
+# Política de privacidad de Schematic Lab
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Última actualización: 14 de octubre de 2026. Publicada en
-https://www.aserrano.dev/privacidad/litematica3d (la página del portfolio
+https://www.aserrano.dev/privacidad/schematic-lab (la página del portfolio
 lleva el mismo texto; si se cambia uno, hay que cambiar el otro).
 
-Litematica3D es una aplicación de escritorio para Windows, de Ángel Serrano
+Schematic Lab es una aplicación de escritorio para Windows, de Ángel Serrano
 Domínguez, que muestra en 3D schematics de Minecraft y calcula sus materiales.
 
 ## Qué datos recoge
@@ -30,8 +30,8 @@ ningún servidor mío detrás de ella.
   En la versión de la Microsoft Store se guardan en la carpeta privada que
   Windows reserva para la app (%LOCALAPPDATA%\Packages\…\LocalState, y la caché
   de texturas en …\LocalCache). En la versión del instalador de GitHub, en
-  %APPDATA%\com.aserrano.litematica3d\, y la caché de texturas en
-  %LOCALAPPDATA%\com.aserrano.litematica3d\.
+  %APPDATA%\com.aserrano.schematiclab\, y la caché de texturas en
+  %LOCALAPPDATA%\com.aserrano.schematiclab\.
 - Los archivos que exportas (CSV de materiales, schematics), en el sitio que
   eliges.
 
@@ -39,16 +39,15 @@ Todo queda en tu equipo. Eliminar un schematic desde la app lo manda a la
 Papelera de Windows. Para borrar todo lo que guarda la app: en la versión de la
 Microsoft Store basta desinstalarla, porque Windows borra su carpeta; en la del
 instalador de GitHub, desinstálala y borra las carpetas
-%APPDATA%\com.aserrano.litematica3d\ y
-%LOCALAPPDATA%\com.aserrano.litematica3d\.
+%APPDATA%\com.aserrano.schematiclab\ y
+%LOCALAPPDATA%\com.aserrano.schematiclab\.
 
 ## Terceros
 
 La aplicación no comparte datos con terceros. Usa el componente WebView2 de
 Microsoft, que forma parte de Windows y se rige por las condiciones de
 Microsoft; la app no le envía ni le pide nada de red. Minecraft es una marca de
-Mojang AB / Microsoft; esta aplicación no es un producto oficial ni está
-aprobada por ellos.
+Mojang AB / Microsoft. No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su autor.
 
 ## Menores
 

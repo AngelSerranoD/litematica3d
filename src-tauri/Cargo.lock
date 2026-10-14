@@ -2092,29 +2092,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae"
 
 [[package]]
-name = "litematica3d"
-version = "0.1.0"
-dependencies = [
- "fastnbt",
- "flate2",
- "png 0.18.1",
- "rayon",
- "rusqlite",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-single-instance",
- "tempfile",
- "thiserror 2.0.21",
- "trash",
- "uuid",
- "zip",
-]
-
-[[package]]
 name = "lock_api"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3103,6 +3080,29 @@ dependencies = [
  "quote",
  "serde_derive_internals",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "schematic-lab"
+version = "0.1.0"
+dependencies = [
+ "fastnbt",
+ "flate2",
+ "png 0.18.1",
+ "rayon",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-single-instance",
+ "tempfile",
+ "thiserror 2.0.21",
+ "trash",
+ "uuid",
+ "zip",
 ]
 
 [[package]]

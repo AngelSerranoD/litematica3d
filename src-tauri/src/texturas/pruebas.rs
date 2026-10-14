@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Pruebas de texturas. Las normales usan JSON y PNG en memoria; las que leen
@@ -778,11 +778,11 @@ fn malla_rellena_textura_rotacion_y_atlas() {
 
 // ---------------------------------------------------------------- jar real
 
-/// Jar de Minecraft para las pruebas de desarrollo: `LITEMATICA3D_MC_VERSION`
+/// Jar de Minecraft para las pruebas de desarrollo: `SCHEMATICLAB_MC_VERSION`
 /// si está, si no 1.21.11 si tiene jar, y si no la primera release instalada.
 pub(crate) fn jar_real() -> VersionMinecraft {
     let v = versiones::listar(&versiones::carpetas_por_defecto());
-    let pedida = std::env::var("LITEMATICA3D_MC_VERSION").ok();
+    let pedida = std::env::var("SCHEMATICLAB_MC_VERSION").ok();
     let elegida = match pedida {
         Some(p) => v.iter().find(|x| x.id == p).cloned(),
         None => v
@@ -817,7 +817,7 @@ fn atlas_con_jar_real() {
         activo.recursos.n_modelos(),
         tiempo
     );
-    if let Ok(dir) = std::env::var("LITEMATICA3D_VOLCAR_ATLAS") {
+    if let Ok(dir) = std::env::var("SCHEMATICLAB_VOLCAR_ATLAS") {
         std::fs::write(PathBuf::from(dir).join("atlas.png"), activo.png.as_ref()).unwrap();
     }
     assert!(m.ancho.is_power_of_two() && m.alto.is_power_of_two());

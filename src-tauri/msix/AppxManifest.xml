@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+  Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
   Ver LICENSE y NOTICE.
 
   Plantilla del manifiesto del paquete MSIX (Microsoft Store). No se usa tal
@@ -23,7 +23,7 @@
     ProcessorArchitecture="x64" />
 
   <Properties>
-    <DisplayName>Litematica3D</DisplayName>
+    <DisplayName>Schematic Lab</DisplayName>
     <PublisherDisplayName>{{PUBLISHER_DISPLAY_NAME}}</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -41,9 +41,9 @@
   </Resources>
 
   <Applications>
-    <Application Id="Litematica3D" Executable="litematica3d.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="SchematicLab" Executable="SchematicLab.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="Litematica3D"
+        DisplayName="Schematic Lab"
         Description="Visor 3D y biblioteca de schematics de Minecraft"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"

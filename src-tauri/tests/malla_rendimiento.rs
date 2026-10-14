@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Medida de rendimiento del mallado con 1 M de bloques sintéticos (100³).
@@ -8,14 +8,14 @@
 //! cargo test --release --test malla_rendimiento -- --ignored --nocapture
 //! ```
 //!
-//! Con la variable `LITEMATICA3D_VOLCAR_MALLA=<carpeta>` deja además el
+//! Con la variable `SCHEMATICLAB_VOLCAR_MALLA=<carpeta>` deja además el
 //! binario de cada caso en `<carpeta>/<caso>.l3dm`, para probar el
 //! decodificador de `src/api/visor.ts` fuera de la aplicación.
 
 use std::time::Instant;
 
-use litematica3d_lib::malla::{Mundo, Opciones, binario, mallar};
-use litematica3d_lib::schematic::modelo::{Dimensiones, Formato, Region, Schematic};
+use schematic_lab_lib::malla::{Mundo, Opciones, binario, mallar};
+use schematic_lab_lib::schematic::modelo::{Dimensiones, Formato, Region, Schematic};
 
 const LADO: u32 = 100;
 
@@ -70,7 +70,7 @@ fn medir(nombre: &str, s: &Schematic) {
     let t2 = Instant::now();
     let bytes = binario::serializar(&m);
     let t3 = Instant::now();
-    if let Some(dir) = std::env::var_os("LITEMATICA3D_VOLCAR_MALLA") {
+    if let Some(dir) = std::env::var_os("SCHEMATICLAB_VOLCAR_MALLA") {
         let ruta = std::path::Path::new(&dir).join(format!("{}.l3dm", nombre.replace(' ', "_")));
         std::fs::write(&ruta, &bytes).unwrap();
     }

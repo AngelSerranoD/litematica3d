@@ -1,12 +1,12 @@
-# Litematica3D privacy policy
+# Schematic Lab privacy policy
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Last updated: 14 October 2026. Published at
-https://www.aserrano.dev/privacidad/litematica3d (the portfolio page carries
+https://www.aserrano.dev/privacidad/schematic-lab (the portfolio page carries
 the same text; if one changes, change the other).
 
-Litematica3D is a Windows desktop app by Ángel Serrano Domínguez that shows
+Schematic Lab is a Windows desktop app by Ángel Serrano Domínguez that shows
 Minecraft schematics in 3D and works out their materials.
 
 ## What data it collects
@@ -29,24 +29,23 @@ mine behind it.
   Microsoft Store version they are kept in the private folder Windows reserves
   for the app (%LOCALAPPDATA%\Packages\…\LocalState, with the texture cache in
   …\LocalCache). In the GitHub installer version, in
-  %APPDATA%\com.aserrano.litematica3d\, with the texture cache in
-  %LOCALAPPDATA%\com.aserrano.litematica3d\.
+  %APPDATA%\com.aserrano.schematiclab\, with the texture cache in
+  %LOCALAPPDATA%\com.aserrano.schematiclab\.
 - The files you export (materials CSV, schematics), wherever you choose.
 
 Everything stays on your computer. Deleting a schematic from the app sends it to
 the Windows Recycle Bin. To remove everything the app stores: in the Microsoft
 Store version, just uninstall it, because Windows deletes its folder; in the
 GitHub installer version, uninstall it and delete the folders
-%APPDATA%\com.aserrano.litematica3d\ and
-%LOCALAPPDATA%\com.aserrano.litematica3d\.
+%APPDATA%\com.aserrano.schematiclab\ and
+%LOCALAPPDATA%\com.aserrano.schematiclab\.
 
 ## Third parties
 
 The app shares no data with third parties. It uses Microsoft's WebView2
 component, which is part of Windows and is governed by Microsoft's terms; the
 app sends it nothing over the network and asks nothing of it. Minecraft is a
-trademark of Mojang AB / Microsoft; this app is not an official product and is
-not approved by them.
+trademark of Mojang AB / Microsoft. Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft. Not affiliated with Litematica or its author.
 
 ## Children
 

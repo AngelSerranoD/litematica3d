@@ -1,6 +1,6 @@
 # Ficha de la Microsoft Store (español)
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Textos para Partner Center, idioma es-ES. La versión en inglés está en
 [ficha.en.md](ficha.en.md). Límites de Partner Center (los que conozco al
@@ -12,7 +12,7 @@ sobra.
 
 ## Nombre del producto (límite 100)
 
-Litematica3D
+Schematic Lab
 
 ## Descripción corta (límite 1000)
 
@@ -20,7 +20,7 @@ Visor 3D y editor de schematics de Minecraft para Windows. Importa .litematic, .
 
 ## Descripción (límite 10 000)
 
-Litematica3D es una aplicación de escritorio para quien guarda construcciones de Minecraft en forma de schematics. Los abres, los miras en 3D y sabes qué materiales hacen falta para levantarlos.
+Schematic Lab es una aplicación de escritorio para quien guarda construcciones de Minecraft en forma de schematics. Los abres, los miras en 3D y sabes qué materiales hacen falta para levantarlos.
 
 Importa cuatro formatos: .litematic, .schem, .schematic y .nbt. El formato se reconoce por el contenido del archivo y no por su extensión, así que un .nbt que en realidad es un schematic antiguo se abre igual. Cada schematic se copia a una biblioteca local con su miniatura; el archivo original no se toca.
 
@@ -34,7 +34,7 @@ Privacidad: la app no envía datos a ningún sitio, no tiene cuentas ni telemetr
 
 Requisitos: Windows 10 (versión 2004 o posterior) o Windows 11, de 64 bits (x64). Las texturas necesitan Minecraft Java instalado; sin él, la app funciona con colores planos.
 
-No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos.
+No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su autor.
 
 ## Características destacadas (límite 20 × 200)
 
@@ -67,14 +67,14 @@ categoría y su lista de subcategorías son estos al enviarla.
 
 ## Aviso de marca
 
-No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos.
+No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su autor.
 
 Ponerlo también en las notas para certificación (Notes for certification),
 junto a la mención de que la app no incluye assets de Mojang.
 
 ## Política de privacidad (URL)
 
-https://www.aserrano.dev/privacidad/litematica3d
+https://www.aserrano.dev/privacidad/schematic-lab
 
 Texto en [politica-privacidad.es.md](politica-privacidad.es.md).
 
@@ -82,5 +82,5 @@ Texto en [politica-privacidad.es.md](politica-privacidad.es.md).
 
 - Copyright y marca (límite 200): © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 - Novedades de la primera versión (límite 1500): Primera versión en la Microsoft Store.
-- Sitio web de la app: https://www.aserrano.dev/proyecto/litematica3d
+- Sitio web de la app: https://www.aserrano.dev/proyecto/schematic-lab
 - Contacto: angelsd7704@gmail.com

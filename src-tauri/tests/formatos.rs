@@ -1,11 +1,11 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Recorre tests/datos/esperados.json y comprueba cada archivo de prueba.
 
 use std::path::PathBuf;
 
-use litematica3d_lib::schematic::{self, Formato};
+use schematic_lab_lib::schematic::{self, Formato};
 use serde_json::Value;
 
 fn carpeta_datos() -> PathBuf {
@@ -135,13 +135,13 @@ fn mcedit_traduce_ids_altos_como_desconocidos() {
     let s = schematic::cargar(&bytes).unwrap();
     let paleta = &s.regiones[0].paleta;
     assert!(
-        paleta.iter().any(|p| p == "litematica3d:desconocido_300_0"),
+        paleta.iter().any(|p| p == "schematiclab:desconocido_300_0"),
         "{paleta:?}"
     );
     assert!(
         paleta
             .iter()
-            .any(|p| p == "litematica3d:desconocido_4095_5"),
+            .any(|p| p == "schematiclab:desconocido_4095_5"),
         "{paleta:?}"
     );
 }

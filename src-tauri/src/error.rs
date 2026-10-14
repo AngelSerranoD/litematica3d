@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Errores de la aplicación. Llegan al frontend como
@@ -55,7 +55,7 @@ pub enum ErrorApp {
     Papelera { nombre: String, detalle: String },
 
     #[error(
-        "La biblioteca la creó una versión más nueva de Litematica3D; actualiza la aplicación."
+        "La biblioteca la creó una versión más nueva de Schematic Lab; actualiza la aplicación."
     )]
     VersionBiblioteca,
 

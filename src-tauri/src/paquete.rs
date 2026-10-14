@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Versión empaquetada (MSIX, Microsoft Store): carpetas de datos propias.
@@ -6,7 +6,7 @@
 //! Instalada desde la Store, la app corre con identidad de paquete. Guarda la
 //! biblioteca, los ajustes y la caché en las carpetas del paquete
 //! (`%LOCALAPPDATA%\Packages\<familia>\LocalState` y `LocalCache`), no en
-//! `%APPDATA%\com.aserrano.litematica3d` como la versión NSIS. Así las dos
+//! `%APPDATA%\com.aserrano.schematiclab` como la versión NSIS. Así las dos
 //! versiones no comparten (ni mezclan) biblioteca y Windows lo borra todo al
 //! desinstalar. Esas carpetas no se virtualizan: la ruta es la real.
 //! Ver docs/distribucion.md.
@@ -82,9 +82,9 @@ mod tests {
     fn carpetas_dentro_del_paquete() {
         let c = Carpetas::del_paquete(
             Path::new(r"C:\Users\u\AppData\Local"),
-            "Editor.Litematica3D_abc123",
+            "Editor.SchematicLab_abc123",
         );
-        let raiz = Path::new(r"C:\Users\u\AppData\Local\Packages\Editor.Litematica3D_abc123");
+        let raiz = Path::new(r"C:\Users\u\AppData\Local\Packages\Editor.SchematicLab_abc123");
         assert_eq!(c.datos, raiz.join("LocalState"));
         assert_eq!(c.config, raiz.join("LocalState"));
         assert_eq!(c.cache, raiz.join("LocalCache"));

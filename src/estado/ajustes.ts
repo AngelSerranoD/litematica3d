@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { create } from "zustand";
@@ -65,7 +65,7 @@ export function versionEfectiva(versiones: VersionMinecraft[], guardada: string 
 // ── Tema ──
 
 /** Copia del tema en localStorage solo para pintar el primer fotograma sin parpadeo. */
-const CLAVE_TEMA = "litematica3d.tema";
+const CLAVE_TEMA = "schematiclab.tema";
 
 /** Pone `data-tema` en <html> (sin él, manda `prefers-color-scheme`). */
 function aplicarTema(tema: Tema): void {

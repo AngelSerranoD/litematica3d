@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Archivos diminutos que declaran volúmenes enormes: deben rechazarse sin
@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 
 use fastnbt::Value;
-use litematica3d_lib::schematic::cargar;
+use schematic_lab_lib::schematic::cargar;
 
 fn compuesto(pares: Vec<(&str, Value)>) -> Value {
     Value::Compound(

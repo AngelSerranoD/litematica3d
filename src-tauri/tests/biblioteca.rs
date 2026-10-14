@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Pruebas de la biblioteca con un directorio temporal.
@@ -6,9 +6,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use litematica3d_lib::biblioteca::{Biblioteca, Importacion};
-use litematica3d_lib::error::ErrorApp;
-use litematica3d_lib::schematic::Formato;
+use schematic_lab_lib::biblioteca::{Biblioteca, Importacion};
+use schematic_lab_lib::error::ErrorApp;
+use schematic_lab_lib::schematic::Formato;
 
 fn dato(nombre: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -27,7 +27,7 @@ fn copias(b: &Biblioteca) -> Vec<String> {
     v
 }
 
-fn importado(r: Result<Importacion, ErrorApp>) -> litematica3d_lib::biblioteca::Entrada {
+fn importado(r: Result<Importacion, ErrorApp>) -> schematic_lab_lib::biblioteca::Entrada {
     match r.unwrap() {
         Importacion::Importado(e) => e,
         Importacion::Duplicado(e) => panic!("no debía ser duplicado: {}", e.nombre),
@@ -122,7 +122,7 @@ fn un_error_no_deja_rastro() {
 
 #[test]
 fn importar_rechaza_archivos_demasiado_grandes() {
-    use litematica3d_lib::biblioteca::MAX_BYTES_IMPORTAR;
+    use schematic_lab_lib::biblioteca::MAX_BYTES_IMPORTAR;
 
     let tmp = tempfile::tempdir().unwrap();
     let b = Biblioteca::abrir(tmp.path()).unwrap();

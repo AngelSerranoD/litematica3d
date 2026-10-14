@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Formato MCEdit / WorldEdit antiguo (.schematic, anterior a 1.13): IDs
@@ -52,7 +52,7 @@ pub(crate) fn estado_legado(id: u16, meta: u8) -> String {
         .get(&(id, meta))
         .or_else(|| tabla.get(&(id, 0)))
         .cloned()
-        .unwrap_or_else(|| format!("litematica3d:desconocido_{id}_{meta}"))
+        .unwrap_or_else(|| format!("schematiclab:desconocido_{id}_{meta}"))
 }
 
 fn lado_sin_signo(v: i32) -> i64 {
@@ -143,6 +143,6 @@ mod pruebas {
         assert_eq!(estado_legado(1, 0), "minecraft:stone");
         // Meta desconocido: se usa el meta 0 del mismo ID.
         assert_eq!(estado_legado(1, 15), "minecraft:stone");
-        assert_eq!(estado_legado(4095, 5), "litematica3d:desconocido_4095_5");
+        assert_eq!(estado_legado(4095, 5), "schematiclab:desconocido_4095_5");
     }
 }

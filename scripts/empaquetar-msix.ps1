@@ -1,9 +1,9 @@
-﻿# Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+﻿# Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 # Ver LICENSE y NOTICE.
 
 <#
 .SYNOPSIS
-  Compila Litematica3D y genera el paquete MSIX para la Microsoft Store.
+  Compila Schematic Lab y genera el paquete MSIX para la Microsoft Store.
 
 .DESCRIPTION
   1. `npx tauri build --no-bundle` (frontend + exe en modo release).
@@ -12,7 +12,7 @@
      sacado de la plantilla src-tauri\msix\AppxManifest.xml.
   3. makepri (índice de recursos, para que Windows elija el logo de cada tamaño)
      y makeappx (empaqueta) del Windows SDK.
-  Resultado: src-tauri\target\msix\Litematica3D_<versión>_x64.msix, sin firmar
+  Resultado: src-tauri\target\msix\SchematicLab_<versión>_x64.msix, sin firmar
   (la Store firma el paquete al publicarlo). Todo queda dentro de
   src-tauri\target, que no va a git.
 
@@ -24,7 +24,7 @@
 .EXAMPLE
   # Con la identidad que da Partner Center (Producto > Identidad del producto):
   powershell -ExecutionPolicy Bypass -File scripts\empaquetar-msix.ps1 `
-    -IdentityName '12345AngelSerrano.Litematica3D' `
+    -IdentityName '12345AngelSerrano.SchematicLab' `
     -Publisher 'CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
 #>
 [CmdletBinding()]
@@ -35,7 +35,7 @@ param(
     #   Package/Identity/Name                -> IdentityName
     #   Package/Identity/Publisher           -> Publisher
     #   Package/Properties/PublisherDisplayName -> PublisherDisplayName
-    [string]$IdentityName = 'AngelSerranoDominguez.Litematica3D',
+    [string]$IdentityName = 'AngelSerranoDominguez.SchematicLab',
     [string]$Publisher = 'CN=Angel Serrano Dominguez',
     [string]$PublisherDisplayName = 'Ángel Serrano Domínguez',
     # -----------------------------------------------------------------------
@@ -100,7 +100,7 @@ if (-not $SinCompilar) {
         Pop-Location
     }
 }
-$exe = Join-Path $release 'litematica3d.exe'
+$exe = Join-Path $release 'SchematicLab.exe'
 if (-not (Test-Path $exe)) { Fallar "No existe $exe. Compila antes (sin -SinCompilar)." }
 
 # ---- 2. Diseño del paquete ----------------------------------------------------
@@ -148,7 +148,7 @@ $xmlPri.Save($priconfig)
 if ($LASTEXITCODE -ne 0) { Fallar 'makepri new ha fallado.' }
 
 # ---- 4. Empaquetar -------------------------------------------------------------
-$msix = Join-Path $salida "Litematica3D_$($version)_x64.msix"
+$msix = Join-Path $salida "SchematicLab_$($version)_x64.msix"
 Write-Host '==> Empaquetando con makeappx...'
 & $makeappx pack /d $diseno /p $msix /o | Out-Null
 if ($LASTEXITCODE -ne 0) {

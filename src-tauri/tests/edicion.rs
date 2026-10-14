@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Pruebas de la edición con historial (docs/edicion.md): aplicar cambios,
@@ -10,11 +10,11 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use litematica3d_lib::biblioteca::{
+use schematic_lab_lib::biblioteca::{
     Biblioteca, Entrada, Importacion, MAX_VERSIONES, Motivo, Papelera, sha256_hex,
 };
-use litematica3d_lib::edicion::{Cambio, Reemplazo};
-use litematica3d_lib::schematic::{self, Formato, Schematic, es_aire};
+use schematic_lab_lib::edicion::{Cambio, Reemplazo};
+use schematic_lab_lib::schematic::{self, Formato, Schematic, es_aire};
 
 fn dato(nombre: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

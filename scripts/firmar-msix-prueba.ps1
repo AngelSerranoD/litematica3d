@@ -1,4 +1,4 @@
-﻿# Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+﻿# Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 # Ver LICENSE y NOTICE.
 
 <#
@@ -19,7 +19,7 @@
 
   Antes: generar el paquete con scripts\empaquetar-msix.ps1 y, si estaba
   registrado el diseño de desarrollo (Add-AppxPackage -Register), quitarlo:
-    Get-AppxPackage AngelSerranoDominguez.Litematica3D | Remove-AppxPackage
+    Get-AppxPackage AngelSerranoDominguez.SchematicLab | Remove-AppxPackage
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts\firmar-msix-prueba.ps1
@@ -61,7 +61,7 @@ $signtool = Get-ChildItem (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\b
 if (-not $signtool) { Write-Host 'No encuentro signtool.exe (Windows SDK).' -ForegroundColor Red; exit 1 }
 
 # 1. Certificado (se reutiliza si ya existe uno de prueba con ese sujeto).
-$nombre = 'Litematica3D - prueba MSIX'
+$nombre = 'Schematic Lab - prueba MSIX'
 $cert = Get-ChildItem Cert:\CurrentUser\My |
     Where-Object { $_.Subject -eq $Publisher -and $_.FriendlyName -eq $nombre -and $_.NotAfter -gt (Get-Date) } |
     Select-Object -First 1
@@ -79,7 +79,7 @@ Write-Host '==> Firmando el paquete...'
 if ($LASTEXITCODE -ne 0) { Write-Host 'signtool ha fallado.' -ForegroundColor Red; exit 1 }
 
 # 3. Confiar en el certificado (solo la parte pública).
-$cer = Join-Path $salida 'litematica3d-prueba.cer'
+$cer = Join-Path $salida 'schematiclab-prueba.cer'
 Export-Certificate -Cert $cert -FilePath $cer | Out-Null
 Import-Certificate -FilePath $cer -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
 
@@ -88,9 +88,9 @@ Write-Host '==> Instalando...'
 Add-AppxPackage -Path $Msix
 
 Write-Host ''
-Write-Host 'Instalado. Ábrelo desde el menú Inicio (Litematica3D).' -ForegroundColor Green
+Write-Host 'Instalado. Ábrelo desde el menú Inicio (Schematic Lab).' -ForegroundColor Green
 Write-Host ''
 Write-Host 'Para deshacerlo todo cuando acabes de probar:'
-Write-Host '  Get-AppxPackage AngelSerranoDominguez.Litematica3D | Remove-AppxPackage'
+Write-Host '  Get-AppxPackage AngelSerranoDominguez.SchematicLab | Remove-AppxPackage'
 Write-Host "  Get-ChildItem Cert:\LocalMachine\TrustedPeople | Where-Object Thumbprint -eq '$($cert.Thumbprint)' | Remove-Item"
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object Thumbprint -eq '$($cert.Thumbprint)' | Remove-Item"

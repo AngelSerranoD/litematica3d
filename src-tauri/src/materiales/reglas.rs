@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Reglas que traducen un block state a los ítems necesarios para colocarlo.
@@ -16,7 +16,7 @@ use crate::schematic::es_aire;
 pub const JSON_REGLAS: &str = include_str!("../../datos/bloque_a_item.json");
 
 /// Prefijo de los IDs antiguos (MCEdit) que no tienen traducción.
-pub const PREFIJO_DESCONOCIDO: &str = "litematica3d:desconocido_";
+pub const PREFIJO_DESCONOCIDO: &str = "schematiclab:desconocido_";
 
 /// Versión del esquema del JSON que entiende este código.
 const VERSION_ESQUEMA: u32 = 1;

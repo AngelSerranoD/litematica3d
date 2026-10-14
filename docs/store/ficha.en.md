@@ -1,6 +1,6 @@
 # Microsoft Store listing (English)
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Texts for Partner Center, en-US. The Spanish version is in
 [ficha.es.md](ficha.es.md). Partner Center limits (as known when writing this;
@@ -11,7 +11,7 @@ is well within them.
 
 ## Product name (limit 100)
 
-Litematica3D
+Schematic Lab
 
 ## Short description (limit 1000)
 
@@ -19,7 +19,7 @@ Litematica3D
 
 ## Description (limit 10,000)
 
-Litematica3D is a desktop app for people who keep Minecraft builds as schematics. You open them, look at them in 3D and find out which materials you need to build them.
+Schematic Lab is a desktop app for people who keep Minecraft builds as schematics. You open them, look at them in 3D and find out which materials you need to build them.
 
 It imports four formats: .litematic, .schem, .schematic and .nbt. The format is recognised from the contents of the file, not from its extension, so an .nbt that is really an old schematic opens just the same. Each schematic is copied into a local library with a thumbnail; your original file is never touched.
 
@@ -33,7 +33,7 @@ Privacy: the app sends no data anywhere, has no accounts and no telemetry, and w
 
 Requirements: Windows 10 (version 2004 or later) or Windows 11, 64-bit (x64). Textures need Minecraft Java Edition installed; without it the app works with flat colours.
 
-Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
+Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft. Not affiliated with Litematica or its author.
 
 ## Features (limit 20 x 200)
 
@@ -66,14 +66,14 @@ subcategories are these when submitting.
 
 ## Trademark notice
 
-Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
+Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft. Not affiliated with Litematica or its author.
 
 Also put it in the Notes for certification, together with a mention that the
 app ships no Mojang assets.
 
 ## Privacy policy (URL)
 
-https://www.aserrano.dev/privacidad/litematica3d
+https://www.aserrano.dev/privacidad/schematic-lab
 
 Text in [politica-privacidad.en.md](politica-privacidad.en.md).
 
@@ -81,5 +81,5 @@ Text in [politica-privacidad.en.md](politica-privacidad.en.md).
 
 - Copyright and trademark info (limit 200): © 2026 Ángel Serrano Domínguez. All rights reserved.
 - What's new in the first version (limit 1,500): First release on the Microsoft Store.
-- App website: https://www.aserrano.dev/proyecto/litematica3d
+- App website: https://www.aserrano.dev/proyecto/schematic-lab
 - Contact: angelsd7704@gmail.com

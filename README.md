@@ -1,4 +1,4 @@
-# Litematica3D
+# Schematic Lab
 
 Aplicación de escritorio para Windows que importa schematics de Minecraft
 (`.litematic`, `.schem`, `.schematic`, `.nbt`), los guarda en una biblioteca
@@ -13,7 +13,7 @@ modos: exacto, en stacks y en shulkers. Funciona sin conexión.
 - Motion (animaciones) y Zustand (estado)
 - Núcleo en Rust: parsers propios de los cuatro formatos sobre `fastnbt`
   (detección por contenido, no por extensión) y biblioteca en
-  `%APPDATA%\com.aserrano.litematica3d\` (copias de los archivos e índice
+  `%APPDATA%\com.aserrano.schematiclab\` (copias de los archivos e índice
   SQLite). Eliminar manda el archivo a la Papelera de Windows.
 - Edición: cambios puntuales y reemplazos sobre la copia de la biblioteca,
   guardada siempre como `.litematic`, con historial de 20 versiones (el
@@ -72,7 +72,7 @@ Contratos detallados: [edición](docs/edicion.md), [visor](docs/visor.md),
 
 ## Aviso legal
 
-No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos.
+No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su autor.
 
 Minecraft es una marca de Mojang AB / Microsoft. La app
 no incluye ni redistribuye assets de Mojang: lee las texturas del Minecraft que

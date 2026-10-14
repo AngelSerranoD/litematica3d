@@ -1,6 +1,6 @@
 # Miniaturas isométricas de la biblioteca
 
-<!-- Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
+<!-- Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados. -->
 
 Cada schematic de la biblioteca tiene una miniatura: un render isométrico de su
 contenido, con las mismas texturas que el visor 3D, que se genera en segundo
@@ -11,7 +11,7 @@ las proporciones del schematic. Todo funciona sin red.
 ## 1. Dónde se guarda
 
 - PNG: `<datos>/biblioteca/<id>.miniatura.png`, junto a la copia
-  `<id>.<ext>` (en Windows, `%APPDATA%\com.aserrano.litematica3d\biblioteca\`).
+  `<id>.<ext>` (en Windows, `%APPDATA%\com.aserrano.schematiclab\biblioteca\`).
   La extensión de las copias nunca lleva puntos, así que los nombres no
   chocan.
 - Índice SQLite, esquema v3 (`src-tauri/src/biblioteca.rs`): dos columnas

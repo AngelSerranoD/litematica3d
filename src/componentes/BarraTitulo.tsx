@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useState } from "react";
@@ -30,7 +30,7 @@ export function BarraTitulo() {
     <header className="barra-titulo" data-tauri-drag-region>
       <div className="barra-titulo__marca" data-tauri-drag-region>
         <img className="barra-titulo__icono" src={icono} alt="" width={16} height={16} />
-        <span className="barra-titulo__nombre rotulo">Litematica3D</span>
+        <span className="barra-titulo__nombre rotulo">Schematic Lab</span>
       </div>
       <p className="barra-titulo__lugar" data-tauri-drag-region>
         <span>Biblioteca</span>

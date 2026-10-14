@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { useEffect, useRef, type KeyboardEvent } from "react";
@@ -18,7 +18,7 @@ import "./Confirmacion.css";
 const PREGUNTA_DESCARTE: Record<MotivoDescarte, string> = {
   salirModo: "¿Descartarlos y volver a Visualizar?",
   salirSchematic: "¿Descartarlos y salir del schematic?",
-  cerrarVentana: "¿Descartarlos y cerrar Litematica3D?",
+  cerrarVentana: "¿Descartarlos y cerrar Schematic Lab?",
   restaurar: "Para restaurar otra versión hay que descartarlos. ¿Descartarlos y restaurar?",
   todo: "¿Descartar todos los cambios pendientes?",
 };

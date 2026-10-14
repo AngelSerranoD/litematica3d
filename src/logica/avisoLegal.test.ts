@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { describe, expect, it } from "vitest";
@@ -9,7 +9,7 @@ import readme from "../../README.md?raw";
 describe("aviso de marca", () => {
   it("dice lo acordado", () => {
     expect(AVISO_MARCA).toBe(
-      "No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos.",
+      "No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su autor.",
     );
   });
 

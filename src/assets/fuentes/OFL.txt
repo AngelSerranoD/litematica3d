@@ -1,4 +1,4 @@
-Fuentes empaquetadas en Litematica3D (archivos .woff2 de esta carpeta):
+Fuentes empaquetadas en Schematic Lab (archivos .woff2 de esta carpeta):
 
 Instrument Sans: Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
 JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)

@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Lista de materiales de un schematic: cuántos ítems de cada tipo hacen falta
@@ -30,7 +30,7 @@ use crate::schematic::{Region, Schematic};
 use reglas::{Reglas, Resolucion};
 
 /// Ítem con el que se agrupan los IDs antiguos sin traducción.
-pub const ITEM_DESCONOCIDO: &str = "litematica3d:desconocido";
+pub const ITEM_DESCONOCIDO: &str = "schematiclab:desconocido";
 
 /// Huecos de una caja de shulker.
 const HUECOS_SHULKER: u64 = 27;
@@ -106,7 +106,7 @@ pub struct ListaMateriales {
     /// Cajas de shulker para llevarlo todo mezclado: huecos / 27, hacia arriba.
     pub total_shulkers: u64,
     /// Bloques con ID antiguo sin traducción (también van en la lista como
-    /// `litematica3d:desconocido`).
+    /// `schematiclab:desconocido`).
     pub desconocidos: u64,
 }
 

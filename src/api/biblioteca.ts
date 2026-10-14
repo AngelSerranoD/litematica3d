@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 import { listen } from "@tauri-apps/api/event";
@@ -97,7 +97,7 @@ interface OpcionesMateriales {
 
 /** Un ítem de la lista de materiales con su desglose. */
 export interface Material {
-  /** ID del ítem (`minecraft:…`); `litematica3d:desconocido` agrupa los IDs sin traducción. */
+  /** ID del ítem (`minecraft:…`); `schematiclab:desconocido` agrupa los IDs sin traducción. */
   item: string;
   cantidad: number;
   tamanoStack: number;

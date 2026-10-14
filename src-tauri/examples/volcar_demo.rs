@@ -1,4 +1,4 @@
-// Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+// Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
 //! Vuelca los datos que necesita la demo web (el frontend real con un núcleo
@@ -24,9 +24,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use litematica3d_lib::biblioteca::{Biblioteca, Importacion};
-use litematica3d_lib::malla::{self, Mundo};
-use litematica3d_lib::materiales::{self, Opciones};
+use schematic_lab_lib::biblioteca::{Biblioteca, Importacion};
+use schematic_lab_lib::malla::{self, Mundo};
+use schematic_lab_lib::materiales::{self, Opciones};
 
 /// Schematics de `tests/datos/` que se vuelcan (pequeños y con algo de gracia).
 const ARCHIVOS: [&str; 3] = [
