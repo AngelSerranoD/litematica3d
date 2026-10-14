@@ -16,8 +16,8 @@ modos: exacto, en stacks y en shulkers. Funciona sin conexión.
   `%APPDATA%\com.aserrano.litematica3d\` (copias de los archivos e índice
   SQLite). Eliminar manda el archivo a la Papelera de Windows.
 - Edición: cambios puntuales y reemplazos sobre la copia de la biblioteca,
-  guardada siempre como `.litematic`, con historial de 20 versiones para
-  deshacer y exportación. Contrato en [docs/edicion.md](docs/edicion.md).
+  guardada siempre como `.litematic`, con historial de 20 versiones (el
+  número vive en `MAX_VERSIONES`) para deshacer y exportación. Contrato en [docs/edicion.md](docs/edicion.md).
 - Visor 3D: mallado en Rust por chunks de 16³ (caras ocultas, greedy meshing,
   modelos aproximados) enviado en binario. Contrato en
   [docs/visor.md](docs/visor.md).
@@ -39,6 +39,31 @@ npm run build          # solo comprueba tipos y compila el frontend
 npm test               # tests del frontend (Vitest)
 cd src-tauri && cargo test   # tests del núcleo (formatos, biblioteca y malla)
 ```
+
+## Estructura
+
+Frontend (`src/`):
+
+- `api/`: funciones que llaman a los comandos de Rust y sus tipos.
+- `estado/` y `estado/edicion/`: almacenes Zustand (biblioteca, visor, edición).
+- `logica/`: funciones puras sin React (formato, materiales, tiempo, elemento de biblioteca).
+- `componentes/`: piezas de interfaz reutilizables.
+- `vistas/` y `vistas/biblioteca/`: pantallas (biblioteca y schematic).
+- `estilos/`: tokens, base y movimiento.
+
+Núcleo (`src-tauri/src/`):
+
+- `comandos/`: comandos Tauri, una capa fina sobre el resto.
+- `biblioteca/`: índice SQLite, archivos, historial y miniaturas.
+- `schematic/`: parsers y escritores de los cuatro formatos.
+- `malla/`: mallado del visor y su binario.
+- `texturas/`: atlas desde el jar de Minecraft instalado.
+- `materiales/`: lista de materiales y sus modos.
+- `parecidos/`: bloques parecidos para reemplazar.
+- `espejos.rs`: pruebas que vigilan los valores repetidos entre Rust y TS.
+
+Contratos detallados: [edición](docs/edicion.md), [visor](docs/visor.md),
+[materiales](docs/materiales.md) y [miniaturas](docs/miniaturas.md).
 
 ## Licencia
 

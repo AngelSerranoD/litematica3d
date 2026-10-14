@@ -87,7 +87,7 @@ interface Reemplazo {   // cambia todas las apariciones de un estado exacto, en 
 
 ## 3. Comandos
 
-Firmas Rust (`src-tauri/src/comandos.rs`) y TS (`src/api/edicion.ts`). Los
+Firmas Rust (`src-tauri/src/comandos/edicion.rs`) y TS (`src/api/edicion.ts`). Los
 errores llegan como siempre: `{ tipo, mensaje }` con el mensaje en español.
 
 ### `aplicar_cambios(id, cambios, reemplazos) -> Edicion`

@@ -4,7 +4,7 @@
 
 Este documento fija los comandos Tauri que usa la pantalla de materiales: la
 lista de ítems de un schematic, la comprobación de lo ya reunido, los nombres en
-inglés y la exportación a CSV. El código está en `src-tauri/src/comandos.rs`,
+inglés y la exportación a CSV. El código está en `src-tauri/src/comandos/materiales.rs`,
 `src-tauri/src/materiales/`, `src-tauri/src/biblioteca.rs` y
 `src-tauri/src/texturas/nombres.rs`. Todo funciona sin red.
 
@@ -98,7 +98,7 @@ misma transacción.
 
 Id de ítem → nombre en inglés: `{ "minecraft:stone": "Stone", ... }`. La
 interfaz sigue en español; solo los nombres de ítems van en inglés (así se
-llaman en el juego de Ángel). Nunca da error: sin Minecraft o sin idioma en el
+llaman en el juego en inglés). Nunca da error: sin Minecraft o sin idioma en el
 jar devuelve `{}` y el frontend humaniza el id en Title Case («Oak Planks»).
 
 De dónde salen: `assets/minecraft/lang/en_us.json` dentro del jar de la versión

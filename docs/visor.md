@@ -475,7 +475,7 @@ Flujo recomendado en el frontend:
 
 Punto de enganche en Rust: `textura_de(fuente, estado, cara)` en
 `malla/apariencia.rs` recibe la `FuenteTexturas` (el atlas activo,
-`texturas::Activo`) que `comandos::malla` pasa a `mallar_con_texturas`;
+`texturas::Activo`) que `comandos::visor::malla` pasa a `mallar_con_texturas`;
 `mallar` a secas sigue sin texturas (pruebas y rendimiento).
 
 ### 11.6 «Texturas cambiadas» en el frontend

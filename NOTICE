@@ -70,6 +70,9 @@ Datos de terceros:
 - src-tauri/datos/legado_bloques.json: tabla de IDs numéricos antiguos
   («id:meta») a block states, extraída de data/pc/common/legacy.json de
   PrismarineJS/minecraft-data (MIT) — https://github.com/PrismarineJS/minecraft-data
+- src-tauri/datos/colores_bloques.json: colores medios derivados de las
+  texturas de Minecraft 1.21.8. Son datos derivados (un color por bloque); no
+  incluye ningún asset de Mojang.
 
 Datos de prueba (src-tauri/tests/datos/): generados por generar.py, de este
 proyecto, con nbtlib (MIT) y litemapy (GPL-3.0). Ambas se usan solo como

@@ -34,3 +34,6 @@ npm-debug.log*
 *.AppImage
 *.app
 build/
+
+# Configuración local de Claude Code
+.claude/
