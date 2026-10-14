@@ -148,6 +148,10 @@ impl Papelera for PapeleraSistema {
     }
 }
 
+/// Subcarpeta de `dir_datos` con las copias y sus miniaturas. Es la del
+/// alcance del protocolo `asset` en tauri.conf.json (lo vigila `espejos.rs`).
+pub const CARPETA_COPIAS: &str = "biblioteca";
+
 pub struct Biblioteca {
     dir: PathBuf,
     conn: Mutex<Connection>,
@@ -169,7 +173,7 @@ impl Biblioteca {
         dir_datos: &Path,
         papelera: Box<dyn Papelera>,
     ) -> Result<Self, ErrorApp> {
-        let dir = dir_datos.join("biblioteca");
+        let dir = dir_datos.join(CARPETA_COPIAS);
         fs::create_dir_all(&dir)
             .map_err(|e| ErrorApp::io("crear la carpeta de la biblioteca", e))?;
         let mut conn = Connection::open(dir_datos.join("biblioteca.sqlite3"))?;

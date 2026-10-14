@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+  Ver LICENSE y NOTICE.
+
+  Plantilla del manifiesto del paquete MSIX (Microsoft Store). No se usa tal
+  cual: scripts/empaquetar-msix.ps1 sustituye los marcadores {{...}} y deja el
+  resultado en src-tauri/target/msix/diseno/AppxManifest.xml.
+  Vía elegida y por qué: docs/distribucion.md.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 rescap">
+
+  <!-- Name y Publisher: los que da Partner Center (Identidad del producto). -->
+  <Identity
+    Name="{{IDENTITY_NAME}}"
+    Publisher="{{PUBLISHER}}"
+    Version="{{VERSION}}"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Litematica3D</DisplayName>
+    <PublisherDisplayName>{{PUBLISHER_DISPLAY_NAME}}</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <!-- 19041 = Windows 10 2004: las versiones anteriores ya no tienen soporte y
+       virtualizan AppData de otra forma (copia al escribir). WebView2 no se
+       declara: no es un paquete de framework MSIX y viene con Windows 11 y con
+       Windows 10 actualizado (ver docs/distribucion.md). -->
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="es-ES" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Litematica3D" Executable="litematica3d.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Litematica3D"
+        Description="Visor 3D y biblioteca de schematics de Minecraft"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png" />
+
+      <!-- Abrir con doble clic: las mismas extensiones que fileAssociations
+           de tauri.conf.json y EXTENSIONES de src-tauri/src/argumentos.rs (lo
+           vigila espejos.rs). Windows pasa la ruta como primer argumento. -->
+      <Extensions>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="litematic" Parameters="&quot;%1&quot;">
+            <uap:DisplayName>Schematic de Minecraft (.litematic)</uap:DisplayName>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.litematic</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="schem" Parameters="&quot;%1&quot;">
+            <uap:DisplayName>Schematic de Minecraft (.schem)</uap:DisplayName>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.schem</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="schematic" Parameters="&quot;%1&quot;">
+            <uap:DisplayName>Schematic de Minecraft (.schematic)</uap:DisplayName>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.schematic</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="nbt" Parameters="&quot;%1&quot;">
+            <uap:DisplayName>Estructura de Minecraft (.nbt)</uap:DisplayName>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.nbt</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <!-- runFullTrust: el exe de Tauri es Win32 normal y corre con plena
+       confianza (sin contenedor de AppContainer). No se pide internetClient:
+       la app no usa la red. -->
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

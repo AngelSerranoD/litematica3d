@@ -98,6 +98,42 @@ fn extensiones_iguales_en_nucleo_dialogo_y_asociaciones() {
         .collect();
     asociadas.sort();
     assert_eq!(asociadas, nucleo, "tauri.conf.json");
+
+    // Paquete MSIX de la Store: <uap:FileType>.ext</uap:FileType>.
+    let manifiesto = leer("src-tauri/msix/AppxManifest.xml");
+    let mut msix: Vec<String> = manifiesto
+        .split("<uap:FileType>")
+        .skip(1)
+        .filter_map(|r| r.split_once("</uap:FileType>"))
+        .map(|(e, _)| e.trim().trim_start_matches('.').to_owned())
+        .collect();
+    msix.sort();
+    assert_eq!(msix, nucleo, "src-tauri/msix/AppxManifest.xml");
+}
+
+/// El alcance del protocolo `asset` (miniaturas) cubre la carpeta de copias
+/// de la biblioteca en las dos versiones: NSIS (`app_data_dir`) y la de la
+/// Store (`LocalState` del paquete, `paquete.rs`).
+#[test]
+fn alcance_de_miniaturas_en_la_carpeta_de_copias() {
+    let conf: serde_json::Value =
+        serde_json::from_str(&leer("src-tauri/tauri.conf.json")).expect("tauri.conf.json");
+    let alcance = conf["app"]["security"]["assetProtocol"]["scope"]
+        .as_array()
+        .expect("assetProtocol.scope");
+    let copias = biblioteca::CARPETA_COPIAS;
+    for esperado in [
+        format!("$APPDATA/{copias}/*.miniatura.png"),
+        format!("$LOCALDATA/Packages/*/LocalState/{copias}/*.miniatura.png"),
+    ] {
+        assert!(
+            alcance.iter().any(|a| a.as_str() == Some(esperado.as_str())),
+            "tauri.conf.json: falta {esperado}"
+        );
+    }
+    // La ruta del paquete en el alcance es la que calcula `paquete.rs`.
+    let c = crate::paquete::Carpetas::del_paquete(Path::new("L"), "F");
+    assert_eq!(c.datos, Path::new("L/Packages/F/LocalState"));
 }
 
 #[test]

@@ -8,6 +8,7 @@ pub mod edicion;
 pub mod error;
 pub mod malla;
 pub mod materiales;
+pub mod paquete;
 pub mod parecidos;
 pub mod schematic;
 pub mod texturas;
@@ -52,15 +53,21 @@ pub fn run() {
             app.manage(argumentos::ArchivoPendiente(std::sync::Mutex::new(
                 argumentos::ruta_de_argv(&argv),
             )));
-            let dir_datos = app.path().app_data_dir()?;
+            // Versión de la Store (MSIX): carpetas propias del paquete,
+            // separadas de las de la versión NSIS (src/paquete.rs).
+            let (dir_datos, dir_cache, dir_config) = match paquete::Carpetas::actuales() {
+                Some(c) => (c.datos, c.cache, c.config),
+                None => (
+                    app.path().app_data_dir()?,
+                    app.path().app_cache_dir()?,
+                    app.path().app_config_dir()?,
+                ),
+            };
             let biblioteca = Biblioteca::abrir(&dir_datos)?;
             app.manage(Arc::new(biblioteca));
             app.manage(Arc::new(CacheVisor::default()));
             app.manage(Arc::new(CacheCatalogo::default()));
-            let texturas = Arc::new(GestorTexturas::nuevo(
-                &app.path().app_cache_dir()?,
-                &app.path().app_config_dir()?,
-            ));
+            let texturas = Arc::new(GestorTexturas::nuevo(&dir_cache, &dir_config));
             // El atlas se prepara en segundo plano desde el arranque; mientras
             // tanto, la malla sale con colores.
             comandos::texturas::preparar_en_fondo(Arc::clone(&texturas));

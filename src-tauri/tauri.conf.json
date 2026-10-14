@@ -40,7 +40,8 @@
       "assetProtocol": {
         "enable": true,
         "scope": [
-          "$APPDATA/biblioteca/*.miniatura.png"
+          "$APPDATA/biblioteca/*.miniatura.png",
+          "$LOCALDATA/Packages/*/LocalState/biblioteca/*.miniatura.png"
         ]
       }
     }

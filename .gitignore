@@ -27,6 +27,9 @@ npm-debug.log*
 *.jks
 *.keystore
 *.msi
+*.msix
+*.appx
+*.cer
 *.exe
 *.dmg
 *.deb
