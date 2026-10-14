@@ -101,6 +101,13 @@ export function Escena({ id, malla, atlas, girando, onListo }: Props) {
   useEffect(() => {
     invalidate();
   }, [girando, invalidate]);
+  // El «change» de los controles no basta para sostener el giro: medido en el
+  // exe de release, a veces el bucle se paraba tras 1-4 fotogramas al arrancar
+  // (con un bloque pinchado en Modificar). Pedir otro fotograma desde dentro de
+  // uno lo mantiene vivo mientras gira.
+  useFrame(() => {
+    if (girando) invalidate();
+  });
 
   // ── Mallas: la completa siempre; la cerrada (remallada con el corte) si la hay.
   // Uniforms comunes a todas las mallas de la escena: corte y marcas de la edición.
