@@ -232,15 +232,7 @@ impl Biblioteca {
         let ruta_final = self.dir.join(&nombre_final);
         let ruta_tmp = self.dir.join(format!("{nombre_final}.tmp"));
 
-        let nombre = schem
-            .nombre
-            .clone()
-            .or_else(|| {
-                ruta.file_stem()
-                    .map(|s| s.to_string_lossy().trim().to_string())
-                    .filter(|s| !s.is_empty())
-            })
-            .unwrap_or_else(|| "Sin nombre".into());
+        let nombre = nombre_al_importar(schem.nombre.as_deref(), ruta);
         let entrada = entrada_de(
             &schem,
             id,
@@ -635,6 +627,22 @@ fn entrada_de(
     }
 }
 
+/// Nombre de un schematic recién importado: el que trae dentro, salvo que esté
+/// vacío o sea «Unnamed» (lo que escribe Litematica al guardar sin nombre); en
+/// ese caso, el del archivo.
+fn nombre_al_importar(interno: Option<&str>, ruta: &Path) -> String {
+    interno
+        .map(str::trim)
+        .filter(|n| !n.is_empty() && !n.eq_ignore_ascii_case("unnamed"))
+        .map(str::to_string)
+        .or_else(|| {
+            ruta.file_stem()
+                .map(|s| s.to_string_lossy().trim().to_string())
+                .filter(|s| !s.is_empty())
+        })
+        .unwrap_or_else(|| "Sin nombre".into())
+}
+
 fn recortar(nombre: &str) -> String {
     nombre
         .chars()
@@ -675,6 +683,23 @@ mod pruebas {
         assert_eq!(
             sha256_hex(b"abc"),
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
+    #[test]
+    fn nombre_interno_o_del_archivo() {
+        let ruta = Path::new(r"C:\x\Torre del reloj.litematic");
+        assert_eq!(nombre_al_importar(Some("Castillo"), ruta), "Castillo");
+        assert_eq!(nombre_al_importar(Some("Unnamed"), ruta), "Torre del reloj");
+        assert_eq!(
+            nombre_al_importar(Some(" unnamed "), ruta),
+            "Torre del reloj"
+        );
+        assert_eq!(nombre_al_importar(Some("  "), ruta), "Torre del reloj");
+        assert_eq!(nombre_al_importar(None, ruta), "Torre del reloj");
+        assert_eq!(
+            nombre_al_importar(None, Path::new(".litematic")),
+            ".litematic"
         );
     }
 }
