@@ -5,6 +5,35 @@ Aplicación de escritorio para Windows que importa schematics de Minecraft
 local, los muestra en un visor 3D y calcula los materiales necesarios en tres
 modos: exacto, en stacks y en shulkers. Funciona sin conexión.
 
+Se puede probar sin instalar en la [demo web](https://www.aserrano.dev/demo/schematic-lab).
+
+## Instalar
+
+Requisitos: Windows 10 u 11 de 64 bits. Necesita WebView2, que viene con
+Windows 11; si falta, el instalador lo descarga.
+
+1. Descarga `SchematicLab_<versión>_x64-setup.exe` de la
+   [última Release](https://github.com/AngelSerranoD/schematic-lab/releases/latest).
+2. Ábrelo. Windows puede mostrar «Windows protegió su PC» (SmartScreen)
+   porque el instalador no está firmado con un certificado de pago. Pulsa
+   «Más información» y luego «Ejecutar de todas formas».
+3. Si quieres comprobar que el archivo es el publicado, compara su hash con
+   el de `SHA256SUMS.txt` de la Release:
+
+   ```powershell
+   Get-FileHash .\SchematicLab_0.1.0_x64-setup.exe -Algorithm SHA256
+   ```
+
+   SHA-256 de la versión 0.1.0:
+   `78d073c65e26b691b886809f4616f6ec24db1f6de527e43895013c9e613ccf08`
+
+La versión de la Microsoft Store está en certificación; cuando se publique,
+su enlace irá aquí. Esa versión no muestra el aviso de SmartScreen.
+
+No es un producto oficial de Minecraft. No está aprobado por Mojang ni
+Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su
+autor.
+
 ## Stack
 
 - Tauri 2 (Rust) como contenedor de escritorio
