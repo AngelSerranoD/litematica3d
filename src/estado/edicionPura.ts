@@ -22,6 +22,11 @@ interface ReemplazoParaContar {
  * suelto sobre un bloque cuyo estado actual es el origen de un reemplazo
  * pendiente cae dentro de ese reemplazo, así que no suma otra vez.
  */
+/** Etiqueta de la acción inversa: tras Deshacer se ofrece Rehacer y viceversa. */
+export type EtiquetaInversa = "Deshacer" | "Rehacer";
+export const inversaDe = (hecha: EtiquetaInversa): EtiquetaInversa =>
+  hecha === "Deshacer" ? "Rehacer" : "Deshacer";
+
 export function bloquesAfectados(
   cambios: CambioParaContar[],
   reemplazos: ReemplazoParaContar[],

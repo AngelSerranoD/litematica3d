@@ -1,7 +1,21 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
+import { Fragment } from "react";
 import { useVisor } from "../../estado/visor";
+
+/** Id con un salto posible tras cada «_»: si no cabe, parte por palabras y no a mitad. */
+const partible = (nombre: string) =>
+  nombre.split("_").map((trozo, i, todos) => (
+    <Fragment key={i}>
+      {trozo}
+      {i < todos.length - 1 && (
+        <>
+          _<wbr />
+        </>
+      )}
+    </Fragment>
+  ));
 
 /** Ficha del bloque seleccionado con el ratón: nombre, posición y propiedades. */
 export function PanelBloque() {
@@ -13,7 +27,7 @@ export function PanelBloque() {
   return (
     <section className="panel-bloque" aria-label="Bloque seleccionado" aria-live="polite">
       <header className="panel-bloque__cabecera">
-        <h2 className="panel-bloque__nombre cifras">{bloque?.nombre ?? "…"}</h2>
+        <h2 className="panel-bloque__nombre cifras">{bloque ? partible(bloque.nombre) : "…"}</h2>
         <button
           type="button"
           className="panel-bloque__cerrar"

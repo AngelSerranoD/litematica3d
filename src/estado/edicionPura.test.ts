@@ -2,7 +2,7 @@
 // Ver LICENSE y NOTICE.
 
 import { describe, expect, it } from "vitest";
-import { agruparMiembros, bloquesAfectados } from "./edicionPura";
+import { agruparMiembros, bloquesAfectados, inversaDe } from "./edicionPura";
 
 const PIEDRA = "minecraft:stone";
 const roca = (cantidad: number | null, destino = "minecraft:andesite") => ({
@@ -48,5 +48,12 @@ describe("agruparMiembros", () => {
     expect(g[0].cantidad).toBe(10);
     expect(g[0].estados).toHaveLength(2);
     expect(g[1]).toMatchObject({ id: "minecraft:oak_planks", cantidad: 7 });
+  });
+});
+
+describe("inversaDe", () => {
+  it("cada acción ofrece su inversa", () => {
+    expect(inversaDe("Deshacer")).toBe("Rehacer");
+    expect(inversaDe("Rehacer")).toBe("Deshacer");
   });
 });

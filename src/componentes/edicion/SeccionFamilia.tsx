@@ -2,10 +2,11 @@
 // Ver LICENSE y NOTICE.
 // Selección por familia: familias destino y tabla origen → destino.
 
-import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
+import { useLayoutEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { m } from "motion/react";
 import type { FamiliaParecida } from "../../api/parecidos";
 import { useEdicion, type SeleccionFamilia } from "../../estado/edicion";
+import { agruparMiembros } from "../../estado/edicionPura";
 import { muelle } from "../../estilos/movimiento";
 import { formatoDistancia, formatoNumero } from "../../logica/formato";
 import { IconoBloque } from "./BloqueEdicion";
@@ -41,6 +42,8 @@ export function SeccionFamilia({ familia }: { familia: SeleccionFamilia }) {
   const elegir = useEdicion((s) => s.elegirFamiliaDestino);
   const raiz = useRef<HTMLElement>(null);
   const focoDentro = useRef(false);
+  // Variantes = filas de la tabla (bloques distintos), no estados con otra orientación.
+  const variantes = useMemo(() => agruparMiembros(familia.miembros).length, [familia.miembros]);
   const total = familia.miembros.reduce((t, m) => t + m.cantidad, 0);
   const nombre = familia.familia ? nombreFamilia(familia.familia) : "";
 
@@ -82,7 +85,7 @@ export function SeccionFamilia({ familia }: { familia: SeleccionFamilia }) {
           </h2>
           <p className="parecidos__estado cifras">
             {familia.estado === "lista"
-              ? `${formatoNumero(familia.miembros.length)} ${familia.miembros.length === 1 ? "variante" : "variantes"} · ${formatoNumero(total)} ${total === 1 ? "bloque" : "bloques"}`
+              ? `${formatoNumero(variantes)} ${variantes === 1 ? "variante" : "variantes"} · ${formatoNumero(total)} ${total === 1 ? "bloque" : "bloques"}`
               : familia.origen}
           </p>
         </div>

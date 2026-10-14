@@ -189,7 +189,12 @@ export interface EstadoEdicion {
   /** Escribe los pendientes en la copia de la biblioteca. */
   aplicar: () => Promise<void>;
   /** Vuelve a una versión del historial (deshacer = la que devolvió aplicar). */
-  restaurar: (version: number, id?: string) => Promise<void>;
+  restaurar: (
+    version: number,
+    id?: string,
+    /** Acción que se está haciendo (Deshacer/Rehacer): el aviso ofrece la contraria. */
+    hecha?: "Deshacer" | "Rehacer",
+  ) => Promise<void>;
   cargarHistorial: () => Promise<void>;
   /** Diálogo de guardado y exportación como .litematic de la copia actual. */
   exportar: (nombre: string) => Promise<void>;

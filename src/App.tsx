@@ -55,6 +55,9 @@ export default function App({ funciones }: Props) {
         e.preventDefault();
         void ajustes.abrir();
       } else if (e.key === "Escape" && !ajustes.abierto) {
+        // preventDefault: volver() puede abrir un <dialog> modal (cambios sin
+        // aplicar) y, sin él, la acción por defecto de Esc lo cancelaría al instante.
+        e.preventDefault();
         volver();
       }
     };

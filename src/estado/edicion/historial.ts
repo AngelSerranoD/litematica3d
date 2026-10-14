@@ -10,6 +10,7 @@ import {
   type Edicion,
 } from "../../api/edicion";
 import { useBiblioteca } from "../biblioteca";
+import { inversaDe } from "../edicionPura";
 import { useVisor } from "../visor";
 import { mensajeDe, olvidarFamilia, peticiones } from "./peticiones";
 import type { EstadoEdicion, Trozo } from "./tipos";
@@ -103,13 +104,13 @@ export const trozoHistorial: Trozo<TrozoHistorial> = (set, get) => {
       }
     },
 
-    restaurar: async (version, idPedido) => {
+    restaurar: async (version, idPedido, hecha = "Deshacer") => {
       const id = idPedido ?? get().id;
       if (!id) return;
       const actual = get().id === id;
       if (actual && get().ocupado) return;
       // Los pendientes son de la versión de ahora: restaurar los invalida.
-      if (actual && !get().pedirDescartar("restaurar", () => void get().restaurar(version, id)))
+      if (actual && !get().pedirDescartar("restaurar", () => void get().restaurar(version, id, hecha)))
         return;
       if (actual) set({ ocupado: "restaurar", error: null });
       try {
@@ -122,8 +123,8 @@ export const trozoHistorial: Trozo<TrozoHistorial> = (set, get) => {
             ? undefined
             : {
                 accion: {
-                  etiqueta: "Rehacer",
-                  ejecutar: () => void get().restaurar(rehacer, id),
+                  etiqueta: inversaDe(hecha),
+                  ejecutar: () => void get().restaurar(rehacer, id, inversaDe(hecha)),
                 },
                 duracionMs: DURACION_AVISO_EDICION_MS,
               },
