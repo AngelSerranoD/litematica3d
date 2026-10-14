@@ -6,7 +6,7 @@ import { useEffect, type CSSProperties } from "react";
 import type { Rgb } from "../../api/parecidos";
 import { celdaIcono, useEdicion } from "../../estado/edicion";
 import { useMateriales } from "../../estado/materiales";
-import { nombreItem } from "../materiales/logica";
+import { nombreItem } from "../../logica/materiales";
 
 /** `minecraft:oak_stairs[facing=north]` → `minecraft:oak_stairs`. */
 const idDe = (estado: string) => estado.split("[", 1)[0];

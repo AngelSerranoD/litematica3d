@@ -1,0 +1,79 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* ── Pendientes (pie fijo del panel) ── */
+
+.pendientes-edicion {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 45%;
+  border-top: var(--grosor-filete) solid var(--filete-fuerte);
+}
+
+.pendientes-edicion__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--esp-3) var(--esp-4) var(--esp-1);
+  color: var(--tinta-2);
+}
+
+.pendientes-edicion__cuenta {
+  font-size: var(--t-3);
+  color: var(--tinta);
+}
+
+.pendientes-edicion__lista {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--grosor-filete) solid var(--filete);
+}
+
+.pendiente-edicion {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-1) var(--esp-2) var(--esp-1) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  font-size: var(--t-2);
+}
+
+.pendiente-edicion__bloques {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--esp-1);
+}
+
+.pendiente-edicion__flecha {
+  color: var(--tinta-2);
+}
+
+.pendiente-edicion__donde {
+  flex: none;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+.pendientes-edicion__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-4);
+}
+
+.pendientes-edicion__total {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}

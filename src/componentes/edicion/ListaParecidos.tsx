@@ -2,13 +2,14 @@
 // Ver LICENSE y NOTICE.
 // Lista de bloques parecidos al pinchado (o al origen de una fila de la familia).
 
-import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
+import { useLayoutEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { m } from "motion/react";
 import type { Parecido } from "../../api/parecidos";
 import { useEdicion, type ListaParecidos as Lista } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
-import { formatoDistancia } from "../formato";
+import { formatoDistancia } from "../../logica/formato";
 import { IconoBloque, useNombre } from "./BloqueEdicion";
+import "./Parecidos.css";
 
 /** La sección de la familia se abrió con su botón: al montarse se lleva el foco. */
 let enfocarFamilia = false;
@@ -35,17 +36,21 @@ export function ListaParecidos({ lista }: { lista: Lista }) {
   const focoDentro = useRef(false);
 
   // Destino que ya está pendiente para este objetivo (se marca en la lista).
-  const elegido = useEdicion((s) => {
+  // El selector devuelve solo referencias del almacén (barato en cada cambio
+  // suyo); la búsqueda, sobre hasta un millón de cambios, va en useMemo.
+  const cambios = useEdicion((s) => s.cambios);
+  const reemplazos = useEdicion((s) => s.reemplazos);
+  const elegido = useMemo(() => {
     const o = lista.objetivo;
     if (o.tipo === "reemplazo")
-      return s.reemplazos.find((r) => r.estadoOrigen === o.estadoOrigen)?.estadoDestino ?? null;
+      return reemplazos.find((r) => r.estadoOrigen === o.estadoOrigen)?.estadoDestino ?? null;
     const [x, y, z] = o.pinchado.bloque.posicion;
     const region = o.pinchado.bloque.region;
     return (
-      s.cambios.find((c) => c.region === region && c.x === x && c.y === y && c.z === z)
+      cambios.find((c) => c.region === region && c.x === x && c.y === y && c.z === z)
         ?.nuevoEstado ?? null
     );
-  });
+  }, [lista.objetivo, cambios, reemplazos]);
 
   useLayoutEffect(() => {
     apertura.current =

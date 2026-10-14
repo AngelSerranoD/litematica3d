@@ -5,9 +5,10 @@
 import { useMemo } from "react";
 import { useEdicion, type ListaParecidos as Lista, type SeleccionFamilia } from "../../estado/edicion";
 import { agruparMiembros, type GrupoFamilia } from "../../estado/edicionPura";
-import { formatoNumero } from "../formato";
+import { formatoNumero } from "../../logica/formato";
 import { Bloque, useNombre } from "./BloqueEdicion";
 import { ListaParecidos } from "./ListaParecidos";
+import "./Parecidos.css";
 
 /**
  * Tabla origen → destino de la familia: una fila por bloque presente (los

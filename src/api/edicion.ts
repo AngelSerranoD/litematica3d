@@ -29,6 +29,9 @@ export interface Reemplazo {
   estadoDestino: string;
 }
 
+/** Versiones que guarda el historial por schematic (`biblioteca/historial.rs`). */
+export const MAX_VERSIONES = 20;
+
 /** Qué sustituyó a una versión del historial. */
 type Motivo = "aplicar" | "restaurar";
 
@@ -64,7 +67,7 @@ export interface Edicion {
 export const aplicarCambios = (id: string, cambios: Cambio[], reemplazos: Reemplazo[] = []) =>
   llamar<Edicion>("aplicar_cambios", { id, cambios, reemplazos });
 
-/** Versiones anteriores, de la más reciente a la más antigua (máximo 20). */
+/** Versiones anteriores, de la más reciente a la más antigua (máximo `MAX_VERSIONES`). */
 export const historial = (id: string) => llamar<Version[]>("historial", { id });
 
 /** Vuelve a una versión; la actual pasa antes al historial (para rehacer). */

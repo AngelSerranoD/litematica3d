@@ -5,7 +5,7 @@
 import type { RefObject } from "react";
 import { AnimatePresence } from "motion/react";
 import type { Entrada } from "../../api/biblioteca";
-import type { AccionesElemento, InfoEntrada } from "../../componentes/elementoBiblioteca";
+import type { AccionesElemento, InfoEntrada } from "../../logica/elementoBiblioteca";
 import { Lamina } from "../../componentes/Lamina";
 
 /** Lo común a la rejilla y la lista de la biblioteca. */

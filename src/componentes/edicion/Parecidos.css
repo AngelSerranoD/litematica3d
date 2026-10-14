@@ -1,0 +1,214 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* ── Parecidos ── */
+
+.parecidos__cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-2) var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.parecidos__origen {
+  flex: 1;
+  min-width: 0;
+}
+
+.parecidos__nombre {
+  margin: 0;
+  font-size: var(--t-3);
+  font-weight: 500;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}
+
+.parecidos__estado {
+  overflow: hidden;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.parecidos__cerrar,
+.pendiente-edicion__quitar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radio-2);
+  background: none;
+  color: var(--tinta-2);
+}
+
+.parecidos__cerrar:hover,
+.pendiente-edicion__quitar:hover {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+
+.parecidos__cerrar svg,
+.pendiente-edicion__quitar svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.parecidos__titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--esp-3) var(--esp-4) var(--esp-1);
+  color: var(--tinta-2);
+}
+
+.parecidos__titulo .rotulo,
+.pendientes-edicion__titulo {
+  font-size: calc(var(--t-rotulo-s) / 2);
+  text-transform: uppercase;
+}
+
+.parecidos__leyenda {
+  font-size: var(--t-1);
+}
+
+.parecidos__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.parecido {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--esp-1) var(--esp-4);
+  border: 0;
+  border-bottom: var(--grosor-filete) solid var(--filete);
+  background: none;
+  color: var(--tinta);
+  text-align: left;
+  transition: background-color var(--dur-instante) linear;
+}
+
+.parecido:hover {
+  background-color: var(--superficie-2);
+}
+
+/* El elegido (pendiente): relleno de acento. */
+.parecido[aria-pressed="true"] {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.parecido__nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.parecido__distancia {
+  flex: none;
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}
+
+.parecido[aria-pressed="true"] .parecido__distancia {
+  color: var(--sobre-acento);
+}
+
+/* ── Selección por familia ── */
+
+.parecidos__familia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2) var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.parecidos__pista {
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+/* La familia seleccionada se marca con un filete de color acento (sin trama). */
+.familia-edicion {
+  border-left: 2px solid var(--acento);
+}
+
+.familia-edicion:focus {
+  outline: none;
+}
+
+.familia-edicion:focus-visible {
+  outline: var(--grosor-foco) solid var(--foco);
+  outline-offset: -2px;
+}
+
+/* Segunda línea de una fila de familia destino (formas comunes). */
+.parecido__detalle {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+.parecido[aria-pressed="true"] .parecido__detalle {
+  color: var(--sobre-acento);
+}
+
+/* Mientras se prepara un plan, las demás familias no responden. */
+.parecido[aria-disabled="true"] {
+  color: var(--tinta-2);
+  cursor: default;
+}
+
+.parecido[aria-disabled="true"]:hover {
+  background-color: transparent;
+}
+
+.parecido[aria-busy="true"] {
+  background-color: var(--superficie-2);
+}
+
+.tabla-familia {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--grosor-filete) solid var(--filete);
+}
+
+.fila-familia__igual {
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
+
+/* Lista de parecidos de una fila: desplegada debajo, con sangría y filete. */
+.fila-familia__lista {
+  margin-left: var(--esp-4);
+  border-left: var(--grosor-filete) solid var(--filete-fuerte);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.boton-plano--mini {
+  height: 24px;
+  padding: 0 var(--esp-2);
+  font-size: var(--t-1);
+}
+
+.boton-plano--mini[aria-expanded="true"] {
+  background-color: var(--acento);
+  color: var(--sobre-acento);
+}

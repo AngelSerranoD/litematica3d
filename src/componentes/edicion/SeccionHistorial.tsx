@@ -3,9 +3,11 @@
 // Historial de versiones del schematic, con Restaurar.
 
 import { useEffect } from "react";
+import { MAX_VERSIONES } from "../../api/edicion";
 import { useEdicion } from "../../estado/edicion";
 import { Cifra } from "../Cifra";
-import { fechaCompleta, nombreFormato } from "../formato";
+import { fechaCompleta, nombreFormato } from "../../logica/formato";
+import "./Historial.css";
 
 export function SeccionHistorial() {
   const versiones = useEdicion((s) => s.versiones);
@@ -35,7 +37,7 @@ export function SeccionHistorial() {
     return (
       <p className="edicion__ayuda">
         Aún no hay versiones anteriores. Cada vez que apliques cambios, la versión de antes se
-        guarda aquí (las 20 últimas) y se puede restaurar.
+        guarda aquí (las {MAX_VERSIONES} últimas) y se puede restaurar.
       </p>
     );
 

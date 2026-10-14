@@ -10,6 +10,7 @@ import { useEdicion } from "../../estado/edicion";
 import { useMateriales } from "../../estado/materiales";
 import { useTexturas } from "../../estado/texturas";
 import { useVisor } from "../../estado/visor";
+import { dormir } from "../../logica/tiempo";
 import { muelle } from "../../estilos/movimiento";
 import { BotonExportar, ConmutadorModo } from "../edicion/BarraEdicion";
 import { DeslizadorCapas } from "./DeslizadorCapas";
@@ -28,7 +29,6 @@ type Carga =
 
 /** Esperas (ms) entre reintentos si el atlas no se pudo preparar todavía. */
 const ESPERAS_ATLAS = [1000, 2000, 4000];
-const dormir = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
 const mensajeDe = (e: unknown) =>
   typeof e === "object" && e !== null && "mensaje" in e && typeof e.mensaje === "string"

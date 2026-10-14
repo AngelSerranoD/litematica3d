@@ -2,8 +2,8 @@
 // Ver LICENSE y NOTICE.
 
 import { describe, expect, it } from "vitest";
-import { type Material } from "../../api/biblioteca";
-import { csvLista, nombreArchivo, type Fila } from "./logica";
+import { type Material } from "../api/biblioteca";
+import { csvLista, nombreArchivo, type Fila } from "./materiales";
 
 const BOM = "﻿";
 

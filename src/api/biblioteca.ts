@@ -1,6 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
+import { listen } from "@tauri-apps/api/event";
 import { llamar } from "./llamar";
 
 /** Dimensiones de un schematic en bloques (ejes de Minecraft: X, Y, Z). */
@@ -135,3 +136,13 @@ export const renombrar = (id: string, nombre: string) =>
 export const eliminar = (id: string) => llamar<null>("eliminar", { id });
 export const materiales = (id: string, opciones: OpcionesMateriales) =>
   llamar<ListaMateriales>("materiales", { id, opciones });
+
+/** Evento con que Rust avisa de un archivo abierto con la app ya en marcha. */
+export const EVENTO_ABRIR_ARCHIVO = "abrir-archivo";
+
+/** Ruta del archivo con que se arrancó la app (doble clic en el Explorador), si lo hubo. */
+export const archivoPendiente = () => llamar<string | null>("archivo_pendiente");
+
+/** Escucha los archivos que llegan con la app abierta. Devuelve la función de baja. */
+export const alAbrirArchivo = (cb: (ruta: string) => void): Promise<() => void> =>
+  listen<string>(EVENTO_ABRIR_ARCHIVO, (e) => cb(e.payload));

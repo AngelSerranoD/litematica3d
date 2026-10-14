@@ -8,6 +8,7 @@
 import { obtenerAtlas, type AtlasCargado } from "../api/atlas";
 import type { Entrada, ErrorApp } from "../api/biblioteca";
 import { claveTexturas, guardarMiniatura, mallaMiniatura } from "../api/miniaturas";
+import { dormir } from "../logica/tiempo";
 import { useBiblioteca } from "./biblioteca";
 import { alCambiarTexturas } from "./texturas";
 
@@ -35,8 +36,6 @@ const descartadas = new Set<string>();
 let trabajando = false;
 let liberar: number | undefined;
 let quitar: (() => void) | null = null;
-
-const dormir = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
 /** ¿Hay que (re)generar la miniatura de esta entrada con la clave `actual`? */
 function necesitaMiniatura(e: Entrada, actual: string | null): boolean {
@@ -71,6 +70,7 @@ export function iniciarMiniaturas(): () => void {
     }));
   });
   quitar = () => {
+    window.clearTimeout(liberar);
     quitarBiblioteca();
     quitarTexturas();
     generacion++;

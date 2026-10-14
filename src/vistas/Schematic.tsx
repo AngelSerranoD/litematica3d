@@ -10,7 +10,7 @@ import { PanelEdicion } from "../componentes/edicion/PanelEdicion";
 import { PanelMateriales } from "../componentes/materiales/PanelMateriales";
 import { Visor3D } from "../componentes/visor/Visor3D";
 import { obtener, type Region } from "../api/biblioteca";
-import { formatoDimensiones, nombreFormato } from "../componentes/formato";
+import { formatoDimensiones, nombreFormato } from "../logica/formato";
 import { useBiblioteca } from "../estado/biblioteca";
 import { useEdicion } from "../estado/edicion";
 import { fijarGuardaSalida, useNavegacion } from "../estado/navegacion";

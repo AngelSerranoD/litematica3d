@@ -1,0 +1,35 @@
+/*
+ * Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
+ * Ver LICENSE y NOTICE.
+ */
+
+/* ── Historial ── */
+
+.historial {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.historial__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: var(--grosor-filete) solid var(--filete);
+}
+
+.historial__datos {
+  flex: 1;
+  min-width: 0;
+}
+
+.historial__fecha {
+  font-size: var(--t-3);
+  color: var(--tinta);
+}
+
+.historial__detalle {
+  font-size: var(--t-2);
+  color: var(--tinta-2);
+}

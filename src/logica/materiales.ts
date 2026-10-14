@@ -4,9 +4,9 @@
 // Cuentas de la pantalla de materiales sin React: nombres, filtro y orden,
 // conversión de capas y exportación (texto y CSV).
 
-import { type Material } from "../../api/biblioteca";
-import { formatoNumero } from "../formato";
-import { normalizarTexto } from "../../estado/biblioteca";
+import { type Material } from "../api/biblioteca";
+import { formatoNumero } from "./formato";
+import { normalizarTexto } from "../estado/biblioteca";
 
 /** ID con el que el núcleo agrupa los bloques antiguos sin traducción. */
 const ID_DESCONOCIDO = "litematica3d:desconocido";

@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { create } from "zustand";
 import * as api from "../api/biblioteca";
-import { nombreFormato } from "../componentes/formato";
+import { nombreFormato } from "../logica/formato";
 import type { Entrada, ErrorApp, ResultadoImportacion } from "../api/biblioteca";
 import { elegirArchivos } from "../api/dialogo";
 import { normalizarError } from "../api/llamar";

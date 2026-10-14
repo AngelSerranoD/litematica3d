@@ -6,7 +6,7 @@ import { celdasAtlas, coloresBloques, MAX_CELDAS_ATLAS, type AtlasCargado, type 
 import { normalizarError } from "../api/llamar";
 import { comprobacion, guardarCsv, marcar, nombresItems } from "../api/materiales";
 import type { CaraMaterial, DatosAtlas, Malla } from "../api/visor";
-import { csvLista, nombreArchivo, type Fila } from "../componentes/materiales/logica";
+import { csvLista, nombreArchivo, type Fila } from "../logica/materiales";
 import { useBiblioteca } from "./biblioteca";
 
 /**

@@ -10,6 +10,7 @@
 import { OrthographicCamera, Scene, Vector3, WebGLRenderer } from "three";
 import type { AtlasCargado } from "../../api/atlas";
 import type { Malla } from "../../api/visor";
+import { dormir } from "../../logica/tiempo";
 import { crearAtlasVisor } from "./atlasThree";
 import { crearGrupo, type ChunkVisor } from "./mallaThree";
 import { crearUniformsVisor, type AtlasVisor } from "./sombreado";
@@ -36,8 +37,6 @@ const DIRECCION = new Vector3(1, 1, 1).normalize();
 let renderizador: WebGLRenderer | null = null;
 /** Textura del atlas propia de este renderizador (no la del visor). */
 let atlasPropio: { imagen: ImageBitmap; atlas: AtlasVisor } | null = null;
-
-const ceder = () => new Promise<void>((r) => window.setTimeout(r, 0));
 
 /** El único renderizador de miniaturas, creado la primera vez. */
 function obtenerRenderizador(): WebGLRenderer {
@@ -165,7 +164,7 @@ export async function renderizarMiniatura(
       for (const c of tanda) c.mesh.visible = true;
       r.render(escena, camara);
       for (const c of tanda) c.mesh.visible = false;
-      await ceder();
+      await dormir(0);
       if (!seguir()) return false;
     }
     return true;

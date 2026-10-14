@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { m } from "motion/react";
-import { formatoNumero } from "../formato";
+import { formatoNumero } from "../../logica/formato";
 import {
   bloquesAfectados,
   numPendientes,
@@ -13,6 +13,7 @@ import {
 } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
 import "./Edicion.css";
+import "./Confirmacion.css";
 
 const PREGUNTA_DESCARTE: Record<MotivoDescarte, string> = {
   salirModo: "¿Descartarlos y volver a Visualizar?",

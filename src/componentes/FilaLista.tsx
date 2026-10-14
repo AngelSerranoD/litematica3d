@@ -13,7 +13,7 @@ import {
   varianteElemento,
   type AccionesElemento,
   type InfoEntrada,
-} from "./elementoBiblioteca";
+} from "../logica/elementoBiblioteca";
 import {
   dimensionesHabladas,
   fechaCompleta,
@@ -21,7 +21,7 @@ import {
   formatoCorto,
   formatoDimensiones,
   nombreFormato,
-} from "./formato";
+} from "../logica/formato";
 import { IconoPapelera } from "./Iconos";
 import { Miniatura } from "./Miniatura";
 import { NombreEditable } from "./NombreEditable";

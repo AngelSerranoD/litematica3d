@@ -73,13 +73,15 @@ const desuscribir = useVisor.subscribe((s, antes) => {
   // `bloque` llega después (respuesta de `bloque_en`): hasta entonces nada.
   if (sel.bloque && sel.bloque !== antes.seleccion?.bloque) e.pinchar(sel.celda, sel.bloque);
 });
-// Con la recarga en caliente del desarrollo, el módulo viejo deja de escuchar.
-import.meta.hot?.dispose(() => desuscribir());
-
 // Con otras texturas las celdas de antes no valen: se vuelven a pedir.
-alCambiarTexturas(() => {
+const desuscribirTexturas = alCambiarTexturas(() => {
   olvidarColaCeldas();
   useEdicion.setState({ celdas: {}, versionCeldas: null });
+});
+// Con la recarga en caliente del desarrollo, el módulo viejo deja de escuchar.
+import.meta.hot?.dispose(() => {
+  desuscribir();
+  desuscribirTexturas();
 });
 
 /** Número de pendientes, cambios más reemplazos (selector atómico). */

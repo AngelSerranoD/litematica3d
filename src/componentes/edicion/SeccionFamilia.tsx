@@ -7,10 +7,11 @@ import { m } from "motion/react";
 import type { FamiliaParecida } from "../../api/parecidos";
 import { useEdicion, type SeleccionFamilia } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
-import { formatoDistancia, formatoNumero } from "../formato";
+import { formatoDistancia, formatoNumero } from "../../logica/formato";
 import { IconoBloque } from "./BloqueEdicion";
 import { tomarFocoFamilia } from "./ListaParecidos";
 import { TablaFamilia } from "./TablaFamilia";
+import "./Parecidos.css";
 
 /** `minecraft:dark_oak` o `dark_oak` → «dark oak» (los ids de mods conservan su namespace). */
 const nombreFamilia = (f: string) => f.replace(/^minecraft:/, "").replace(/_/g, " ");

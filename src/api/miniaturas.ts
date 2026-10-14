@@ -15,6 +15,10 @@ import { pedirMalla, type Malla } from "./visor";
  */
 const VERSION_RENDER = 1;
 
+/** Cabeceras de `guardar_miniatura` (las mismas que lee `comandos/visor.rs`). */
+export const CABECERA_ID = "miniatura-id";
+export const CABECERA_TEXTURAS = "miniatura-texturas";
+
 /** Lo que admite Rust en la clave: ASCII visible y como mucho 100 caracteres. */
 const MAX_CLAVE = 100;
 
@@ -47,7 +51,7 @@ export async function guardarMiniatura(
   png: Uint8Array,
 ): Promise<Entrada> {
   return llamar<Entrada>("guardar_miniatura", png, {
-    headers: { "miniatura-id": id, "miniatura-texturas": texturas },
+    headers: { [CABECERA_ID]: id, [CABECERA_TEXTURAS]: texturas },
   });
 }
 

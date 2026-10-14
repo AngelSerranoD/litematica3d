@@ -2,8 +2,8 @@
 // Ver LICENSE y NOTICE.
 
 import { useEffect } from "react";
-import { invoke, isTauri } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { isTauri } from "@tauri-apps/api/core";
+import { alAbrirArchivo, archivoPendiente } from "../api/biblioteca";
 import { useBiblioteca } from "./biblioteca";
 import { useNavegacion } from "./navegacion";
 
@@ -18,7 +18,7 @@ async function abrirArchivo(ruta: string): Promise<void> {
 /**
  * Abrir un schematic con doble clic en el Explorador: el que trajo el
  * arranque (comando `archivo_pendiente`) y los que llegan después con la app
- * ya abierta (evento `abrir-archivo`). Se escucha primero y se recoge después
+ * ya abierta (evento `abrir-archivo`, `EVENTO_ABRIR_ARCHIVO`). Se escucha primero y se recoge después
  * para no perder ninguno.
  */
 export function usoAbrirArchivo(): void {
@@ -27,11 +27,11 @@ export function usoAbrirArchivo(): void {
     let activo = true;
     let quitar: (() => void) | undefined;
 
-    listen<string>("abrir-archivo", (e) => void abrirArchivo(e.payload))
+    alAbrirArchivo((ruta) => void abrirArchivo(ruta))
       .then(async (fn) => {
         if (!activo) return fn();
         quitar = fn;
-        const pendiente = await invoke<string | null>("archivo_pendiente");
+        const pendiente = await archivoPendiente();
         if (activo && pendiente) await abrirArchivo(pendiente);
       })
       .catch(() => {});

@@ -12,8 +12,10 @@ import {
 } from "../../estado/edicion";
 import { muelle } from "../../estilos/movimiento";
 import { CifraAnimada } from "../CifraAnimada";
-import { formatoNumero } from "../formato";
+import { formatoNumero } from "../../logica/formato";
 import { Bloque, useNombre } from "./BloqueEdicion";
+import "./Parecidos.css";
+import "./Pendientes.css";
 
 export function SeccionPendientes() {
   const cambios = useEdicion((s) => s.cambios);

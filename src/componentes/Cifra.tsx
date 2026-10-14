@@ -1,7 +1,7 @@
 // Litematica3D — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { gruposDeMiles } from "./formato";
+import { gruposDeMiles } from "../logica/formato";
 import "./Cifra.css";
 
 /**

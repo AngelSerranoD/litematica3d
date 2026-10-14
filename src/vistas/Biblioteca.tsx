@@ -16,7 +16,7 @@ import { m, useIsPresent } from "motion/react";
 import { BarraBiblioteca } from "../componentes/BarraBiblioteca";
 import { BibliotecaVacia } from "../componentes/BibliotecaVacia";
 import { Cifra } from "../componentes/Cifra";
-import type { AccionesElemento, InfoEntrada } from "../componentes/elementoBiblioteca";
+import type { AccionesElemento, InfoEntrada } from "../logica/elementoBiblioteca";
 import { useBiblioteca, useEntradasVisibles } from "../estado/biblioteca";
 import { useNavegacion } from "../estado/navegacion";
 import { ListaBiblioteca } from "./biblioteca/ListaBiblioteca";
