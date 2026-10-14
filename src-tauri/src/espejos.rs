@@ -107,3 +107,170 @@ fn version_de_cargo_igual_que_la_de_package_json() {
         serde_json::from_str(&leer("package.json")).expect("package.json");
     assert_eq!(paquete["version"].as_str(), Some(env!("CARGO_PKG_VERSION")));
 }
+
+/// Valor de `const NOMBRE = "texto";` (exportada o no) en un archivo TS.
+fn cadena_ts(ruta: &str, nombre: &str) -> String {
+    let texto = leer(ruta);
+    let patron = format!("const {nombre} = \"");
+    let resto = texto
+        .lines()
+        .find_map(|l| l.split_once(&patron).map(|(_, r)| r.to_owned()))
+        .unwrap_or_else(|| panic!("{ruta}: no está `{nombre}`"));
+    resto
+        .split_once('"')
+        .unwrap_or_else(|| panic!("{ruta}: `{nombre}` sin comilla de cierre"))
+        .0
+        .to_owned()
+}
+
+/// Literales de cadena (entre comillas dobles) de un texto, en orden.
+fn literales(texto: &str) -> Vec<String> {
+    texto
+        .split('"')
+        .skip(1)
+        .step_by(2)
+        .map(str::to_owned)
+        .collect()
+}
+
+#[test]
+fn cabeceras_de_miniatura_iguales_en_nucleo_y_frontend() {
+    let ruta = "src/api/miniaturas.ts";
+    assert_eq!(cadena_ts(ruta, "CABECERA_ID"), comandos::visor::CABECERA_ID);
+    assert_eq!(
+        cadena_ts(ruta, "CABECERA_TEXTURAS"),
+        comandos::visor::CABECERA_TEXTURAS
+    );
+}
+
+#[test]
+fn maximo_de_versiones_igual_en_historial_y_frontend() {
+    assert_eq!(
+        constante_ts("src/api/edicion.ts", "MAX_VERSIONES"),
+        biblioteca::MAX_VERSIONES
+    );
+}
+
+#[test]
+fn evento_de_abrir_archivo_igual_en_nucleo_y_frontend() {
+    assert_eq!(
+        cadena_ts("src/api/biblioteca.ts", "EVENTO_ABRIR_ARCHIVO"),
+        crate::EVENTO_ABRIR_ARCHIVO
+    );
+}
+
+#[test]
+fn tipos_de_error_iguales_en_nucleo_y_frontend() {
+    // Las cadenas de `ErrorApp::tipo()`, leídas del propio código fuente.
+    let fuente = leer("src-tauri/src/error.rs");
+    let cuerpo = fuente
+        .split_once("pub fn tipo(&self)")
+        .and_then(|(_, r)| r.split_once("\n    }\n"))
+        .expect("`tipo()` en error.rs")
+        .0;
+    let mut nucleo: Vec<String> = cuerpo
+        .lines()
+        .filter(|l| l.contains("=>"))
+        .flat_map(literales)
+        .collect();
+    nucleo.sort();
+
+    let ts = leer("src/api/biblioteca.ts");
+    let union = ts
+        .split_once("type TipoError =")
+        .and_then(|(_, r)| r.split_once(';'))
+        .expect("unión TipoError en biblioteca.ts")
+        .0;
+    let mut frontend = literales(union);
+    frontend.sort();
+
+    assert!(!nucleo.is_empty());
+    assert_eq!(nucleo, frontend);
+}
+
+#[test]
+fn formatos_iguales_en_nucleo_y_frontend() {
+    use crate::schematic::Formato;
+    // El `match` sin comodín obliga a revisar esta lista al añadir un formato.
+    let todos = [
+        Formato::Litematic,
+        Formato::Sponge,
+        Formato::Mcedit,
+        Formato::Estructura,
+    ];
+    for f in todos {
+        match f {
+            Formato::Litematic | Formato::Sponge | Formato::Mcedit | Formato::Estructura => {}
+        }
+    }
+    let mut nucleo: Vec<String> = todos.iter().map(|f| f.como_texto().to_owned()).collect();
+    nucleo.sort();
+
+    let ts = leer("src/api/biblioteca.ts");
+    let union = ts
+        .split_once("type Formato =")
+        .and_then(|(_, r)| r.split_once(';'))
+        .expect("unión Formato en biblioteca.ts")
+        .0;
+    let mut frontend = literales(union);
+    frontend.sort();
+    assert_eq!(nucleo, frontend);
+}
+
+#[test]
+fn orden_de_caras_igual_en_nucleo_y_frontend() {
+    use crate::malla::apariencia::Cara;
+    // Nombres serde de Rust (camelCase) en el orden de `celdas_atlas`.
+    let nucleo: Vec<String> = comandos::texturas::CARAS
+        .iter()
+        .map(|c| {
+            serde_json::to_value(c)
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .to_owned()
+        })
+        .collect();
+
+    let atlas = leer("src/api/atlas.ts");
+    let lista = atlas
+        .split_once("CARAS_ATLAS = [")
+        .and_then(|(_, r)| r.split_once(']'))
+        .expect("CARAS_ATLAS en atlas.ts")
+        .0;
+    assert_eq!(nucleo, literales(lista), "CARAS_ATLAS");
+
+    // `CaraMaterial` (visor.ts) es la misma lista.
+    let visor = leer("src/api/visor.ts");
+    let union = visor
+        .split_once("type CaraMaterial =")
+        .and_then(|(_, r)| r.split_once(';'))
+        .expect("CaraMaterial en visor.ts")
+        .0;
+    assert_eq!(nucleo, literales(union), "CaraMaterial");
+
+    // `NORMALES` (visor.ts): el índice de cada cara de `Cara` es el de su normal.
+    let bloque = visor
+        .split_once("NORMALES: readonly Vec3[] = [")
+        .and_then(|(_, r)| r.split_once("];"))
+        .expect("NORMALES en visor.ts")
+        .0;
+    for (i, cara) in Cara::CUBO.iter().enumerate() {
+        let linea = bloque
+            .lines()
+            .map(str::trim)
+            .filter(|l| l.starts_with('['))
+            .nth(i)
+            .unwrap_or_else(|| panic!("NORMALES: falta el índice {i}"));
+        let vector: Vec<i32> = linea
+            .trim_start_matches('[')
+            .split(']')
+            .next()
+            .unwrap()
+            .split(',')
+            .map(|n| n.trim().parse().expect("componente entera"))
+            .collect();
+        assert_eq!(vector, cara.delta().to_vec(), "NORMALES[{i}] ({cara:?})");
+        assert_eq!(*cara as usize, i, "índice de {cara:?}");
+    }
+}

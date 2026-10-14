@@ -97,6 +97,18 @@ pub fn atlas_info(texturas: State<'_, Arc<GestorTexturas>>) -> Option<DatosAtlas
     texturas.listo().map(|a| a.datos_atlas())
 }
 
+/// Orden de las caras en cada fila de `celdas_atlas` (el frontend lo repite
+/// en `CARAS_ATLAS`; `espejos.rs` vigila que coincidan).
+pub(crate) const CARAS: [Cara; 7] = [
+    Cara::Arriba,
+    Cara::Abajo,
+    Cara::Norte,
+    Cara::Sur,
+    Cara::Oeste,
+    Cara::Este,
+    Cara::Cruz,
+];
+
 /// Como mucho tantos block states por llamada a `celdas_atlas`.
 pub const MAX_CELDAS_ATLAS: usize = 256;
 
@@ -142,15 +154,6 @@ pub async fn celdas_atlas(
         return Ok(None);
     };
     en_segundo_plano(move || {
-        const CARAS: [Cara; 7] = [
-            Cara::Arriba,
-            Cara::Abajo,
-            Cara::Norte,
-            Cara::Sur,
-            Cara::Oeste,
-            Cara::Este,
-            Cara::Cruz,
-        ];
         let celdas = estados
             .iter()
             .map(|e| match validar_estado(e) {

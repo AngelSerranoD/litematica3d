@@ -17,6 +17,10 @@ mod espejos;
 
 use std::sync::Arc;
 
+/// Evento que avisa al frontend de que otro proceso pidió abrir un archivo
+/// (`EVENTO_ABRIR_ARCHIVO` en `src/api/biblioteca.ts`).
+pub(crate) const EVENTO_ABRIR_ARCHIVO: &str = "abrir-archivo";
+
 use tauri::{Emitter, Manager};
 
 use crate::biblioteca::Biblioteca;
@@ -37,7 +41,7 @@ pub fn run() {
                 let _ = ventana.set_focus();
             }
             if let Some(ruta) = argumentos::ruta_de_argv(&argv) {
-                let _ = app.emit("abrir-archivo", ruta);
+                let _ = app.emit(EVENTO_ABRIR_ARCHIVO, ruta);
             }
         }))
         .plugin(tauri_plugin_dialog::init())
