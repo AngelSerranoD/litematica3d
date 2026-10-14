@@ -55,7 +55,7 @@ Not an official Minecraft product. Not approved by or associated with Mojang or 
 4. minecraft materials list
 5. shulker
 6. schem
-7. litematica
+7. minecraft builds
 
 ## Proposed category
 

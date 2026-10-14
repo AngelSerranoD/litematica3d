@@ -56,7 +56,7 @@ No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsof
 4. materiales minecraft
 5. shulker
 6. schem
-7. litematica
+7. construcciones minecraft
 
 ## Categoría propuesta
 
