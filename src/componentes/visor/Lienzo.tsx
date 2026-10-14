@@ -17,10 +17,12 @@ interface Props {
   malla: Malla;
   /** Atlas decodificado; aquí se convierte en textura de Three. */
   atlas: AtlasCargado | null;
+  /** Giro automático alrededor del modelo (tecla Espacio). */
+  girando: boolean;
   onListo: () => void;
 }
 
-export default function Lienzo({ id, malla, atlas, onListo }: Props) {
+export default function Lienzo({ id, malla, atlas, girando, onListo }: Props) {
   const texturas = useMemo(() => (atlas ? atlasVisor(atlas) : null), [atlas]);
   return (
     <Canvas
@@ -33,7 +35,7 @@ export default function Lienzo({ id, malla, atlas, onListo }: Props) {
       // el contenedor va escalado y getBoundingClientRect daría un tamaño falso.
       resize={{ offsetSize: true }}
     >
-      <Escena id={id} malla={malla} atlas={texturas} onListo={onListo} />
+      <Escena id={id} malla={malla} atlas={texturas} girando={girando} onListo={onListo} />
     </Canvas>
   );
 }

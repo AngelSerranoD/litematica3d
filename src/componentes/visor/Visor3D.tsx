@@ -10,6 +10,7 @@ import { useEdicion } from "../../estado/edicion";
 import { useMateriales } from "../../estado/materiales";
 import { useTexturas } from "../../estado/texturas";
 import { useVisor } from "../../estado/visor";
+import { datosDeFoco, espacioBloqueadoPor } from "../../logica/atajos";
 import { dormir } from "../../logica/tiempo";
 import { muelle } from "../../estilos/movimiento";
 import { BotonExportar, ConmutadorModo } from "../edicion/BarraEdicion";
@@ -132,6 +133,9 @@ export function Visor3D({ id, marcador }: Props) {
   // biblioteca: por eso en captura y con preventDefault), P el panel de
   // rendimiento en desarrollo.
   const hayMalla = carga.tipo === "lista";
+  // Espacio: giro automático. Estado local: al salir del visor se pierde y al
+  // volver a abrir empieza apagado.
+  const [girando, setGirando] = useState(false);
   useEffect(() => {
     if (!hayMalla) return;
     const alPulsar = (e: KeyboardEvent) => {
@@ -140,6 +144,13 @@ export function Visor3D({ id, marcador }: Props) {
       const edicion = useEdicion.getState();
       if (edicion.confirmacion) return; // y el de confirmar la edición también
       const s = useVisor.getState();
+      // Espacio solo si el foco no está en algo que lo use (botón, campo, diálogo).
+      if (e.key === " " || e.code === "Space") {
+        if (e.repeat || e.shiftKey || espacioBloqueadoPor(datosDeFoco(document.activeElement))) return;
+        e.preventDefault();
+        setGirando((g) => !g);
+        return;
+      }
       // Esc cierra de dentro afuera: la lista de un destino de la familia, la
       // familia, la lista del bloque y, por último, la selección.
       if (e.key === "Escape" && edicion.lista?.objetivo.tipo === "reemplazo") {
@@ -189,7 +200,7 @@ export function Visor3D({ id, marcador }: Props) {
   else
     nota = (
       <p className="visor3d__nota">
-        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar · Con el foco en el visor: flechas giran, +/− acercan ·{" "}
+        Arrastrar: girar · Botón derecho: desplazar · Rueda: acercar · Con el foco en el visor: flechas giran, +/− acercan · Espacio: girar ·{" "}
         {modo === "modificar"
           ? "Clic: elegir bloque · Mayús+clic: su familia"
           : "Clic: inspeccionar"}
@@ -217,7 +228,13 @@ export function Visor3D({ id, marcador }: Props) {
         >
           <div className="visor3d__lienzo">
             <Suspense fallback={null}>
-              <Lienzo id={id} malla={carga.malla} atlas={carga.atlas} onListo={alListo} />
+              <Lienzo
+                id={id}
+                malla={carga.malla}
+                atlas={carga.atlas}
+                girando={girando}
+                onListo={alListo}
+              />
             </Suspense>
           </div>
 

@@ -41,6 +41,8 @@ const ESPERA_REMALLADO = 250;
 const TOLERANCIA_CLIC = 4;
 /** Margen del gizmo de ejes desde la esquina inferior derecha (px). */
 const MARGEN_GIZMO: [number, number] = [64, 64];
+/** Velocidad del giro automático (OrbitControls: 2 = una vuelta cada 30 s). Con «reducir movimiento», un tercio. */
+const VELOCIDAD_GIRO = 1.5;
 /** Medio lado del cuadrado que ocupa el gizmo en pantalla (px). */
 const RADIO_GIZMO = 60;
 
@@ -57,6 +59,8 @@ interface Props {
   malla: Malla;
   /** Texturas del schematic, o `null` (colores planos). */
   atlas: AtlasVisor | null;
+  /** Giro automático lento (tecla Espacio). */
+  girando: boolean;
   /** Se llama tras el primer fotograma con la malla dibujada. */
   onListo: () => void;
 }
@@ -84,7 +88,7 @@ function encuadrar(camara: PerspectiveCamera, controles: Controles | null, malla
   }
 }
 
-export function Escena({ id, malla, atlas, onListo }: Props) {
+export function Escena({ id, malla, atlas, girando, onListo }: Props) {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
@@ -92,6 +96,11 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
   const tema = usoTema();
   // Sin inercia al girar con «reducir movimiento» del sistema.
   const reducir = useReducedMotion();
+  // El lienzo dibuja bajo demanda: el giro automático se mantiene solo (cada
+  // update de los controles emite «change» e invalida), pero hay que arrancarlo.
+  useEffect(() => {
+    invalidate();
+  }, [girando, invalidate]);
 
   // ── Mallas: la completa siempre; la cerrada (remallada con el corte) si la hay.
   // Uniforms comunes a todas las mallas de la escena: corte y marcas de la edición.
@@ -359,7 +368,14 @@ export function Escena({ id, malla, atlas, onListo }: Props) {
 
   return (
     <>
-      <OrbitControls ref={controles} makeDefault enableDamping={!reducir} dampingFactor={0.12} />
+      <OrbitControls
+        ref={controles}
+        makeDefault
+        enableDamping={!reducir}
+        dampingFactor={0.12}
+        autoRotate={girando}
+        autoRotateSpeed={reducir ? VELOCIDAD_GIRO / 3 : VELOCIDAD_GIRO}
+      />
       <primitive object={completa.grupo} dispose={null} />
       {cerrada && <primitive object={cerrada.g.grupo} dispose={null} />}
       <Grid
