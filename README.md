@@ -70,6 +70,14 @@ Núcleo (`src-tauri/src/`):
 Contratos detallados: [edición](docs/edicion.md), [visor](docs/visor.md),
 [materiales](docs/materiales.md) y [miniaturas](docs/miniaturas.md).
 
+## Aviso legal
+
+No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsoft ni asociado con ellos.
+
+Minecraft es una marca de Mojang AB / Microsoft. La app
+no incluye ni redistribuye assets de Mojang: lee las texturas del Minecraft que
+ya tengas instalado.
+
 ## Licencia
 
 Software propietario. © 2026 Ángel Serrano Domínguez. Todos los derechos

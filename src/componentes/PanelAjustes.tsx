@@ -8,6 +8,7 @@ import { normalizarError } from "../api/llamar";
 import { elegirCarpetaMinecraft } from "../api/dialogo";
 import { useAjustes, versionEfectiva, type EstadoAtlas } from "../estado/ajustes";
 import { muelle } from "../estilos/movimiento";
+import { AVISO_MARCA } from "../logica/avisoLegal";
 import "./PanelAjustes.css";
 
 const TEMAS: { valor: Tema; etiqueta: string }[] = [
@@ -307,6 +308,7 @@ function Pie() {
         <kbd className="ajustes__tecla">Ctrl+,</kbd> abre · <kbd className="ajustes__tecla">Esc</kbd>{" "}
         cierra
       </p>
+      <p className="ajustes__aviso">{AVISO_MARCA}</p>
     </footer>
   );
 }

@@ -287,3 +287,10 @@
 .ajustes__atajos .ajustes__tecla {
   margin: 0 var(--esp-1) 0 0;
 }
+
+/* Aviso de marca: ocupa su propia línea del pie, en pequeño. */
+.ajustes__aviso {
+  flex-basis: 100%;
+  font-size: var(--t-1);
+  color: var(--tinta-2);
+}
