@@ -43,3 +43,6 @@ build/
 
 # Datos de la demo web: los regenera `cargo run --example volcar_demo`
 demo-datos/
+
+# Vídeo y GIF de los anuncios (pesados; se adjuntan a mano al publicar)
+docs/anuncio/
