@@ -18,6 +18,11 @@ modos: exacto, en stacks y en shulkers. Funciona sin conexión.
 - Edición: cambios puntuales y reemplazos sobre la copia de la biblioteca,
   guardada siempre como `.litematic`, con historial de 20 versiones (el
   número vive en `MAX_VERSIONES`) para deshacer y exportación. Contrato en [docs/edicion.md](docs/edicion.md).
+- Seguridad: la CSP de `tauri.conf.json` solo permite recursos propios. La
+  excepción es `style-src 'unsafe-inline'` (con
+  `dangerousDisableAssetCspModification` para que Tauri no la anule con
+  nonces), porque Motion y React escriben estilos en línea al animar. No se
+  carga nada de fuera ni se ejecuta script en línea.
 - Visor 3D: mallado en Rust por chunks de 16³ (caras ocultas, greedy meshing,
   modelos aproximados) enviado en binario. Contrato en
   [docs/visor.md](docs/visor.md).

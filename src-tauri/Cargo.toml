@@ -3,16 +3,13 @@ name = "litematica3d"
 version = "0.1.0"
 description = "Visor y biblioteca de schematics de Minecraft"
 authors = ["Ángel Serrano Domínguez"]
-license = "LicenseRef-Propietaria"
+license-file = "../LICENSE"
 publish = false
 edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+# El sufijo `_lib` evita que la biblioteca choque con el binario del mismo
+# nombre en Windows (https://github.com/rust-lang/cargo/issues/8519).
 name = "litematica3d_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
@@ -40,7 +37,7 @@ png = "0.18"
 tempfile = "3.27"
 
 
-# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+# Ajustes de tamaño del binario: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]
 codegen-units = 1
 lto = true

@@ -35,5 +35,5 @@ npm-debug.log*
 *.app
 build/
 
-# Configuración local de Claude Code
+# ConfiguraciÃ³n local de Claude Code
 .claude/

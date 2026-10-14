@@ -202,8 +202,7 @@ export function PanelMateriales({ id, titulo, regiones }: Props) {
     try {
       await navigator.clipboard.writeText(texto);
       avisar(`Lista copiada al portapapeles (${formatoNumero(filas.length)} materiales).`);
-    } catch (e) {
-      console.debug("copiar lista", e);
+    } catch {
       avisar("No se pudo copiar al portapapeles.");
     }
   };
