@@ -49,13 +49,17 @@ Not an official Minecraft product. Not approved by or associated with Mojang or 
 
 ## Search terms (at most 7, 40 characters each)
 
-1. litematic
-2. minecraft schematic
-3. minecraft 3d viewer
-4. minecraft materials list
+1. schematic
+2. schematic viewer
+3. 3d viewer
+4. materials list
 5. shulker
 6. schem
-7. minecraft builds
+
+No other products' names ("Minecraft", "Litematica"…): the first certification
+(15-10-2026) was rejected under policy 10.1.3 for having "minecraft" in the
+keywords. The policy also asks for at most seven unique terms; these six use
+seven distinct words in total.
 
 ## Proposed category
 

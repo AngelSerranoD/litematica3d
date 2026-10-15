@@ -50,13 +50,18 @@ No es un producto oficial de Minecraft. No está aprobado por Mojang ni Microsof
 
 ## Términos de búsqueda (máximo 7, 40 caracteres cada uno)
 
-1. litematic
-2. schematic minecraft
-3. visor 3d minecraft
-4. materiales minecraft
+1. schematic
+2. visor schematic
+3. visor 3d
+4. materiales
 5. shulker
 6. schem
-7. construcciones minecraft
+7. construcciones
+
+Sin nombres de productos ajenos («Minecraft», «Litematica»…): la primera
+certificación (15-10-2026) se rechazó por la norma 10.1.3 al llevar
+«minecraft» en las palabras clave. La norma pide además 7 términos únicos
+como mucho; aquí hay 7 palabras distintas en total.
 
 ## Categoría propuesta
 
