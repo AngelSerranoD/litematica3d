@@ -9,6 +9,7 @@ debajo para revisarlo.
 Enlaces:
 
 - Demo web: https://www.aserrano.dev/demo/schematic-lab
+- Microsoft Store: https://apps.microsoft.com/detail/9P3WWV65DTR6
 - Release: https://github.com/AngelSerranoD/schematic-lab/releases/latest
 - Vídeo del visor: `docs/anuncio/visor.mp4` (2,7 MB) y `docs/anuncio/visor.gif`
   (3,9 MB). Están grabados de la demo web, sin texturas, porque la demo no
@@ -69,12 +70,14 @@ What it does:
 You can try it in the browser without installing anything:
 https://www.aserrano.dev/demo/schematic-lab
 
-Download (Windows 10/11, 64-bit):
-https://github.com/AngelSerranoD/schematic-lab/releases/latest
+Get it on the Microsoft Store (Windows 10/11, 64-bit, free):
+https://apps.microsoft.com/detail/9P3WWV65DTR6
+or as a plain installer from GitHub: https://github.com/AngelSerranoD/schematic-lab/releases/latest
 
-Things to know: it's a personal project, Windows only, and the installer
-isn't code-signed, so SmartScreen will warn you ("More info" → "Run anyway").
-The SHA-256 is on the release page. It works offline and sends no data.
+Things to know: it's a personal project and Windows only. The GitHub
+installer isn't code-signed, so SmartScreen will warn you there ("More info"
+→ "Run anyway"); the Store version doesn't have that problem. It works
+offline and sends no data.
 It's not affiliated with Litematica, Mojang or Microsoft.
 
 Feedback welcome, especially schematics that fail to load or material counts
@@ -101,12 +104,13 @@ Qué hace:
 
 Se puede probar en el navegador sin instalar nada: (demo)
 
-Descarga (Windows 10/11, 64 bits): (Release)
+Descárgala en la Microsoft Store (Windows 10/11, 64 bits, gratis): (Store)
+o como instalador normal desde GitHub: (Release)
 
-A tener en cuenta: es un proyecto personal, solo para Windows, y el
-instalador no está firmado, así que SmartScreen avisará («Más información» →
-«Ejecutar de todas formas»). El SHA-256 está en la página de la Release.
-Funciona sin conexión y no envía datos. No tiene relación con Litematica,
+A tener en cuenta: es un proyecto personal y solo para Windows. El
+instalador de GitHub no está firmado, así que ahí SmartScreen avisará («Más
+información» → «Ejecutar de todas formas»); la versión de la Store no tiene
+ese problema. Funciona sin conexión y no envía datos. No tiene relación con Litematica,
 Mojang ni Microsoft.
 
 Se agradecen comentarios, sobre todo schematics que no carguen o recuentos
@@ -132,10 +136,10 @@ It doesn't replace the mod: you still need Litematica to place and build in
 game. This is for browsing and planning outside the game.
 
 Browser demo, no install: https://www.aserrano.dev/demo/schematic-lab
-Download: https://github.com/AngelSerranoD/schematic-lab/releases/latest
+Microsoft Store: https://apps.microsoft.com/detail/9P3WWV65DTR6
+Installer on GitHub: https://github.com/AngelSerranoD/schematic-lab/releases/latest
 
-Personal project, Windows only, unsigned installer (SmartScreen will ask you
-to confirm). Not made by or affiliated with masa or the Litematica
+Personal project, Windows only. Not made by or affiliated with masa or the Litematica
 maintainers. If a file of yours doesn't load, I'd like to know.
 
 **Cuerpo (ES):**
@@ -152,10 +156,10 @@ No sustituye al mod: para colocar y construir en el juego sigue haciendo
 falta Litematica. Esto es para mirar y planificar fuera del juego.
 
 Demo en el navegador, sin instalar: (demo)
-Descarga: (Release)
+Microsoft Store: (Store)
+Instalador en GitHub: (Release)
 
-Proyecto personal, solo Windows, instalador sin firmar (SmartScreen pedirá
-confirmación). No lo ha hecho masa ni los mantenedores de Litematica, ni
+Proyecto personal, solo Windows. No lo ha hecho masa ni los mantenedores de Litematica, ni
 tiene relación con ellos. Si algún archivo tuyo no carga, me gustaría
 saberlo.
 
@@ -179,9 +183,9 @@ before I start. I wrote a Windows app for that.
 - Reads .litematic, .schem, .schematic and .nbt.
 
 Try it in the browser: https://www.aserrano.dev/demo/schematic-lab
-Download (Windows): https://github.com/AngelSerranoD/schematic-lab/releases/latest
+Microsoft Store: https://apps.microsoft.com/detail/9P3WWV65DTR6
 
-Personal project, Windows only, installer not signed. Not affiliated with
+Personal project, Windows only. Not affiliated with
 Mojang, Microsoft or Litematica.
 
 **Cuerpo (ES):**
@@ -197,9 +201,9 @@ antes de empezar. Escribí una app de Windows para eso.
 - Lee .litematic, .schem, .schematic y .nbt.
 
 Pruébalo en el navegador: (demo)
-Descarga (Windows): (Release)
+Microsoft Store: (Store)
 
-Proyecto personal, solo Windows, instalador sin firmar. Sin relación con
+Proyecto personal, solo Windows. Sin relación con
 Mojang, Microsoft ni Litematica.
 
 ---

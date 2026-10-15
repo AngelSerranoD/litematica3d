@@ -9,8 +9,14 @@ Se puede probar sin instalar en la [demo web](https://www.aserrano.dev/demo/sche
 
 ## Instalar
 
-Requisitos: Windows 10 u 11 de 64 bits. Necesita WebView2, que viene con
-Windows 11; si falta, el instalador lo descarga.
+Requisitos: Windows 10 u 11 de 64 bits.
+
+**Microsoft Store (recomendado):** [Schematic Lab en la Store](https://apps.microsoft.com/detail/9P3WWV65DTR6).
+Está firmada por Microsoft, así que no sale el aviso de SmartScreen, y se
+actualiza sola.
+
+**Instalador de GitHub:** para quien no use la Store. Necesita WebView2, que
+viene con Windows 11; si falta, el instalador lo descarga.
 
 1. Descarga `SchematicLab_<versión>_x64-setup.exe` de la
    [última Release](https://github.com/AngelSerranoD/schematic-lab/releases/latest).
@@ -27,8 +33,8 @@ Windows 11; si falta, el instalador lo descarga.
    SHA-256 de la versión 0.1.0:
    `78d073c65e26b691b886809f4616f6ec24db1f6de527e43895013c9e613ccf08`
 
-La versión de la Microsoft Store está en certificación; cuando se publique,
-su enlace irá aquí. Esa versión no muestra el aviso de SmartScreen.
+La versión de la Store guarda su biblioteca aparte de la del instalador de
+GitHub: si cambias de una a otra, vuelve a importar tus schematics.
 
 No es un producto oficial de Minecraft. No está aprobado por Mojang ni
 Microsoft ni asociado con ellos. Tampoco está afiliado a Litematica ni a su

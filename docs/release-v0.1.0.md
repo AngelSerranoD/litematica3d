@@ -23,7 +23,10 @@ Pruébala sin instalar en la demo web: https://www.aserrano.dev/demo/schematic-l
 
 ## Instalar
 
-Descarga `SchematicLab_0.1.0_x64-setup.exe` y ábrelo.
+La forma más cómoda es la Microsoft Store, sin aviso de SmartScreen y con
+actualizaciones automáticas: https://apps.microsoft.com/detail/9P3WWV65DTR6
+
+Si prefieres no usar la Store, descarga `SchematicLab_0.1.0_x64-setup.exe` y ábrelo.
 
 El instalador no está firmado con un certificado de pago, así que Windows
 puede mostrar «Windows protegió su PC» (SmartScreen). Pulsa «Más información»
