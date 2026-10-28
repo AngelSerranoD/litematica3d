@@ -46,6 +46,7 @@ pub fn run() {
             }
         }))
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             // Archivo con el que se lanzó la app: el frontend lo recoge con
             // `archivo_pendiente` cuando ya escucha (evita la carrera con el evento).

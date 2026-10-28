@@ -1,8 +1,9 @@
 // Schematic Lab — © 2026 Ángel Serrano Domínguez. Todos los derechos reservados.
 // Ver LICENSE y NOTICE.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { m } from "motion/react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import type { Tema } from "../api/atlas";
 import { normalizarError } from "../api/llamar";
 import { elegirCarpetaMinecraft } from "../api/dialogo";
@@ -16,6 +17,9 @@ const TEMAS: { valor: Tema; etiqueta: string }[] = [
   { valor: "oscuro", etiqueta: "Oscuro" },
   { valor: "sistema", etiqueta: "Sistema" },
 ];
+
+const URL_RESENA = "ms-windows-store://review/?ProductId=9P3WWV65DTR6";
+const URL_STORE = "https://apps.microsoft.com/detail/9P3WWV65DTR6";
 
 /** Texto del estado del atlas para la versión elegida. */
 function describirAtlas(atlas: EstadoAtlas, hayVersiones: boolean): string {
@@ -293,8 +297,37 @@ function FilaFluidos() {
 function Pie() {
   const error = useAjustes((s) => s.error);
   const guardando = useAjustes((s) => s.guardando);
+  const [estadoResena, setEstadoResena] = useState<"alternativa" | "error" | null>(null);
+
+  const abrirResena = async () => {
+    setEstadoResena(null);
+    try {
+      await openUrl(URL_RESENA);
+    } catch {
+      try {
+        await openUrl(URL_STORE);
+        setEstadoResena("alternativa");
+      } catch {
+        setEstadoResena("error");
+      }
+    }
+  };
+
   return (
     <footer className="ajustes__pie">
+      <button type="button" className="boton-plano" onClick={() => void abrirResena()}>
+        Valorar en Microsoft Store
+      </button>
+      {estadoResena === "alternativa" && (
+        <p className="ajustes__ayuda" role="status">
+          No se pudo abrir el formulario de reseña; hemos abierto la ficha de la app.
+        </p>
+      )}
+      {estadoResena === "error" && (
+        <p className="ajustes__error" role="alert">
+          No se pudo abrir Microsoft Store. Comprueba que esté disponible en Windows.
+        </p>
+      )}
       {error ? (
         <p className="ajustes__error" role="alert">
           {error}

@@ -15,6 +15,17 @@
     "core:window:allow-start-dragging",
     "core:window:allow-close",
     "core:window:allow-destroy",
-    "dialog:allow-open"
+    "dialog:allow-open",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "ms-windows-store://review/?ProductId=9P3WWV65DTR6"
+        },
+        {
+          "url": "https://apps.microsoft.com/detail/9P3WWV65DTR6"
+        }
+      ]
+    }
   ]
 }
